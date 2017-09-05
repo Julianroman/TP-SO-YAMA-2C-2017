@@ -11,7 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 int main(void) {
 	puts("Comienza el proceso YAMA");
 	return EXIT_SUCCESS;
 }
+
+
