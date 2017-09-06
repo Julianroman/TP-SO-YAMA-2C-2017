@@ -20,6 +20,7 @@
 
 int puertoFs = 0;
 char* ipFs = "";
+t_log* log;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
@@ -32,8 +33,11 @@ void leerConfiguracion(){
 
 int main(void) {
 	puts("Comienza DataNode");
+	log = log_create("dataNode.log", "DataNode", false, LOG_LEVEL_TRACE);
 
+	log_trace(log, "Leyendo configuracion");
 	leerConfiguracion();
+	log_trace(log, "Configuracion leida");
 
 	return EXIT_SUCCESS;
 }
