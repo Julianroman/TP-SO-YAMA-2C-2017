@@ -20,6 +20,8 @@
 
 int puertoFs = 0;
 char* ipFs = "";
+int retardoPlanificacion = 0;
+char* algoritmoBalanceo = "";
 
 
 void leerConfiguracion(){
@@ -29,6 +31,11 @@ void leerConfiguracion(){
 	printf("El puerto FS es: %i \n", puertoFs);
 	ipFs = config_get_string_value(archivo_configuracion, "FS_IP");
 	printf("La IP FS es: %s \n", ipFs);
+	retardoPlanificacion = config_get_int_value(archivo_configuracion, "RETARDO_PLANIFICACION");
+	printf("El retardo de la Planificacion es: %i \n", retardoPlanificacion);
+	algoritmoBalanceo = config_get_string_value(archivo_configuracion, "ALGORITMO_BALANCEO");
+	printf("El Algoritmo de Balanceo es: %s \n", algoritmoBalanceo);
+
 }
 
 int main(void) {
