@@ -17,6 +17,9 @@
 #include <commons/string.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 int puertoFs = 0;
 char* ipFs = "";
@@ -48,6 +51,24 @@ int main(void) {
 	log_trace(log, "Leyendo configuracion");
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
+
+	struct sockaddr_in direccionServidor;
+			direccionServidor.sin_family = AF_INET;
+			direccionServidor.sin_addr.s_addr = INADDR_ANY;
+			direccionServidor.sin_port = htons(5040);
+
+			int cliente = socket(AF_INET, SOCK_STREAM, 0);
+			if (connect(cliente, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+				perror("No se pudo conectar");
+				return 1;
+			}
+
+			while (1) {
+				char mensaje[1000];
+				scanf("%s", mensaje);
+				send(cliente, mensaje, strlen(mensaje), 0);
+			}
+
 
 	return EXIT_SUCCESS;
 }
