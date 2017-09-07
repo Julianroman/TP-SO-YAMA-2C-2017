@@ -29,6 +29,8 @@ void leerConfiguracion(){
 	printf("El puerto FS es: %i \n", puertoFs);
 	ipFs = config_get_string_value(archivo_configuracion, "IP_FILESYSTEM");
 	printf("La IP FS es: %s \n", ipFs);
+
+	config_destroy(archivo_configuracion);
 }
 
 int main(void) {

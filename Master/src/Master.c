@@ -29,6 +29,8 @@ void leerConfiguracion(){
 	printf("El puerto YAMA es: %i \n", puertoYama);
 	ipYama = config_get_string_value(archivo_configuracion, "YAMA_IP");
 	printf("La IP YAMA es: %s \n", ipYama);
+
+	config_destroy(archivo_configuracion);
 }
 
 int main(void) {

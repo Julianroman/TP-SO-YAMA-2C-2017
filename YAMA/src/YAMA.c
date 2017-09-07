@@ -37,6 +37,7 @@ void leerConfiguracion(){
 	algoritmoBalanceo = config_get_string_value(archivo_configuracion, "ALGORITMO_BALANCEO");
 	printf("El Algoritmo de Balanceo es: %s \n", algoritmoBalanceo);
 
+	config_destroy(archivo_configuracion);
 }
 
 int main(void) {
