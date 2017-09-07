@@ -20,6 +20,7 @@
 
 int puertoYama = 0;
 char* ipYama = "";
+t_log* log;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
@@ -33,9 +34,11 @@ void leerConfiguracion(){
 int main(void) {
 	puts("Comienza el proceso Master \n");
 
-	// Obtiene el archivo de configuracion
-	puts("Se levanta el archivo de configuracion");
+	log = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
+
+	log_trace(log, "Leyendo configuracion");
 	leerConfiguracion();
+	log_trace(log, "Configuracion leida");
 
 	return EXIT_SUCCESS;
 }
