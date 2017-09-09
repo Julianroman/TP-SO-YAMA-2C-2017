@@ -65,3 +65,10 @@ int crear_listener(const char* puerto){
 /*
  ============================================================================
  */
+int escuchar_socket(const int listenerSocket, const int backlog){
+	listen(listenerSocket, backlog);
+	struct sockaddr_in addr;
+	socklen_t addrlen = sizeof(addr);
+	int socketCliente = accept(listenerSocket, (struct sockaddr *) &addr, &addrlen);
+	return socketCliente;
+};
