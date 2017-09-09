@@ -1,12 +1,13 @@
 # Protocolo
 ## Mensajes
 
-### |00000| Solicitud de procesamiento
+### | '0' | Solicitud de procesamiento
 Master -> YAMA : indica sobre que archivo desea operar
 
 **Formato**
 
-    |00000|nombreArchivo|
+    | '0'  |nombreArchivo     |
+    | char |char[TAMANIO_RUTA]|
 
 **Respuesta**
 + Caso: no se pudo acceder al archivo pedido
@@ -17,134 +18,165 @@ Master -> YAMA : indica sobre que archivo desea operar
   1. N mensajes de informacion de workers
   2. Mensaje de estado indicando fin de lista
 
-### |00001| Mensaje de estado
+### | '1' | Mensaje de estado
 XXXX -> XXXX : Mensaje de Status
 
 **Formato**
 
-    |00001|mensaje|
+    | '1'  |mensaje          |
+    | char |char[TAMANIO_MSG]|
 
-### |00010| Informacion de workers (transformacion)
+### | '2' | Informacion de workers (transformacion)
 YAMA -> Master : informacion de los workers sobre los que se debera operar
 
 **Formato**
 
-    |00010|ip:puerto|bloque|bytesOcupados|nombreArchivoTemporal|
+    | '2'  |ip:puerto             |bloque|bytesOcupados|nombreArchivoTemporal|
+    | char |char[TAMANIO_IPPUERTO]|int   |int          |char[TAMANIO_NOMBRE] |
+
 ** Comportamiento : Master **
 
   + Espera un mensaje de error o n mensajes de informacion seguidos de un mensaje de estado con un fin de lista
 
-### |00011| Orden de transformacion
+### | '3' | Orden de transformacion
 Master -> Workers : orden de ejecucion de la transformacion
 
 **Formato**
 
-    |00011|bloque|bytesOcupados|nombreArchivoTemporal|
+    | '3'  |bloque|bytesOcupados|nombreArchivoTemporal|
+    | char |int   |int          |char[TAMANIO_NOMBRE] |
+
 **Comportamiento : Worker**
   + Queda a la espera de n ordenes de ejecucion seguidas de un mensaje de envio de ejecutable
 
-### |00100| Envio de ejecutable
-Master -> Worker : archivo de ejecucion
+### | '4' | Envio de ejecutable
+Master -> Worker : tamaño del archivo de ejecucion
 
 **Formato**
 
-    |00100|archivo|
+    | '4'  |tamanioArchivo|
+    | char |unsigned int  |
 
-### |00101| Informacion de workers (reduccion local)
+**Comportamiento : Worker**
+  + El worker tiene la responsabilidad de recibir un paquete ,del tamaño obtenido en el mensaje ,que estara conformado por los contenidos del archivo
+
+  **Comportamiento : Master**
+  + El worker tiene la responsabilidad de enviar un paquete ,del tamaño enviado previamente en el mensaje, que estara conformado por los contenidos del archivo
+
+### | '5' | Informacion de workers (reduccion local)
 YAMA -> Master : informacion de los workers sobre los que se debera operar
 
 **Formato**
 
-    |00101|ip:puerto|temporalDeTransformacion|temporalDeReduccionLocal|
+    | '5'  |ip:puerto             |temporalDeTransformacion|temporalDeReduccionLocal|
+    | '5'  |char[TAMANIO_IPPUERTO]|char[TAMANIO_NOMBRE]    |char[TAMANIO_NOMBRE]    |
+
 **Comportamiento : Master**
   + Espera un mensaje de error o n mensajes de informacion seguidos de un mensaje de estado con un fin de lista
 
 
-### |00110| Orden de reduccion local
+### | '6' | Orden de reduccion local
 Master -> Worker : orden de ejecucion de la reduccion local
 
 **Formato**
 
-    |00110|temporalDeTransformacion|temporalDeReduccionLocal|
+    | '6'  |temporalDeTransformacion|temporalDeReduccionLocal|
+    | '6'  |char[TAMANIO_NOMBRE]    |char[TAMANIO_NOMBRE]    |
+
 **Comportamiento : Worker**
   + Queda a la espera de n ordenes de reduccion local seguidas de un mensaje de envio de ejecutable
 
-### |00111| Informacion de workers (reduccion global)
+### | '7' | Informacion de workers (reduccion global)
 YAMA -> Master : informacion de los workers sobre los que se debera operar
 
 **Formato**
 
-    |00111|ip:puerto|temporalReduccionLocal|temporalReduccionGlobal|Encargado|
+    | '7'  |ip:puerto             |temporalReduccionLocal|temporalReduccionGlobal|Encargado|
+    | char |char[TAMANIO_IPPUERTO]|char[TAMANIO_NOMBRE]  |char[TAMANIO_NOMBRE]   |int      |
 
 **Comportamiento : Master**
   + Espera un mensaje de error o N mensajes de informacion seguidos de un mensaje de estado con un fin de lista
 
 
-### |01000| Orden de reduccion global
+### | '8' | Orden de reduccion global
 Master -> Worker : orden de ejecucion de la reduccion global enviada al worker encargado
 
 **Formato**
 
-    |01000|ip:puerto|temporalDeReduccionLocal|temporalDeReduccionGlobal|
+    | '8'  |ip:puerto             |temporalDeReduccionLocal|temporalDeReduccionGlobal|
+    | char |char[TAMANIO_IPPUERTO]|char[TAMANIO_NOMBRE]    |char[TAMANIO_NOMBRE]     |
 
 **Comportamiento : Worker**
   + Queda a la espera de n ordenes de reduccion global seguidas de un mensaje de estado con un fin de lista
 
-### |01001| Informacion de worker (almacenado)
+### | '9' | Informacion de worker (almacenado)
 YAMA -> Master : informacion del worker encargado de almacenar sus resultados
 
 **Formato**
 
-    |01001|ip:puerto|temporalDeReduccionGlobal|
+    | '9'  |ip:puerto             |temporalDeReduccionGlobal|
+    | char |char[TAMANIO_IPPUERTO]|char[TAMANIO_NOMBRE]     |
 
-### |01010| Orden de almacenado
+### | 'a' | Orden de almacenado
 Master -> Worker : orden de almacenamiento enviada al worker encargado
 
 **Formato**
 
-    |01010|temporalDeReduccionGlobal|
+    | 'a'  |temporalDeReduccionGlobal|
+    | char |char[TAMANIO_NOMBRE]     |
 
 **Comportamiento : Worker**
   + Queda a la espera de n ordenes de reduccion global seguidas de un mensaje de estado con un fin de lista
 
-### |01011| Adquisicion de bloque
+### | 'b' | Adquisicion de bloque
 FileSystem -> DataNode : Devolverá el contenido del bloque solicitado almacenado en el Espacio de Datos
 
 **Formato**
 
-    |01011|numeroDeBloque|
+    | 'b'  |numeroDeBloque|
+    | char |unsigned int  |
 
-### |01100| Bloque leido
+### | 'c' | Bloque leido
 DataNode -> FileSystem : Bloque de archivo
 
 **Formato**
 
-    |01100|contenidoDelBloque|
+    | 'c'  |contenidoDelBloque|
+    | char |A DEFINIR         |
 
-### |01101| Escritura de bloque
+### | 'd' | Escritura de bloque
 FileSystem -> DataNode : Grabará los datos enviados en el bloque solicitado del Espacio de Datos
 
 **Formato**
 
-    |01101|numeroDeBloque|contenidoDelBloque|
+    | 'd'  |numeroDeBloque|contenidoDelBloque|
+    | char |unsigned int  |A DEFINIR         |
 
-### |01110| Almacenado de archivo
+### | 'e' | Almacenado de archivo
 {YAMA,Worker,Consola} -> FileSystem : Almacena el archivo
 
 **Formato**
 
-    |01110|rutaCompleta|nombreArchivo|tipo(texto o binario)|contenindo|
+    | 'e'  |rutaCompleta      |nombreArchivo       |tipo(texto o binario)|tamanioArchivo|
+    | 'e'  |char[TAMANIO_RUTA]|char[TAMANIO_NOMBRE]|char                 |unsigned int  |
 
 **Respuesta**
 
   + Mensaje de estado con exito o informacion de error
+**Comportamiento : FileSystem**
+    + El filesystem tiene la responsabilidad de recibir un paquete ,del tamaño obtenido en el mensaje ,que estara conformado por los contenidos del archivo
 
-### |01111| Lectura de archivo
+**Comportamiento : Remitente**
+    + El remitente tiene la responsabilidad de enviar un paquete ,del tamaño enviado previamente en el mensaje, que estara conformado por los contenidos del archivo
+
+### | 'f' | Lectura de archivo
 Consola -> FileSystem : Lee un archivo
 
 **Formato**
 
-    |01111|rutaCompleta|nombreArchivo|
+    | 'f'  |rutaCompleta      |nombreArchivo       |
+    | char |char[TAMANIO_RUTA]|char[TAMANIO_NOMBRE]|
+
 **Respuesta**
 
   + Caso: no se pudo acceder al archivo pedido
@@ -152,9 +184,10 @@ Consola -> FileSystem : Lee un archivo
   + Caso: exito
      + Mensaje de archivo leido con el contenido del archivo
 
-### |10000| Archivo leido
+### | 'g' | Archivo leido
 FileSystem -> Consola : Contenido de un archivo
 
 **Formato**
 
-    |10000|contenidoDelArchivo|
+    | 'g'  |contenidoDelArchivo                    |
+    | char |tamaño variable definido por premensaje|
