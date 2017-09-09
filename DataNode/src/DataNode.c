@@ -55,6 +55,14 @@ int main(void) {
 			return 1;
 		}
 
+		//------- Mensaje de bienvenida del FileSystem ---------------
+		char buf[256];
+		char* buffer = malloc(1000);
+		int bytesRecibidos = recv(cliente, buffer, sizeof(buf), 0);
+		buffer[bytesRecibidos] = '\0';
+		printf("%d dice: %s\n", cliente, buffer);
+		//------------------------------------------------------------
+
 		while (1) {
 			char mensaje[1000];
 			scanf("%s", mensaje);

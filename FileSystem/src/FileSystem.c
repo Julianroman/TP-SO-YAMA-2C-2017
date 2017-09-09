@@ -57,7 +57,7 @@ int main(void) {
 	        	return 1;
 	        }
 	        // escuchar
-	        printf("Estoy escuchando\n");
+	        printf("Esperando conexiones...\n");
 	        if (listen(servidor, 100) == -1) {
 	            perror("Falló el listen");
 	            exit(1);
@@ -92,6 +92,8 @@ int main(void) {
 	                            }
 	                            //char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
 	                            printf("Recibí una conexión de %d!!\n", cliente);
+	                            char* mensaje = "Bienvenido al FileSystem!!";
+	                            send(cliente, mensaje, strlen(mensaje), 0);
 	                        }
 	                    } else {
 	                        // gestionar datos de un cliente
@@ -99,7 +101,7 @@ int main(void) {
 	                    	int bytesRecibidos = recv(i, buffer, sizeof(buf), 0);
 	                        if (bytesRecibidos <= 0) {
 	                            // error o conexión cerrada por el cliente
-	                        	printf("FileSystem: el socket %d se desconectó\n", i);
+	                        	printf("El socket %d se desconectó\n", i);
 	                            close(i); // bye!
 	                            FD_CLR(i, &master); // eliminar del conjunto maestro
 	                        } else {
