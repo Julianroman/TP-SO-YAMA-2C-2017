@@ -8,18 +8,7 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <parser/metadata_program.h>
-#include <commons/log.h>
-#include <commons/collections/list.h>
-#include <commons/config.h>
-#include <commons/string.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#include "../../Funciones/Sockets.h"
 
 int puertoFs = 0;
 char* ipFs = "";
@@ -52,31 +41,7 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	struct sockaddr_in direccionServidor;
-			direccionServidor.sin_family = AF_INET;
-			direccionServidor.sin_addr.s_addr = INADDR_ANY;
-			direccionServidor.sin_port = htons(5040);
-
-			int cliente = socket(AF_INET, SOCK_STREAM, 0);
-			if (connect(cliente, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
-				perror("No se pudo conectar");
-				return 1;
-			}
-
-			//------- Mensaje de bienvenida del FileSystem ---------------
-			char buf[256];
-			char* buffer = malloc(1000);
-			int bytesRecibidos = recv(cliente, buffer, sizeof(buf), 0);
-			buffer[bytesRecibidos] = '\0';
-			printf("%d dice: %s\n", cliente, buffer);
-			//------------------------------------------------------------
-
-			while (1) {
-				char mensaje[1000];
-				scanf("%s", mensaje);
-				send(cliente, mensaje, strlen(mensaje), 0);
-			}
-
+	cliente(ipFs, puertoFs);
 
 	return EXIT_SUCCESS;
 }
