@@ -8,7 +8,16 @@
  ============================================================================
  */
 
-#include "../../Funciones/Sockets.h"
+//#include "../../Funciones/Sockets.h"
+// Probando la shared
+#include <utilidades/Sockets.h>
+// con la shared no se importan los include de funciones
+// asi que los agrego
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/log.h>
+
+
 
 int puertoFs = 0;
 char* ipFs = "";
