@@ -12,8 +12,6 @@
 #define TAMANIO_MSG  64
 #define TAMANIO_IPPUERTO  32
 
-enum mensaje{SOLICITUDPROCESAMIENTO, MSGESTADO, INFOWORKERTRANS, ORDENTRANS, ENVIOEXEC, INFOWORKERREDUXLOC, ORDENREDUXLOC, INFOWORKERGLOBREDUXGLOB};
-
 /*
 ================================================================
  <char> Descipcion
@@ -81,13 +79,11 @@ typedef struct{
 ================================================================
  < 4 >  Envio de ejecutable
 ================================================================
- */
-/*
- * NO DISPONIBLE
+*/
 typedef struct{
 	char header;
 }paquete_envio_ejecutable;
-*/
+
 /*
 ================================================================
  < 5 >  Informacion de workers (reduccion local)
@@ -234,12 +230,16 @@ typedef struct{
 
 /*
 ================================================================
- < e >  Archivo leido
+ < g >  Archivo leido
 ================================================================
  */
 typedef struct{
+	unsigned int tamanioDeArchivo;
+}payload_almacenado_archivo;
+typedef struct{
 	char header;
 }paquete_almacenado_archivo;
+// Nota: la payload debe continuar con el envio del archivo de tamaño <tamanioDeArchivo>
 
 
 /*

@@ -12,6 +12,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <errno.h>
+
 /*
  ============================================================================
  */
@@ -32,8 +34,8 @@ int crear_conexion(const char* ip,const char* puerto){
 
 		// Evaluar mover la conexion a otra funcion
 		if ((connect(socketFD, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1)	fail = 1;
-
 		freeaddrinfo(serverInfo);
+
 		if (fail) return -1;
 		return socketFD;
 };
@@ -49,14 +51,27 @@ int crear_listener(const char* puerto){
 		hints.ai_flags    = AI_PASSIVE;
 		int fail = 0;
 
-	struct addrinfo *serverInfo;
-	if ((statusAddrInfo = getaddrinfo(NULL, puerto, &hints, &serverInfo)) != 0) fail = 1;
-	/**/
-	int listenerSocket;
-	if ((listenerSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) == -1) fail = 1;
-
-	/**/
-	if ((bind(listenerSocket, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1)fail = 1;
+		struct addrinfo *serverInfo;
+		if ((statusAddrInfo = getaddrinfo(NULL, puerto, &hints, &serverInfo)) != 0){
+			fprintf(stderr, "Error en getaddrinfo() : %s", gai_strerror(statusAddrInfo));
+			fail = 1;
+		}
+		/**/
+		int listenerSocket;
+		if ((listenerSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) == -1){
+			perror("socket error");
+			fail = 1;
+		}
+		/**/
+		int yes=1;
+		if (setsockopt(listenerSocket,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1) {
+		    perror("setsockopt");
+		    exit(1);
+		}
+		if ((bind(listenerSocket, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1){
+			perror("bind error");
+			fail = 1;
+		}
 
 	freeaddrinfo(serverInfo);
 	if (fail) return -1;

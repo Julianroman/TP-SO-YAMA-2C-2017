@@ -36,11 +36,15 @@ void leerConfiguracion(){
 int main(void) {
 	puts("Comienza el proceso Master \n");
 
+	// Manejo de logs
 	log = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
-
 	log_trace(log, "Leyendo configuracion");
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
+
+	// Conectarse a worker
+
+
 
 	return EXIT_SUCCESS;
 }

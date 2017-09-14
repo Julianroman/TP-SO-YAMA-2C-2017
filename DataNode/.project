@@ -3,6 +3,7 @@
 	<name>DataNode</name>
 	<comment></comment>
 	<projects>
+		<project>Utilidades</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

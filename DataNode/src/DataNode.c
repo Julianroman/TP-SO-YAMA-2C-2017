@@ -8,7 +8,7 @@
  ============================================================================
  */
 
-#include "../../Funciones/Sockets.h"
+#include <utilidades/Sockets.h>
 
 int puertoFs = 0;
 char* ipFs = "";
