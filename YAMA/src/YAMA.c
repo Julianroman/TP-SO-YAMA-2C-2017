@@ -10,7 +10,7 @@
 
 //#include "../../Funciones/Sockets.h"
 // Probando la shared
-#include <utilidades/Sockets.h>
+#include <utilidades/Sockets.c>
 // con la shared no se importan los include de funciones
 // asi que los agrego
 #include <stdio.h>

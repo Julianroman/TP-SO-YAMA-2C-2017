@@ -8,7 +8,7 @@
  ============================================================================
  */
 
-#include <utilidades/Sockets.h>
+#include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
