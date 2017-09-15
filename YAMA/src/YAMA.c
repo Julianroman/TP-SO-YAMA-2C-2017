@@ -18,7 +18,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 
-
+int id = 1;
 int puertoFs = 0;
 char* ipFs = "";
 int retardoPlanificacion = 0;
@@ -50,7 +50,7 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	cliente(ipFs, puertoFs);
+	cliente(ipFs, puertoFs, id);
 
 	return EXIT_SUCCESS;
 }

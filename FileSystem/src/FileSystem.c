@@ -8,7 +8,7 @@
  ============================================================================
  */
 
-#include <utilidades/Sockets.h>
+#include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -23,8 +23,8 @@ int main(void) {
 	log = log_create("fileSystem.log", "FileSystem", false, LOG_LEVEL_TRACE);
 	//log_trace(log, "MENSAJE");
 
-	//servidor(miIP);
-	init_consola();
+	servidor(miIP);
+	//init_consola();
 
 	return EXIT_SUCCESS;
 }

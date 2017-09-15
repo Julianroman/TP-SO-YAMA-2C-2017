@@ -15,6 +15,7 @@
 #include <commons/config.h>
 
 int puertoFs = 0;
+int id = 1;
 char* ipFs = "";
 t_log* log;
 
@@ -37,7 +38,7 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	cliente(ipFs, puertoFs);
+	cliente(ipFs, puertoFs, id);
 
 	return EXIT_SUCCESS;
 }

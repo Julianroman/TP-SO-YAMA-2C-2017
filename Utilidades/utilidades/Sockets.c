@@ -17,7 +17,23 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #include "Sockets.h"
+
+char* tipo_proceso(int id_tipo_proceso) {
+	switch(id_tipo_proceso) {
+		case 0:
+			return "File System";
+		break;
+		case 1:
+			return "DataNode";
+		break;
+		default:
+			return -1;
+		break;
+	}
+}
+
 
 void servidor(int puerto){
 
@@ -70,7 +86,8 @@ void servidor(int puerto){
 			exit(1);
 		}
 		// explorar conexiones existentes en busca de datos que leer
-		int i, j;
+		int i, j, primera;
+		char * proceso;
 		for(i = 0; i <= fdmax; i++) {
 			if (FD_ISSET(i, &masterAux)) { // ¡¡tenemos datos!!
 				if (i == servidor) {
@@ -86,31 +103,36 @@ void servidor(int puerto){
 							fdmax = cliente;
 						}
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
-						printf("Recibí una conexión de %d!!\n", cliente);
+						primera = 0;
 						char* mensaje = "Bienvenido al FileSystem!!";
 						send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
 					// gestionar datos de un cliente
 					//char buf[256];
+
+					/*pthread_t new_thread;
+					pthread_create(&(new_thread), NULL, funcion, i);*/
+
+					if(primera == 0){
+						int my_net_id;
+						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
+						buffer[bytesRecibidos] = '\0';
+						int id = ntohl(my_net_id);
+						proceso = tipo_proceso(id);
+						printf("Recibí una conexión de %s!!\n", proceso);
+						primera++;
+						//free(buffer);
+					}
 					int bytesRecibidos = recv(i, buffer, 1000, 0);
 					if (bytesRecibidos <= 0) {
 						// error o conexión cerrada por el cliente
-						printf("El socket %d se desconectó\n", i);
+						printf("El %s se desconectó\n", proceso);
 						close(i); // bye!
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 						} else {
 							buffer[bytesRecibidos] = '\0';
-							printf("El socket %d dice: %s\n", i, buffer);
-							if (FD_ISSET(j, &master)) {
-								// excepto al listener y a nosotros mismos
-	                        	/*	if (j != servidor && j != i) {
-	                        			if (send(j, buffer, bytesRecibidos, 0) == -1) {
-	                        				perror("send");
-	                        				exit(1);
-	                        			}
-	                        		}*/
-							}
+							printf("El %s dice: %s\n", proceso, buffer);
 						}
 				} // Esto es ¡TAN FEO!
 			}
@@ -119,7 +141,7 @@ void servidor(int puerto){
 	free(buffer);
 }
 
-void cliente(const char* ip, int puerto){
+void cliente(const char* ip, int puerto, int id_tipo_proceso){
 	struct sockaddr_in direccionServidor;
 	direccionServidor.sin_family = AF_INET;
 	direccionServidor.sin_addr.s_addr = INADDR_ANY;
@@ -132,6 +154,8 @@ void cliente(const char* ip, int puerto){
 		exit(1);
 	}
 
+	int numeroConvertido = htonl(id_tipo_proceso);
+	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
 	//------- Mensaje de bienvenida del FileSystem ---------------
 	//char buf[256];
 	char* buffer = malloc(1000);
