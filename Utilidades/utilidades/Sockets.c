@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <errno.h>
 #include "Sockets.h"
 
 char* tipo_proceso(int id_tipo_proceso) {
@@ -172,4 +173,84 @@ void cliente(const char* ip, int puerto, int id_tipo_proceso){
 
 	free(buffer);
 
+}
+
+void enviar_archivo(int socketCliente, char* file){
+	socklen_t       sock_len;
+	ssize_t len;
+	int fd;
+	int sent_bytes = 0;
+	char file_size[256];
+	struct stat file_stat;
+	int offset;
+	int remain_data;
+
+	fd = fopen(file, "r");
+	if (fd == -1)
+	{
+			fprintf(stderr, "Error opening file --> %s", strerror(errno));
+
+			exit(EXIT_FAILURE);
+	}
+
+	/* Get file stats */
+	if (fstat(fd, &file_stat) < 0)
+	{
+			fprintf(stderr, "Error fstat --> %s", strerror(errno));
+
+			exit(EXIT_FAILURE);
+	}
+	/* Sending file size */
+	len = send(socketCliente, file_size, sizeof(file_size), 0);
+	if (len < 0)
+	{
+		fprintf(stderr, "Error on sending greetings --> %s", strerror(errno));
+
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(stdout, "Server envió %d bytes para el tamaño\n", len);
+
+	offset = 0;
+	remain_data = file_stat.st_size;
+	/* Sending file data */
+	while (((sent_bytes = sendfile(socketCliente, fd, &offset, BUFSIZ)) > 0) && (remain_data > 0))
+	{
+			fprintf(stdout, "1. Server sent %d bytes from file's data, offset is now : %d and remaining data = %d\n", sent_bytes, offset, remain_data);
+			remain_data -= sent_bytes;
+			fprintf(stdout, "2. Server sent %d bytes from file's data, offset is now : %d and remaining data = %d\n", sent_bytes, offset, remain_data);
+	}
+}
+
+void recibir_archivo(int socketCliente){
+	int client_socket;
+	ssize_t len;
+	struct sockaddr_in remote_addr;
+	char buffer[BUFSIZ];
+	int file_size;
+	FILE *received_file;
+	int remain_data = 0;
+
+    /* Receiving file size */
+    recv(socketCliente, buffer, BUFSIZ, 0);
+    file_size = atoi(buffer);
+    //fprintf(stdout, "\nFile size : %d\n", file_size);
+
+    received_file = fopen("archivoRecibido.c", "w");
+    if (received_file == NULL)
+    {
+            fprintf(stderr, "Failed to open file foo --> %s\n", strerror(errno));
+
+            exit(EXIT_FAILURE);
+    }
+
+    remain_data = file_size;
+
+    while (((len = recv(client_socket, buffer, BUFSIZ, 0)) > 0) && (remain_data > 0))
+    {
+            fwrite(buffer, sizeof(char), len, received_file);
+            remain_data -= len;
+            fprintf(stdout, "Receive %d bytes and we hope :- %d bytes\n", len, remain_data);
+    }
+    fclose(received_file);
 }

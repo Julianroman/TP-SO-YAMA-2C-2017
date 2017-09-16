@@ -24,6 +24,7 @@ int main(void) {
 	//log_trace(log, "MENSAJE");
 
 	servidor(miIP);
+
 	//init_consola();
 
 	return EXIT_SUCCESS;
