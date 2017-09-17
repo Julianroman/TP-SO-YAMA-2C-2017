@@ -10,6 +10,7 @@
 
 #include "protocolo.h"
 
+
 typedef struct{
 	t_Mensaje estimulo;
 	void*     accion;
@@ -23,6 +24,6 @@ t_Mensaje recibir_header(int socket);
 //		nota: se ejecuta luego de recibir_header(1), y cada accion
 //            tiene la responsabilidad de manejar su payload
 
-void responder_mensaje(t_Mensaje tipoDeMensaje, t_Respuesta* tablaDeAcciones);
+void responder_solicitud(t_Mensaje tipoDeMensaje, t_Respuesta* tablaDeAcciones);
 
 #endif /* UTILIDADES_PROTOCOL_UTILS_H_ */

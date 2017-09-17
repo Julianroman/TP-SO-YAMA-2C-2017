@@ -233,7 +233,7 @@ typedef struct{
  */
 typedef struct{
 	char header;
-}paquete_almacenado_archivo;
+}paquete_lectura_archivo;
 
 /*
 ================================================================
@@ -245,11 +245,9 @@ typedef struct{
 }payload_almacenado_archivo;
 typedef struct{
 	char header;
-}paquete_almacenado_archivo;
+}paquete_archivo;
 // Nota: la payload debe continuar con el envio del archivo de tamaño <tamanioDeArchivo>
 
-
-/*
 
 
 #endif /* PROTOCOLO_H_ */
