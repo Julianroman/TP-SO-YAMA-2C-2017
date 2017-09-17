@@ -17,6 +17,12 @@
 #include <commons/string.h>
 #include <string.h>
 #include <unistd.h>
+#include <utilidades/socket_utils.h>
+#include "requests.h"
+
+#define PUERTOYAMA "8085"
+#define IPYAMA     "127.0.0.1"
+#define NOMBREARCH "foo/bar.rb"
 
 int puertoYama = 0;
 char* ipYama = "";
@@ -29,7 +35,6 @@ void leerConfiguracion(){
 	printf("El puerto YAMA es: %i \n", puertoYama);
 	ipYama = config_get_string_value(archivo_configuracion, "YAMA_IP");
 	printf("La IP YAMA es: %s \n", ipYama);
-
 	config_destroy(archivo_configuracion);
 }
 
@@ -42,9 +47,12 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	// Conectarse a worker
+	// Conectarse al YAMA
+	int socketYAMA = crear_conexion(IPYAMA,PUERTOYAMA);
+	printf("YAMA socket en : %d ",socketYAMA);
 
-
+	//Enviar Solicitud
+	solicitud_procesamiento(socketYAMA,NOMBREARCH);
 
 	return EXIT_SUCCESS;
 }
