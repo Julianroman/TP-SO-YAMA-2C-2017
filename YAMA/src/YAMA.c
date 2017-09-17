@@ -8,15 +8,13 @@
  ============================================================================
  */
 
-//#include "../../Funciones/Sockets.h"
-// Probando la shared
 #include <utilidades/Sockets.c>
-// con la shared no se importan los include de funciones
-// asi que los agrego
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include "serverWorker.h"
+
 
 int id = 1;
 int puertoFs = 0;
@@ -50,7 +48,9 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	cliente(ipFs, puertoFs, id);
+	//cliente(ipFs, puertoFs, id);
+	init_WorkerServer();
+
 
 	return EXIT_SUCCESS;
 }
