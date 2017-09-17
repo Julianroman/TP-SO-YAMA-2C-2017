@@ -22,10 +22,16 @@ t_Mensaje recibir_header(int socket){
 	return header;
 };
 
+/*
+ * Responsabilidad de responder solicitud delegada a cada modulo
+ *
+ *
 void* buscar_respuesta(t_Mensaje tipoDeMensaje, t_Respuesta* tablaDeAcciones){
+	if(tipoDeMensaje == SOLICITUDPROCESAMIENTO)printf("solicitud");
 	int i, n = NELEMS(tablaDeAcciones);
+	printf("%d",n);
 	for(i=0; i<n; i++){
-		if(tipoDeMensaje == tablaDeAcciones[i].estimulo){
+		if(tablaDeAcciones[i].estimulo == tipoDeMensaje){
 			return tablaDeAcciones[i].accion;
 		}
 	}
@@ -42,4 +48,4 @@ void responder_solicitud(t_Mensaje tipoDeMensaje, t_Respuesta* tablaDeAcciones){
 		printf("Mensaje desconocido\n");
 	}
 };
-
+*/
