@@ -21,18 +21,17 @@
 #include "serverMaster.h"
 
 
-t_log* log;
+t_log* logs;
 
 int main(void) {
 	puts("Comienza Worker");
 
 	// Manejo de logs
-	log = log_create("worker.log", "Worker", false, LOG_LEVEL_TRACE);
+	logs = log_create("worker.log", "Worker", false, LOG_LEVEL_TRACE);
 	//log_trace(log, "MENSAJE");
 
-	// Servidor
+	// Servidor de Master
 	init_serverMaster();
-
 
 	return EXIT_SUCCESS;
 }

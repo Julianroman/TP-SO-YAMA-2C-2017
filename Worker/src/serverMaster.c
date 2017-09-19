@@ -9,35 +9,28 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <utilidades/socket_utils.h>
+#include <utilidades/protocol_utils.h>
+#include <utilidades/protocolo.h>
+#include "responses.h"
+
+#define PUERTOESCUCHA "8085"
+#define BACKLOG       5
+
 
 void init_serverMaster(){
-	/*
-	int socket_listener = crear_listener("8085");
-	int socket_cliente  = escuchar_socket(socket_listener,BACKLOG );
-	char buffer;
-    recv(socket_cliente , buffer, BUFSIZ, 0);
-    int file_size = atoi(buffer);
+	// Recibir conexion
+	int socket_listener = crear_listener(PUERTOESCUCHA);
+	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 
+	while(1){
+		/* Ciclo Escuha-Respuesta */
+		// En cuanto se incorporen multiples Masters
+		// esta estructura debe pasar a ser un multiplexor
 
-	FILE *received_file = fopen(FILENAME, "w");
-    if (received_file == NULL)
-    {
-            fprintf(stderr, "Failed to open file foo --> %s\n", strerror(errno));
-
-            exit(EXIT_FAILURE);
-    }
-
-    int remain_data = file_size;
-    int len;
-
-    while (((len = recv(socket_cliente , buffer, BUFSIZ, 0)) > 0) && (remain_data > 0))
-    {
-            fwrite(buffer, sizeof(char), len, received_file);
-            remain_data -= len;
-            fprintf(stdout, "Receive %d bytes and we hope :- %d bytes\n", len, remain_data);
-    }
-    fclose(received_file);
-
-    close(socket_cliente);
-    */
+		// Recibir header
+		t_Mensaje tipoSolicitud = recibir_header(socket_cliente);
+		// Responder de acuerdo al header recibido
+		responder_solicitud(tipoSolicitud);
+	}
 };
