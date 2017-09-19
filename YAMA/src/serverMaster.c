@@ -8,14 +8,14 @@
 #include <utilidades/protocolo.h>
 #include <utilidades/protocol_utils.h>
 #include "responses.h"
-#include "serverWorker.h"
+#include "serverMaster.h"
 
 #define PUERTOESCUCHA "8085"
 #define BACKLOG       5
 
 
 
-void init_WorkerServer(){
+void init_serverMaster(){
 	//Recibir conexion
 	int socket_listener = crear_listener(PUERTOESCUCHA);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);

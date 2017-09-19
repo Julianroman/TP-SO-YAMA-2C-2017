@@ -13,7 +13,8 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include "serverWorker.h"
+
+#include "serverMaster.h"
 
 
 int id = 1;
@@ -49,7 +50,7 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	//cliente(ipFs, puertoFs, id);
-	init_WorkerServer();
+	init_serverMaster();
 
 
 	return EXIT_SUCCESS;
