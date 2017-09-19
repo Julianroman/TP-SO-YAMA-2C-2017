@@ -52,7 +52,6 @@ int main(void) {
 	//cliente(ipFs, puertoFs, id);
 	init_serverMaster();
 
-
 	return EXIT_SUCCESS;
 }
 

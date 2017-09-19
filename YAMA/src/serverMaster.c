@@ -14,21 +14,20 @@
 #define BACKLOG       5
 
 
-
 void init_serverMaster(){
-	//Recibir conexion
+	// Recibir conexion
 	int socket_listener = crear_listener(PUERTOESCUCHA);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 
-	t_Mensaje tipoSolicitud = recibir_header(socket_cliente);
-	responder_solicitud(tipoSolicitud);
+	while(1){
+		/* Ciclo Escuha-Respuesta */
+		// En cuanto se incorporen multiples Masters
+		// esta estructura debe pasar a ser un multiplexor
 
-	//
-	/*
-	t_Mensaje header;
-	recv(cliente,&header,sizeof header, 0);
-	if(header == SOLICITUDPROCESAMIENTO){
-		printf("Solicitud de procesamiento recibida");
-	};
-	*/
+		// Recibir header
+		t_Mensaje tipoSolicitud = recibir_header(socket_cliente);
+		// Responder de acuerdo al header recibido
+		responder_solicitud(tipoSolicitud);
+	}
+
 };
