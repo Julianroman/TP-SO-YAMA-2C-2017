@@ -21,6 +21,8 @@
 #include "requests.h"
 
 #define NOMBREARCH "foo/bar.rb"
+// Eliminar define en cuanto la funcion log devuelva la ip
+#define IPYAMA "127.0.0.1"
 
 int puertoYama = 0;
 char* ipYama = "";
@@ -46,8 +48,8 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	// Conectarse al YAMA
-	int socketYAMA = crear_conexion(ipYama,puertoYama);
-	printf("YAMA socket en : %d ",socketYAMA);
+	int socketYAMA = crear_conexion(IPYAMA,puertoYama);
+	printf("YAMA socket en : %d \n",socketYAMA);
 
 	//Enviar Solicitud
 	solicitud_procesamiento(socketYAMA,NOMBREARCH);
