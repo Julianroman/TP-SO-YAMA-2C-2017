@@ -17,7 +17,10 @@
 /*
  ============================================================================
  */
-int crear_conexion(const char* ip,const char* puerto){
+int crear_conexion(const char* ip,int portNumber){
+		char puerto[6];
+		sprintf(puerto, "%d", portNumber);
+
 	    int             statusAddrInfo;
 		struct addrinfo hints;
 		memset(&hints, 0, sizeof hints);
@@ -25,15 +28,24 @@ int crear_conexion(const char* ip,const char* puerto){
 		hints.ai_socktype = SOCK_STREAM;
 		int fail = 0;
 
+
 		struct addrinfo *serverInfo;
-		if ((statusAddrInfo = getaddrinfo(ip, puerto, &hints, &serverInfo)) != 0) fail = 1;
+		if ((statusAddrInfo = getaddrinfo(ip, puerto, &hints, &serverInfo)) != 0){
+			fprintf(stderr, "Error en getaddrinfo() : %s", gai_strerror(statusAddrInfo));
+			fail = 1;
+		}
 		/**/
 		int socketFD;
-		if ((socketFD = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) == -1) fail = 1;
+		if ((socketFD = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) == -1){
+			perror("Error de Socket");
+			fail = 1;
+		}
 		/**/
-
 		// Evaluar mover la conexion a otra funcion
-		if ((connect(socketFD, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1)	fail = 1;
+		if ((connect(socketFD, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1){
+			perror("Error en la conexion");
+			fail = 1;
+		}
 		freeaddrinfo(serverInfo);
 
 		if (fail) return -1;
@@ -42,7 +54,10 @@ int crear_conexion(const char* ip,const char* puerto){
 /*
  ============================================================================
  */
-int crear_listener(const char* puerto){
+int crear_listener(int portNumber){
+	char puerto[6];
+	sprintf(puerto, "%d", portNumber);
+
 	int             statusAddrInfo;
 	struct addrinfo hints;
 		memset(&hints, 0, sizeof hints);
@@ -59,7 +74,7 @@ int crear_listener(const char* puerto){
 		/**/
 		int listenerSocket;
 		if ((listenerSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) == -1){
-			perror("socket error");
+			perror("Error de Socket");
 			fail = 1;
 		}
 		/**/
@@ -69,7 +84,7 @@ int crear_listener(const char* puerto){
 		    exit(1);
 		}
 		if ((bind(listenerSocket, serverInfo->ai_addr, serverInfo->ai_addrlen)) == -1){
-			perror("bind error");
+			perror("Error de bindeo");
 			fail = 1;
 		}
 

@@ -18,7 +18,7 @@
                 * (-1) en caso de error
  ============================================================================
 */
-int crear_conexion(const char* ip,const char* puerto);
+int crear_conexion(const char* ip, int puerto);
 
 /*
  ============================================================================
@@ -30,7 +30,7 @@ int crear_conexion(const char* ip,const char* puerto);
                 * (-1) en caso de error
 ============================================================================
 */
-int crear_listener(const char* puerto);
+int crear_listener(int puerto);
 
 /*
  ============================================================================
