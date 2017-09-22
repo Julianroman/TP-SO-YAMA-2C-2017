@@ -20,6 +20,7 @@
 int id = 1;
 int puertoFs = 0;
 char* ipFs = "";
+int puertoYAMA = 0;
 int retardoPlanificacion = 0;
 char* algoritmoBalanceo = "";
 
@@ -36,6 +37,8 @@ void leerConfiguracion(){
 	printf("El retardo de la Planificacion es: %i \n", retardoPlanificacion);
 	algoritmoBalanceo = config_get_string_value(archivo_configuracion, "ALGORITMO_BALANCEO");
 	printf("El Algoritmo de Balanceo es: %s \n", algoritmoBalanceo);
+	puertoYAMA = config_get_int_value(archivo_configuracion, "YAMA_PUERTO");
+	printf("YAMA se conectara en el puerto: %d \n", puertoYAMA);
 
 	config_destroy(archivo_configuracion);
 }

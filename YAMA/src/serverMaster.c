@@ -14,9 +14,9 @@
 #define BACKLOG       5
 
 
-void init_serverMaster(){
+void init_serverMaster(int puertoEscucha){
 	// Recibir conexion
-	int socket_listener = crear_listener(PUERTOESCUCHA);
+	int socket_listener = crear_listener(puertoEscucha);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 
 	while(1){

@@ -20,6 +20,8 @@
 #include <utilidades/socket_utils.h>
 #include "serverMaster.h"
 
+#define PUERTOESCUCHA 8085
+
 
 t_log* logs;
 
@@ -31,7 +33,7 @@ int main(void) {
 	//log_trace(log, "MENSAJE");
 
 	// Servidor de Master
-	init_serverMaster();
+	init_serverMaster(PUERTOESCUCHA);
 
 	return EXIT_SUCCESS;
 }

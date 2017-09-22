@@ -20,8 +20,6 @@
 #include <utilidades/socket_utils.h>
 #include "requests.h"
 
-#define PUERTOYAMA "8085"
-#define IPYAMA     "127.0.0.1"
 #define NOMBREARCH "foo/bar.rb"
 
 int puertoYama = 0;
@@ -48,7 +46,7 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	// Conectarse al YAMA
-	int socketYAMA = crear_conexion(IPYAMA,PUERTOYAMA);
+	int socketYAMA = crear_conexion(ipYama,puertoYama);
 	printf("YAMA socket en : %d ",socketYAMA);
 
 	//Enviar Solicitud
