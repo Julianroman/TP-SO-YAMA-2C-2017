@@ -19,15 +19,13 @@ void init_serverMaster(int puertoEscucha){
 	int socket_listener = crear_listener(puertoEscucha);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 
-	while(1){
-		/* Ciclo Escuha-Respuesta */
-		// En cuanto se incorporen multiples Masters
-		// esta estructura debe pasar a ser un multiplexor
+	/* Ciclo Escuha-Respuesta */
+	// En cuanto se incorporen multiples Masters
+	// esta estructura debe pasar a ser un multiplexor
 
-		// Recibir header
-		t_Mensaje tipoSolicitud = recibir_header(socket_cliente);
-		// Responder de acuerdo al header recibido
-		responder_solicitud(tipoSolicitud);
-	}
+	// Recibir header
+	t_Mensaje tipoSolicitud = recibir_header(socket_cliente);
+	// Responder de acuerdo al header recibido
+	responder_solicitud(tipoSolicitud);
 
 };

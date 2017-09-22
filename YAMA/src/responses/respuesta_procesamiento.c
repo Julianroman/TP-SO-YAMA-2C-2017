@@ -7,6 +7,6 @@
 #include <stdio.h>
 
 void respuesta_procesamiento(){
-	printf("Procesamiento iniciado");
+	printf("Procesamiento iniciado \n");
 };
 

@@ -53,7 +53,7 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	//cliente(ipFs, puertoFs, id);
-	init_serverMaster();
+	init_serverMaster(puertoYAMA);
 
 	return EXIT_SUCCESS;
 }
