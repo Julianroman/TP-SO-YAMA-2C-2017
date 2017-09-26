@@ -8,10 +8,12 @@
 #include <utilidades/protocolo.h>
 #include <stdio.h>
 
-void responder_solicitud(t_Mensaje tipoDeMensaje){
+YAMA_STATUS responder_solicitud(t_Mensaje tipoDeMensaje,int socket){
+	YAMA_STATUS status;
 	switch (tipoDeMensaje){
 	case SOLICITUDPROCESAMIENTO:
-		respuesta_procesamiento();
+		status = res_procesamiento(socket);
+		return status;
 		break;
 	default:
 		printf("Mensaje desconocido");
