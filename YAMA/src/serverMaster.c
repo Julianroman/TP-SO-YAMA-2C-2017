@@ -15,6 +15,7 @@
 #include <parser/metadata_program.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <string.h>
@@ -28,16 +29,20 @@
 #define PUERTOESCUCHA "8085"
 #define BACKLOG       5
 
-void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int));
+void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int,t_dictionary*),t_dictionary* diccionario);
 
 void init_serverMaster(int puertoEscucha){
+
+	// Diccionario de masters
+	t_dictionary* masters_dictionary = dictionary_create();
 	// Recibir conexion
 	int socket_listener = crear_listener(puertoEscucha);
 	// Multiplexar listener
-	multiplexar(socket_listener,BACKLOG,&responder_solicitud);
+	multiplexar(socket_listener,BACKLOG,&responder_solicitud,masters_dictionary);
 };
 
-void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int)){
+//TODO enviar multiplexar a su propio fichero
+void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int,t_dictionary*),t_dictionary* diccionario){
 	fd_set master,auxfds;
 	int i,fdmax,nuevoCliente,nbytes;
     socklen_t addrlen;
@@ -91,7 +96,7 @@ void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int
 						FD_CLR(i, &master); // removerlo del master
 					} else {
 						// Responder
-						(*respuesta)(header,i);
+						(*respuesta)(header,i,diccionario);
 					}
 				}
 			}
