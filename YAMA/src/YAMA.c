@@ -14,7 +14,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 
-#include "serverMaster.h"
+#include "serverMaster/serverMaster.h"
 
 
 int id = 1;
@@ -24,7 +24,7 @@ int puertoYAMA = 0;
 int retardoPlanificacion = 0;
 char* algoritmoBalanceo = "";
 
-t_log* log;
+t_log* logs;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
@@ -46,11 +46,11 @@ void leerConfiguracion(){
 int main(void) {
 	puts("Comienza el proceso YAMA");
 
-	log = log_create("yama.log", "YAMA", false, LOG_LEVEL_TRACE);
+	logs = log_create("yama.log", "YAMA", false, LOG_LEVEL_TRACE);
 
-	log_trace(log, "Leyendo configuracion");
+	log_trace(logs, "Leyendo configuracion");
 	leerConfiguracion();
-	log_trace(log, "Configuracion leida");
+	log_trace(logs, "Configuracion leida");
 
 	//cliente(ipFs, puertoFs, id);
 	init_serverMaster(puertoYAMA);

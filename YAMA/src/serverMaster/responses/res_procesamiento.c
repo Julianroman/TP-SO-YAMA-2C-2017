@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <commons/collections/dictionary.h>
-#include "../responses.h"
+#include "responses.h"
 
 YAMA_STATUS res_procesamiento(int socket,t_dictionary* diccionario){
 	printf("Procesamiento iniciado ");

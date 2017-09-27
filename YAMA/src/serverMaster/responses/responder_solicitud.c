@@ -4,7 +4,7 @@
  *  Created on: 17/9/2017
  *      Author: utnso
  */
-#include "../responses.h"
+#include "responses.h"
 #include <utilidades/protocolo.h>
 #include <commons/collections/dictionary.h>
 #include <stdio.h>

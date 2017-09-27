@@ -1,14 +1,15 @@
 /*
- * serverWorker.c
+ * multiplexor.c
  *
- *  Created on: 17/9/2017
+ *  Created on: 27/9/2017
  *      Author: utnso
  */
+
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocolo.h>
 #include <utilidades/protocol_utils.h>
-#include "responses.h"
-#include "serverMaster.h"
+#include "../responses/responses.h"
+#include "../serverMaster.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,22 +27,6 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define PUERTOESCUCHA "8085"
-#define BACKLOG       5
-
-void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int,t_dictionary*),t_dictionary* diccionario);
-
-void init_serverMaster(int puertoEscucha){
-
-	// Diccionario de masters
-	t_dictionary* masters_dictionary = dictionary_create();
-	// Recibir conexion
-	int socket_listener = crear_listener(puertoEscucha);
-	// Multiplexar listener
-	multiplexar(socket_listener,BACKLOG,&responder_solicitud,masters_dictionary);
-};
-
-//TODO enviar multiplexar a su propio fichero
 void multiplexar(int listener,int backlog,YAMA_STATUS (*respuesta)(t_Mensaje,int,t_dictionary*),t_dictionary* diccionario){
 	fd_set master,auxfds;
 	int i,fdmax,nuevoCliente,nbytes;

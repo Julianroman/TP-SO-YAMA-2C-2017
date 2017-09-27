@@ -54,5 +54,7 @@ int main(void) {
 	//Enviar Solicitud
 	solicitud_procesamiento(socketYAMA,NOMBREARCH);
 
+	printf("Presione alguna tecla para terminar...\n");
+	getchar();
 	return EXIT_SUCCESS;
 }
