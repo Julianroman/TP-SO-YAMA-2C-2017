@@ -18,7 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <utilidades/socket_utils.h>
-#include "serverMaster.h"
+#include "serverMaster/serverMaster.h"
 
 #define PUERTOESCUCHA 8085
 
