@@ -28,7 +28,7 @@ int main(void) {
 
 	//init_consola();
 
-	//Creo el hiloConsola que llama a la funcion init_consola()
+	///Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
@@ -36,7 +36,7 @@ int main(void) {
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
-	//El proceso no termina hasta que mueren los dos hilos
+	//El procSso no termina hasta que mueren los dos hilos
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloServidor, NULL);
 

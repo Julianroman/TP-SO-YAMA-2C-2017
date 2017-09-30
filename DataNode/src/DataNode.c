@@ -32,7 +32,7 @@ void leerConfiguracion(){
 
 int main(void) {
 	puts("Comienza DataNode");
-	//Se crea el log
+	///Se crea el log
 	log = log_create("dataNode.log", "DataNode", false, LOG_LEVEL_TRACE);
 	log_trace(log, "Leyendo configuracion");
 	leerConfiguracion();

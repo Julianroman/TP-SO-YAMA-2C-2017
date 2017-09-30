@@ -20,6 +20,8 @@
 #include <pthread.h>
 #include <errno.h>
 #include "Sockets.h"
+t_list* lista;
+const char *vector[20];
 
 char* tipo_proceso(int id_tipo_proceso) {
 	switch(id_tipo_proceso) {
@@ -28,6 +30,9 @@ char* tipo_proceso(int id_tipo_proceso) {
 		break;
 		case 1:
 			return "DataNode";
+		break;
+		case 2:
+			return "Master";
 		break;
 		default:
 			return -1;
@@ -41,6 +46,7 @@ void servidor(int puerto){
 	fd_set master, masterAux; // conjunto maestro de descriptores de fichero y uno auxiliar para el select()
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&masterAux);
+	lista= list_create();
 
 	// obtener socket a la escucha
 	int servidor = socket(AF_INET, SOCK_STREAM, 0);
@@ -75,10 +81,12 @@ void servidor(int puerto){
 
 	// añadir servidor al conjunto maestro
 	FD_SET(servidor, &master);
+	lista = list_create();
 	// seguir la pista del descriptor de fichero mayor
 	int fdmax = servidor; // por ahora es éste
 	struct sockaddr_in direccionCliente; // dirección del cliente
 	char* buffer = malloc(1000);
+	char* proceso;
 	// bucle principal
 	while(1) {
 		masterAux = master; // cópialo
@@ -87,13 +95,12 @@ void servidor(int puerto){
 			exit(1);
 		}
 		// explorar conexiones existentes en busca de datos que leer
-		int i, j, primera;
-		char * proceso;
+		int i, j;
 		for(i = 0; i <= fdmax; i++) {
 			if (FD_ISSET(i, &masterAux)) { // ¡¡tenemos datos!!
 				if (i == servidor) {
 					// gestionar nuevas conexiones
-					unsigned int addrlen = sizeof(direccionCliente);
+					int addrlen = sizeof(direccionCliente);
 					int cliente = accept(servidor, (void*) &direccionCliente, &addrlen);
 					if (cliente  == -1) {
 						perror("Falló el accept");
@@ -104,42 +111,38 @@ void servidor(int puerto){
 							fdmax = cliente;
 						}
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
-						primera = 0;
+						vector[cliente]= "0";
 						char* mensaje = "Bienvenido al FileSystem!!";
 						send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
 					// gestionar datos de un cliente
 					//char buf[256];
-
-					/*pthread_t new_thread;
-					pthread_create(&(new_thread), NULL, funcion, i);*/
-
-					if(primera == 0){
+					if(vector[i] == "0"){
 						int my_net_id;
 						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
 						buffer[bytesRecibidos] = '\0';
 						int id = ntohl(my_net_id);
-						proceso = tipo_proceso(id);
-						printf("Recibí una conexión de %s!!\n", proceso);
-						primera++;
+						vector[i] = tipo_proceso(id);
+						printf("Recibí una conexión de %s!!\n", vector[i]);
 						//free(buffer);
-					}
-					int bytesRecibidos = recv(i, buffer, 1000, 0);
-					if (bytesRecibidos <= 0) {
-						// error o conexión cerrada por el cliente
-						printf("El %s se desconectó\n", proceso);
-						close(i); // bye!
-						FD_CLR(i, &master); // eliminar del conjunto maestro
-						} else {
-							buffer[bytesRecibidos] = '\0';
-							printf("El %s dice: %s\n", proceso, buffer);
+						}else{
+							int bytesRecibidos = recv(i, buffer, 1000, 0);
+							if (bytesRecibidos <= 0) {
+								// error o conexión cerrada por el cliente
+								printf("El socket %s se desconectó\n", vector[i]);
+								close(i); // bye!
+								FD_CLR(i, &master); // eliminar del conjunto maestro
+							} else {
+								buffer[bytesRecibidos] = '\0';
+								printf("El socket %s dice: %s\n", vector[i], buffer);
+							}
 						}
-				} // Esto es ¡TAN FEO!
+					} // Esto es ¡TAN FEO!
+				}
 			}
 		}
-	}
-	free(buffer);
+		free(buffer);
 }
 
 void cliente(const char* ip, int puerto, int id_tipo_proceso){
@@ -157,6 +160,7 @@ void cliente(const char* ip, int puerto, int id_tipo_proceso){
 
 	int numeroConvertido = htonl(id_tipo_proceso);
 	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
+
 	//------- Mensaje de bienvenida del FileSystem ---------------
 	//char buf[256];
 	char* buffer = malloc(1000);
@@ -170,9 +174,7 @@ void cliente(const char* ip, int puerto, int id_tipo_proceso){
 		scanf("%s", mensaje);
 		send(cliente, mensaje, strlen(mensaje), 0);
 	}
-
 	free(buffer);
-
 }
 
 void enviar_archivo(int socketCliente, char* file){
