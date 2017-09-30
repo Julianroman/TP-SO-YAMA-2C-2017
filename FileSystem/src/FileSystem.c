@@ -18,7 +18,7 @@
 
 t_log* log;
 int miPuerto = 5040;
-
+//
 int main(void) {
 	puts("Comienza el proceso FileSystem");
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);

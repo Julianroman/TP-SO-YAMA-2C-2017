@@ -10,6 +10,7 @@
 #include <parser/metadata_program.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <commons/config.h>
 #include <commons/string.h>
 #include <string.h>
@@ -21,6 +22,7 @@
 #include <errno.h>
 #include "Sockets.h"
 t_list* lista;
+t_dictionary* diccionario;
 const char *vector[20];
 
 char* tipo_proceso(int id_tipo_proceso) {
@@ -46,7 +48,7 @@ void servidor(int puerto){
 	fd_set master, masterAux; // conjunto maestro de descriptores de fichero y uno auxiliar para el select()
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&masterAux);
-	lista= list_create();
+	diccionario= dictionary_create();
 
 	// obtener socket a la escucha
 	int servidor = socket(AF_INET, SOCK_STREAM, 0);
@@ -81,7 +83,6 @@ void servidor(int puerto){
 
 	// añadir servidor al conjunto maestro
 	FD_SET(servidor, &master);
-	lista = list_create();
 	// seguir la pista del descriptor de fichero mayor
 	int fdmax = servidor; // por ahora es éste
 	struct sockaddr_in direccionCliente; // dirección del cliente
@@ -95,7 +96,7 @@ void servidor(int puerto){
 			exit(1);
 		}
 		// explorar conexiones existentes en busca de datos que leer
-		int i, j;
+		int i;
 		for(i = 0; i <= fdmax; i++) {
 			if (FD_ISSET(i, &masterAux)) { // ¡¡tenemos datos!!
 				if (i == servidor) {
@@ -111,32 +112,43 @@ void servidor(int puerto){
 							fdmax = cliente;
 						}
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
-						vector[cliente]= "0";
-						char* mensaje = "Bienvenido al FileSystem!!";
+						proceso = malloc(16);
+						snprintf(proceso, 16, "%d", 0);
+						dictionary_put(diccionario, proceso, cliente);
+						free(proceso);
+						//vector[cliente]= "0";
+						char* mensaje = "Bienvenido!!";
 						send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
 					// gestionar datos de un cliente
-					//char buf[256];
-					if(vector[i] == "0"){
+					proceso = malloc(16);
+					snprintf(proceso, 16, "%d", i);
+					int id_proceso = dictionary_get(diccionario, proceso);
+					//if(vector[i] == "0"){
+					if(dictionary_get(diccionario, proceso) == 0){
 						int my_net_id;
 						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
 						buffer[bytesRecibidos] = '\0';
 						int id = ntohl(my_net_id);
-						vector[i] = tipo_proceso(id);
-						printf("Recibí una conexión de %s!!\n", vector[i]);
-						//free(buffer);
+						//vector[i] = tipo_proceso(id);
+						dictionary_put(diccionario, proceso, id);
+						//printf("Recibí una conexión de %s!!\n", vector[i]);
+						id_proceso = dictionary_get(diccionario, proceso);
+						printf("Recibí una conexión de %s!!\n", tipo_proceso(id_proceso));
+						free(proceso);
 						}else{
 							int bytesRecibidos = recv(i, buffer, 1000, 0);
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
-								printf("El socket %s se desconectó\n", vector[i]);
+								printf("El socket %s se desconectó\n", tipo_proceso(id_proceso));
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else {
 								buffer[bytesRecibidos] = '\0';
-								printf("El socket %s dice: %s\n", vector[i], buffer);
+								printf("El socket %s dice: %s\n", tipo_proceso(id_proceso), buffer);
 							}
+							free(proceso);
 						}
 					} // Esto es ¡TAN FEO!
 				}
@@ -166,7 +178,7 @@ void cliente(const char* ip, int puerto, int id_tipo_proceso){
 	char* buffer = malloc(1000);
 	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
 	buffer[bytesRecibidos] = '\0';
-	printf("%d dice: %s\n", cliente, buffer);
+	printf("FileSystem dice: %s\n", cliente, buffer);
 	//------------------------------------------------------------
 
 	while (1) {
