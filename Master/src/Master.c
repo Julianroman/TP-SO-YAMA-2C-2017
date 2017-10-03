@@ -26,7 +26,7 @@
 
 int puertoYama = 0;
 char* ipYama = "";
-t_log* log;
+t_log* logs;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
@@ -42,10 +42,10 @@ int main(void) {
 	puts("Comienza el proceso Master \n");
 
 	// Manejo de logs
-	log = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
-	log_trace(log, "Leyendo configuracion");
+	logs = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
+	log_trace(logs, "Leyendo configuracion");
 	leerConfiguracion();
-	log_trace(log, "Configuracion leida");
+	log_trace(logs, "Configuracion leida");
 
 	// Conectarse al YAMA
 	int socketYAMA = crear_conexion(IPYAMA,puertoYama);
