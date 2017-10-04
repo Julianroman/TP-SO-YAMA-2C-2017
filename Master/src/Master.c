@@ -18,9 +18,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <utilidades/socket_utils.h>
-#include "requests.h"
+#include <utilidades/protocol/senders.h>
 
-#define NOMBREARCH "foo/bar.rb"
+#define NOMBREARCH "foo/bar.rb" // TODO recibir por consola
 // Eliminar define en cuanto la funcion log devuelva la ip
 #define IPYAMA "127.0.0.1"
 
@@ -52,7 +52,8 @@ int main(void) {
 	printf("YAMA socket en : %d \n",socketYAMA);
 
 	//Enviar Solicitud
-	solicitud_procesamiento(socketYAMA,NOMBREARCH);
+	send_SOLICITUDPROCESAMIENTO(socketYAMA,NOMBREARCH);
+
 
 	printf("Presione alguna tecla para terminar...\n");
 	getchar();
