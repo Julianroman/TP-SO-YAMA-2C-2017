@@ -15,7 +15,7 @@
 #include <commons/config.h>
 #include <pthread.h>
 #include "consola.h"
-
+#include <sys/mman.h>
 t_log* log;
 int miPuerto = 5040;
 int cantBloques = 20;
@@ -93,7 +93,22 @@ void inicializarBitmap(char* nombreNodo) {
 	}
 
 }
-
+char* mapearArchivo(char *pathArchivo){
+	struct stat estado_archivo;
+	int fd=open(pathArchivo,R_OK|W_OK);
+	char *archivoMapeado;
+	if(fd<0){
+		perror("open");
+		exit(1);
+	}
+	if(fstat(fd,&estado_archivo)<0){
+		perror("fstat");
+		exit(1);
+	}
+	archivoMapeado=mmap(NULL,estado_archivo.st_size,PROT_READ | PROT_WRITE,MAP_SHARED,fd,0);
+	close(fd);
+	return archivoMapeado;
+}
 int main(void) {
 	puts("Comienza el proceso FileSystem");
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
