@@ -38,7 +38,14 @@ void leerConfiguracion(){
 	config_destroy(archivo_configuracion);
 }
 
-int main(void) {
+
+int main(int argc, char **argv) {
+	if (argc!=2){
+		puts("Ingrese la ruta de un archivo");
+		return 1;
+	}
+	char* rutaArchivo = argv[1];
+
 	puts("Comienza el proceso Master \n");
 
 	// Manejo de logs
@@ -52,10 +59,10 @@ int main(void) {
 	printf("YAMA socket en : %d \n",socketYAMA);
 
 	//Enviar Solicitud
-	send_SOLICITUDPROCESAMIENTO(socketYAMA,NOMBREARCH);
+	send_SOLICITUDPROCESAMIENTO(socketYAMA,rutaArchivo);
 
 
-	printf("Presione alguna tecla para terminar...\n");
+	printf("Presione INTRO para terminar...\n");
 	getchar();
 	return EXIT_SUCCESS;
 }
