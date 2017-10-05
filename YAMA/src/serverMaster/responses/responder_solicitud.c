@@ -4,12 +4,13 @@
  *  Created on: 17/9/2017
  *      Author: utnso
  */
+/*
 #include "responses.h"
-#include <utilidades/protocolo.h>
+#include <utilidades/protocol/types.h>
 #include <commons/collections/dictionary.h>
 #include <stdio.h>
 
-YAMA_STATUS responder_solicitud(t_Mensaje tipoDeMensaje,int socket,t_dictionary* diccionario){
+YAMA_STATUS responder_solicitud(HEADER_T tipoDeMensaje,int socket,t_dictionary* diccionario){
 	YAMA_STATUS status;
 	switch (tipoDeMensaje){
 	case SOLICITUDPROCESAMIENTO:
@@ -21,3 +22,4 @@ YAMA_STATUS responder_solicitud(t_Mensaje tipoDeMensaje,int socket,t_dictionary*
 	}
 };
 
+*/
