@@ -11,6 +11,8 @@
 #include "types.h"
 #include "unpackers.h"
 
+void* unpack_EJECUTABLE(int socket);
+
 void* receive(int socket,HEADER_T* cabecera){
     void* payload;
     HEADER_T header;
@@ -61,6 +63,9 @@ void* receive(int socket,HEADER_T* cabecera){
         break;
         case FIN_COMUNICACION:
         /* Carece de Payload */
+        break;
+        case EJECUTABLE:
+        payload = unpack_EJECUTABLE(socket);
         break;
     }
     (*cabecera) = header;
