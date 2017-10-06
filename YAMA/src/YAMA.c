@@ -14,7 +14,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 
-#include "serverMaster/serverMaster.h"
+#include "serverYAMA/serverYAMA.h"
 
 
 int id = 1;

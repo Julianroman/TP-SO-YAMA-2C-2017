@@ -6,6 +6,7 @@
  */
 
 
+#include "../serverYAMA/serverYAMA.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,17 +21,18 @@
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
 #include <utilidades/protocol/senders.h>
-#include "serverMaster.h"
+#include "../serverYAMA/responses/responses.h"
 
 #define BACKLOG       5
 
 
 void init_serverMaster(int puertoEscucha){
 
-	// Diccionario de masters
-	//t_dictionary* masters_dictionary = dictionary_create();
-	//TODO implementar diccionario de masters
+	// Variable de estado que devuelven las respuestas a solicitudes
+	YAMA_STATUS status;
 
+	// Diccionario de jobs
+	t_dictionary* jobs = dictionary_create();
 
 	// Recibir conexion
 	int listener = crear_listener(puertoEscucha);
@@ -81,24 +83,9 @@ void init_serverMaster(int puertoEscucha){
 						if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 							FD_CLR(i,&master); // Eliminar de la lista
 							break;
+						}else{
+							status = responder_SOLICITUD(i,header,data,jobs); // Responder solicitud
 						}
-						if(header == SOLICITUD_PROCESAMIENTO){  // Estos son errores fantasma
-							payload_SOLICITUD_PROCESAMIENTO* payload;
-							payload = data;
-							puts("Mensaje recibido");
-							puts(payload->nombreArchivo);
-
-							//DUMMIE WORKERS
-							send_INFO_TRANSFORMACION(i,8085,"127.0.0.1",12,1024,"archivoTemporal");
-							send_INFO_TRANSFORMACION(i,8085,"127.0.0.1",13,1024,"archivoTemporal2");
-							send_INFO_TRANSFORMACION(i,8085,"127.0.0.1",14,1024,"archivoTemporal2");
-							send_FIN_LISTA(i);
-
-							// IMPORTANTE! HAY UN LEAK DE MEMORIA
-							// LA FUNCION DE RECOLECCION ESTA EN DESARROLLO
-
-						}
-						// TODO Responder de acuerdo al header recibido
 					}
 				}
 			}
