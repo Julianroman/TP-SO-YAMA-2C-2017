@@ -16,6 +16,15 @@ typedef struct {
 }payload_SOLICITUD_PROCESAMIENTO;
 
 typedef struct { 
+}payload_SOLICITUD_REDUCCIONLOCAL;
+
+typedef struct { 
+}payload_SOLICITUD_REDUCCIONGLOBAL;
+
+typedef struct { 
+}payload_SOLICITUD_ALMACENAMIENTO;
+
+typedef struct { 
     uint16_t bloque; 
     uint16_t bytesocupados; 
     uint16_t tamanio_nombreArchivoTemporal; 
@@ -33,7 +42,6 @@ typedef struct {
     uint16_t PUERTO_Nodo; 
     uint16_t tamanio_IP_Nodo; 
     char* IP_Nodo; 
-    char* nombreTemporal_ReduccionLocal; 
     uint16_t tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
     uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
@@ -49,6 +57,7 @@ typedef struct {
 typedef struct { 
     uint16_t PUERTO_Worker; 
     uint16_t tamanio_IP_Worker; 
+    char* IP_Worker; 
     uint16_t bloque; 
     uint16_t bytesocupados; 
     uint16_t tamanio_nombreArchivoTemporal; 
@@ -58,6 +67,7 @@ typedef struct {
 typedef struct { 
     uint16_t PUERTO_Worker; 
     uint16_t tamanio_IP_Worker; 
+    char* IP_Worker; 
     uint16_t tamanio_nombreTemporal_Transformacion; 
     char* nombreTemporal_Transformacion; 
     uint16_t tamanio_nombreTemporal_ReduccionLocal; 
@@ -67,8 +77,7 @@ typedef struct {
 typedef struct { 
     uint16_t PUERTO_Worker; 
     uint16_t tamanio_IP_Worker; 
-    char* IP_Nodo; 
-    char* nombreTemporal_ReduccionLocal; 
+    char* IP_Worker; 
     uint16_t tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
     uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
@@ -79,9 +88,16 @@ typedef struct {
 typedef struct { 
     uint16_t PUERTO_Worker; 
     uint16_t tamanio_IP_Worker; 
+    char* IP_Worker; 
     uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
 }payload_INFO_ALMACENAMIENTO;
+
+typedef struct { 
+}payload_FIN_LISTA;
+
+typedef struct { 
+}payload_FIN_COMUNICACION;
 
 
 #endif /* UTILIDADES_PROTOCOL_TYPES_H_ */

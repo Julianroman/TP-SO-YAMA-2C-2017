@@ -74,12 +74,11 @@ void send_ORDEN_REDUCCIONLOCAL(int socket , char* nombreTemporal_Transformacion 
     free(paquete);
 };
 
-void send_ORDEN_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
+void send_ORDEN_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
     payload_ORDEN_REDUCCIONGLOBAL payload;
     payload.PUERTO_Nodo = PUERTO_Nodo; 
     payload.tamanio_IP_Nodo = (strlen(IP_Nodo)+1)*sizeof(char);
     payload.IP_Nodo = IP_Nodo; 
-    payload.nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal; 
     payload.tamanio_nombreTemporal_ReduccionLocal = (strlen(nombreTemporal_ReduccionLocal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal; 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
@@ -103,10 +102,11 @@ void send_ORDEN_ALMACENAMIENTO(int socket , char* nombreTemporal_ReduccionGlobal
     free(paquete);
 };
 
-void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , uint16_t bloque , uint16_t bytesocupados , char* nombreArchivoTemporal){
+void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , char* IP_Worker , uint16_t bloque , uint16_t bytesocupados , char* nombreArchivoTemporal){
     payload_INFO_TRANSFORMACION payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
+    payload.IP_Worker = IP_Worker; 
     payload.bloque = bloque; 
     payload.bytesocupados = bytesocupados; 
     payload.tamanio_nombreArchivoTemporal = (strlen(nombreArchivoTemporal)+1)*sizeof(char);
@@ -118,10 +118,11 @@ void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , uint16_t blo
     free(paquete);
 };
 
-void send_INFO_REDUCCIONLOCAL(int socket , uint16_t PUERTO_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal){
+void send_INFO_REDUCCIONLOCAL(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal){
     payload_INFO_REDUCCIONLOCAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
+    payload.IP_Worker = IP_Worker; 
     payload.tamanio_nombreTemporal_Transformacion = (strlen(nombreTemporal_Transformacion)+1)*sizeof(char);
     payload.nombreTemporal_Transformacion = nombreTemporal_Transformacion; 
     payload.tamanio_nombreTemporal_ReduccionLocal = (strlen(nombreTemporal_ReduccionLocal)+1)*sizeof(char);
@@ -133,12 +134,11 @@ void send_INFO_REDUCCIONLOCAL(int socket , uint16_t PUERTO_Worker , char* nombre
     free(paquete);
 };
 
-void send_INFO_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Worker , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
+void send_INFO_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
     payload_INFO_REDUCCIONGLOBAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
-    payload.IP_Nodo = IP_Nodo; 
-    payload.nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal; 
+    payload.IP_Worker = IP_Worker; 
     payload.tamanio_nombreTemporal_ReduccionLocal = (strlen(nombreTemporal_ReduccionLocal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal; 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
@@ -151,10 +151,11 @@ void send_INFO_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Worker , char* IP_No
     free(paquete);
 };
 
-void send_INFO_ALMACENAMIENTO(int socket , uint16_t PUERTO_Worker , char* nombreTemporal_ReduccionGlobal){
+void send_INFO_ALMACENAMIENTO(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal){
     payload_INFO_ALMACENAMIENTO payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
+    payload.IP_Worker = IP_Worker; 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal; 
 

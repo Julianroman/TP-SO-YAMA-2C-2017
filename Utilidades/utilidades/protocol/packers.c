@@ -139,7 +139,7 @@ char* pack_ORDEN_REDUCCIONLOCAL(payload_ORDEN_REDUCCIONLOCAL payload,int* tamani
 };
 
 char* pack_ORDEN_REDUCCIONGLOBAL(payload_ORDEN_REDUCCIONGLOBAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Nodo) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(uint16_t);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Nodo) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(uint16_t);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -159,10 +159,6 @@ char* pack_ORDEN_REDUCCIONGLOBAL(payload_ORDEN_REDUCCIONGLOBAL payload,int* tama
 
     tamanio_envio = (payload.tamanio_IP_Nodo);
     memcpy(paquete+offset,payload.IP_Nodo,tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = (payload.tamanio_nombreTemporal_ReduccionLocal);
-    memcpy(paquete+offset,payload.nombreTemporal_ReduccionLocal,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(uint16_t);
@@ -213,7 +209,7 @@ char* pack_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO payload,int* tamani
 };
 
 char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -229,6 +225,10 @@ char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_
 
     tamanio_envio = sizeof(uint16_t);
     memcpy(paquete+offset,&(payload.tamanio_IP_Worker),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_IP_Worker);
+    memcpy(paquete+offset,payload.IP_Worker,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(uint16_t);
@@ -252,7 +252,7 @@ char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_
 };
 
 char* pack_INFO_REDUCCIONLOCAL(payload_INFO_REDUCCIONLOCAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_Transformacion) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_Transformacion) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -268,6 +268,10 @@ char* pack_INFO_REDUCCIONLOCAL(payload_INFO_REDUCCIONLOCAL payload,int* tamanio_
 
     tamanio_envio = sizeof(uint16_t);
     memcpy(paquete+offset,&(payload.tamanio_IP_Worker),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_IP_Worker);
+    memcpy(paquete+offset,payload.IP_Worker,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(uint16_t);
@@ -291,7 +295,7 @@ char* pack_INFO_REDUCCIONLOCAL(payload_INFO_REDUCCIONLOCAL payload,int* tamanio_
 };
 
 char* pack_INFO_REDUCCIONGLOBAL(payload_INFO_REDUCCIONGLOBAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Nodo) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(uint16_t);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(uint16_t);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -309,12 +313,8 @@ char* pack_INFO_REDUCCIONGLOBAL(payload_INFO_REDUCCIONGLOBAL payload,int* tamani
     memcpy(paquete+offset,&(payload.tamanio_IP_Worker),tamanio_envio);
     offset += tamanio_envio;
 
-    tamanio_envio = (payload.tamanio_IP_Nodo);
-    memcpy(paquete+offset,payload.IP_Nodo,tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = (payload.tamanio_nombreTemporal_ReduccionLocal);
-    memcpy(paquete+offset,payload.nombreTemporal_ReduccionLocal,tamanio_envio);
+    tamanio_envio = (payload.tamanio_IP_Worker);
+    memcpy(paquete+offset,payload.IP_Worker,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(uint16_t);
@@ -342,7 +342,7 @@ char* pack_INFO_REDUCCIONGLOBAL(payload_INFO_REDUCCIONGLOBAL payload,int* tamani
 };
 
 char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + (payload.tamanio_nombreTemporal_ReduccionGlobal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -358,6 +358,10 @@ char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_
 
     tamanio_envio = sizeof(uint16_t);
     memcpy(paquete+offset,&(payload.tamanio_IP_Worker),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_IP_Worker);
+    memcpy(paquete+offset,payload.IP_Worker,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(uint16_t);
