@@ -4,7 +4,7 @@
  * ============================================================================
  */
 
-#ifndef RESPONSES_H_
+/*#ifndef RESPONSES_H_
 #define RESPONSES_H_
 
 #include <utilidades/protocolo.h>
@@ -19,3 +19,4 @@ void res_orden_reduxGlobal();
 void res_orden_almacenamiento();
 
 #endif /* RESPONSES_H_ */
+*/

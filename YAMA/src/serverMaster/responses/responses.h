@@ -7,6 +7,7 @@
 
 #ifndef RESPONSES_RESPONSES_H_
 #define RESPONSES_RESPONSES_H_
+
 /*
 #include <commons/collections/dictionary.h>
 #include <utilidades/protocol/types.h>

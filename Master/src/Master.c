@@ -17,10 +17,13 @@
 #include <commons/string.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/senders.h>
-
-#define NOMBREARCH "foo/bar.rb" // TODO recibir por consola
+#include "etapas/etapas.h"
 // Eliminar define en cuanto la funcion log devuelva la ip
 #define IPYAMA "127.0.0.1"
 
@@ -40,26 +43,38 @@ void leerConfiguracion(){
 
 
 int main(int argc, char **argv) {
+	// Recibir parametros
 	if (argc!=2){
 		puts("Ingrese la ruta de un archivo");
 		return 1;
 	}
-	char* rutaArchivo = argv[1];
+	char* rutaTransformador = argv[1];
 
-	puts("Comienza el proceso Master \n");
+	// Abrir archivo
+	int transformador_fd = open(rutaTransformador,NULL);
+
+
 
 	// Manejo de logs
 	logs = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
+	log_trace(logs, "Comienza proceso master");
 	log_trace(logs, "Leyendo configuracion");
 	leerConfiguracion();
 	log_trace(logs, "Configuracion leida");
 
 	// Conectarse al YAMA
 	int socketYAMA = crear_conexion(IPYAMA,puertoYama);
-	printf("YAMA socket en : %d \n",socketYAMA);
+	log_trace(logs, "Conectado al YAMA");
 
-	//Enviar Solicitud
-	send_SOLICITUDPROCESAMIENTO(socketYAMA,rutaArchivo);
+	MASTER_STATUS status;
+	// Etapas
+		// Transformacion
+	status = etapa_transformacion(socketYAMA,rutaTransformador);
+	if(status == EXITO){
+		puts ("Transformacion exitosa");
+		log_trace(logs, "Transformacion exitosa");
+	}
+
 
 
 	printf("Presione INTRO para terminar...\n");
