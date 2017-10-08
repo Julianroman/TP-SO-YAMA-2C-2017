@@ -17,39 +17,17 @@
 #include "consola.h"
 #include <sys/mman.h>
 t_log* log;
-int miPuerto = 5040;
-int cantBloques = 20;
-int tamanioBloques = 1048576; //1MB
-int bitmap[20];
-char* pathBitmap = ""; //Esto deberia estar en la carpeta Metadata
+int32_t miPuerto = 5040;
+int32_t cantBloques = 20;
+int32_t tamanioBloques = 1048576; //1MB
+int32_t bitmap[20];
+char* pathBitmap = "metadata/"; //Esto deberia estar en la carpeta metadata/bitmaps
 
-int estadoEstable = 0;
-int formateado = 0;
+int32_t estadoEstable = 0;
+int32_t formateado = 0;
 //
 
-void almacenarArchivo(char* pathCompleto, char* nombreArchivo, char* tipo){//Y también recibe "Los datos correspondientes"
-	if(strcmp(tipo,"bin") == 0){
-		puts("ARCHIVO BINARIO");
-
-	}
-	else if(strcmp(tipo,"txt") == 0){
-		puts("ARCHIVO DE TEXTO");
-
-	}
-
-}
-
-void formatear(){
-	/*if(existeUnEstadoAnterior){
-		restaurarDesdeAhi
-	}*/
-
-
-	estadoEstable = 1;
-	formateado = 1;
-}
-
-bool validarArchivo(char* pathArchivo){
+int validarArchivo(char* pathArchivo){
 	FILE* archivo;
 	archivo = fopen(pathArchivo,"r");
 	if (archivo == NULL){
@@ -61,6 +39,70 @@ bool validarArchivo(char* pathArchivo){
 			fclose(archivo);
 			return 1;
 	}
+}
+void enviarADataNode(char* map, int bloque, int tam, int size_bytes){
+
+	printf("Enviado a data node: bloque %i -- bytes %i \n", bloque, size_bytes);
+	//Falta el envio
+
+}
+
+
+int almacenarArchivo(char* location, char* destino, char* tipo){//Y también recibe "Los datos correspondientes"
+	if(strcmp(tipo,"bin") == 0){
+		puts("ARCHIVO BINARIO");
+		FILE* file;
+		if (!(file = fopen(location, "r"))){
+			log_error(log, "El archivo no existe o no se pudo abrir");
+		}
+		else{
+			//validar si el destino es valido
+			int size_bytes;
+			fseek(file,0,SEEK_END);
+			size_bytes = ftell(file);
+			rewind(file);
+
+			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
+			int tam = 0;
+			char* map;
+			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(file),0)) == MAP_FAILED){
+				log_error(log,"Error al mappear archivo\n");
+			}
+			int i;
+			for(i = 0; i < cant_bloques; i++){
+				if(size_bytes > tamanioBloques){
+					enviarADataNode(map, i, tam, tamanioBloques);
+					tam += tamanioBloques;
+					size_bytes -= tamanioBloques;
+				}else{
+					size_bytes++;
+					enviarADataNode(map, i, tam, size_bytes);
+				}
+			}
+		}
+		fclose(file);
+		return 0;
+
+
+	}
+	else if(strcmp(tipo,"txt") == 0){
+		puts("ARCHIVO DE TEXTO");
+
+		//ACA IRÍA LO QUE SE HACE PARA UN ARCHIVO DE TEXTO
+
+		return 0;
+	}
+	return 1;
+}
+
+void formatear(){
+	/*if(existeUnEstadoAnterior){
+		restaurarDesdeAhi
+	}*/
+
+
+	estadoEstable = 1;
+	formateado = 1;
 }
 
 void crearBitmap(char* pathArchivo) {
@@ -79,7 +121,7 @@ void inicializarBitmap(char* nombreNodo) {
 	char *pathNewBitmap = string_new();
 	strcpy(pathNewBitmap, pathBitmap);
 	string_append(&pathNewBitmap, nombreNodo);
-	string_append(&pathNewBitmap, ".bin");
+	string_append(&pathNewBitmap, ".dat");
 
 	if(validarArchivo(pathNewBitmap) == 1){
 
@@ -109,10 +151,22 @@ char* mapearArchivo(char *pathArchivo){
 	close(fd);
 	return archivoMapeado;
 }
-int main(void) {
-	puts("Comienza el proceso FileSystem");
+int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
-	//log_trace(log, "MENSAJE");
+	log_trace(log, "Comienza el proceso FileSystem");
+
+
+	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
+		log_info(log,"Iniciar ignorando/eliminando estado anterior");
+		//format_fs(configFS,directorios);
+	}
+	else{
+		/*restablecerEstado();
+		for(int i = 0; i < list_size(archivos); i++){
+			t_arch* archivo = list_get(archivos, i);
+			printf("%d\n", archivo->padre);
+		}*/
+	}
 
 	//servidor(miPuerto);
 
@@ -126,7 +180,7 @@ int main(void) {
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
-	//El procSso no termina hasta que mueren los dos hilos
+	//El proceso no termina hasta que mueren los dos hilos
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloServidor, NULL);*/
 
@@ -137,8 +191,8 @@ int main(void) {
 
 
 
-	inicializarBitmap("Nodo1");
-	almacenarArchivo("","","bin");
-
+	inicializarBitmap("DataNode1");
+	almacenarArchivo("Nodo1.bin","","bin");
+	//importarArchivo("Nodo1.bin","");
 	return EXIT_SUCCESS;
 }
