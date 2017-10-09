@@ -38,7 +38,6 @@ MASTER_STATUS etapa_almacenamiento (int socketYAMA,t_log* logger){
 		data = receive(socketYAMA,&header);
 		if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */}
 	}
-	puts("Todas las instrucciones fueron recibidas");
 	// IMPORTANTE! HAY UN LEAK DE MEMORIA
 	// LA FUNCION DE RECOLECCION ESTA EN DESARROLLO
 	// Codigo de transformacion
