@@ -59,3 +59,6 @@ RemoteSystemsTempFiles/*
 
 # Metadata
 .metadata
+
+#test_launcher
+Worker/test_launcher
