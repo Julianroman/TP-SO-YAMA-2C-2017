@@ -18,22 +18,30 @@
 #include <string.h>
 #include <unistd.h>
 #include <utilidades/socket_utils.h>
-#include "serverMaster/serverMaster.h"
+
+#include "serverWorker/serverWorker.h"
 
 #define PUERTOESCUCHA 8085
 
 
 t_log* logs;
 
-int main(void) {
-	puts("Comienza Worker");
+int main(int argc, char **argv) {
+	if (argc!=2){
+		puts("Ingrese un puerto");
+		return 1;
+	}
+	char* puertoString = argv[1];
+	int puerto = atoi(puertoString);
+
+	printf("Comenzando Worker en el puerto %d\n",puerto);
 
 	// Manejo de logs
 	logs = log_create("worker.log", "Worker", false, LOG_LEVEL_TRACE);
-	//log_trace(log, "MENSAJE");
+
 
 	// Servidor de Master
-	init_serverMaster(PUERTOESCUCHA);
+	init_serverMaster(puerto,logs);
 
 	return EXIT_SUCCESS;
 }

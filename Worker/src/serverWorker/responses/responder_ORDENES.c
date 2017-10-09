@@ -1,25 +1,24 @@
 /*
- * responder_solicitudes.c
+ * responder_ORDENES.c
  *
  *  Created on: 17/9/2017
  *      Author: utnso
  */
 #include "responses.h"
-#include <utilidades/protocolo.h>
 #include <stdio.h>
+void responder_ORDENES(int socket_cliente,HEADER_T tipoDeMensaje,void* data){
 
-void responder_solicitud(t_Mensaje tipoDeMensaje){
 	switch (tipoDeMensaje){
-	case ORDENTRANS:
+	case ORDEN_TRANSFORMACION:
 		res_orden_transformacion();
 		break;
-	case ORDENREDUXLOC:
+	case ORDEN_REDUCCIONLOCAL:
 		res_orden_reduxLocal();
 		break;
-	case ORDENREDUXGLOB:
+	case ORDEN_REDUCCIONGLOBAL:
 		res_orden_reduxGlobal();
 		break;
-	case ORDENALMA:
+	case ORDEN_ALMACENAMIENTO:
 		res_orden_almacenamiento();
 		break;
 	default:

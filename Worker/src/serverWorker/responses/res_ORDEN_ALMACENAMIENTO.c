@@ -1,12 +1,10 @@
 /*
  * ============================================================================
- * res_orden_reduxLocal.c
+ * res_orden_almacenamiento.c
  * ============================================================================
  */
-
 #include <stdio.h>
 
-void res_orden_reduxLocal(){
-	printf("Orden de reduccion local recibida");
+void res_ORDEN_ALMACENAMIENTO(){
+	printf("Orden de almacenamiento recibida");
 };
-

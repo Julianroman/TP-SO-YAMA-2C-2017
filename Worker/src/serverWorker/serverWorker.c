@@ -7,18 +7,17 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <commons/log.h>
 
 #include <utilidades/socket_utils.h>
-#include <utilidades/protocol_utils.h>
-#include <utilidades/protocolo.h>
-#include "responses/responses.h"
-#include "componentes/serverChild.h"
+
+#include "../serverWorker/serverChild.h"
 
 #define BACKLOG       5
 
 
-void init_serverMaster(int puertoEscucha){
+void init_serverMaster(int puertoEscucha, t_log* logger){
+	log_trace(logs, "Esperando instrucciones");
 	// Recibir conexion
 	int socket_listener = crear_listener(puertoEscucha);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
@@ -35,6 +34,7 @@ void init_serverMaster(int puertoEscucha){
 										 // se encargara de responder al master
 			exit(0);
 		}
+		log_trace(logs, "Proceso %d creado",pid);
 		//Padre
 		socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 

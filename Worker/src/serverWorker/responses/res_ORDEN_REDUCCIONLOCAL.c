@@ -1,12 +1,12 @@
 /*
  * ============================================================================
- * res_orden_transformacion.c
+ * res_orden_reduxLocal.c
  * ============================================================================
  */
 
 #include <stdio.h>
 
-void res_orden_transformacion(){
-	printf("Orden de transformacion local recibida");
+void res_ORDEN_REDUCCIONLOCAL(){
+	printf("Orden de reduccion local recibida");
 };
 

@@ -5,8 +5,8 @@
  *      Author: utnso
  */
 
-#ifndef SERVERMASTER_COMPONENTES_SERVERCHILD_H_
-#define SERVERMASTER_COMPONENTES_SERVERCHILD_H_
+#ifndef SERVERWORKER_COMPONENTES_SERVERCHILD_H_
+#define SERVERWORKER_COMPONENTES_SERVERCHILD_H_
 
 /*
  * Logica de los hijos del proceso serverMaster
@@ -20,4 +20,4 @@
  */
 void init_child(int socket_cliente);
 
-#endif /* SERVERMASTER_COMPONENTES_SERVERCHILD_H_ */
+#endif /* SERVERWORKER_COMPONENTES_SERVERCHILD_H_ */

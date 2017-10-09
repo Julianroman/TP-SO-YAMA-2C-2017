@@ -10,6 +10,6 @@
 
 // Inicia un servidor para atender las solicitudes de los procesos Master
 //  en el puerto pasasdo por parametro (int)
-void init_serverMaster(int puerto);
+void init_serverMaster(int puertoEscucha, t_log* logger);
 
 #endif /* SERVERMASTER_H_ */
