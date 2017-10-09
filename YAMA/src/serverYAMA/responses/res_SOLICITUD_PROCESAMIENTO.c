@@ -10,8 +10,8 @@
 YAMA_STATUS res_SOLICITUD_PROCESAMIENTO  (int socket,void*  data, t_dictionary* diccionario){
 	payload_SOLICITUD_PROCESAMIENTO* payload;
 	payload = data;
-	puts("SOLICITUD_PROCESAMIENTO recibida");
-	printf("Archivo: %s, enviando informacion sobre workers",payload->nombreArchivo);
+	printf("SOLICITUD_PROCESAMIENTO recibida\n");
+	printf("Archivo: %s, enviando informacion sobre workers\n",payload->nombreArchivo);
 
 	//DUMMIE WORKERS
 	send_INFO_TRANSFORMACION(socket,5000,"192.168.1.10",38,10180,"/tmp/Master1-temp38");

@@ -85,6 +85,9 @@ void init_serverMaster(int puertoEscucha){
 							break;
 						}else{
 							status = responder_SOLICITUD(i,header,data,jobs); // Responder solicitud
+							if(status != EXITO) break; // Esto esta para sacar la warning
+													   // Es verdad, si hay warning para que mantengo la variable?
+													   // No se.
 						}
 					}
 				}
