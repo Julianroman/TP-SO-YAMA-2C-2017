@@ -11,6 +11,8 @@
 #include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <pthread.h>
@@ -87,10 +89,43 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 	}
 	else if(strcmp(tipo,"txt") == 0){
 		puts("ARCHIVO DE TEXTO");
+		FILE* file;
+		if (!(file = fopen(location, "r"))){
+			log_error(log, "El archivo no existe o no se pudo abrir");
+		}
+		else{
+			//validar si el destino es valido
+			int size_bytes;
+			fseek(file,0,SEEK_END);
+			size_bytes = ftell(file);
+			rewind(file);
 
-		//ACA IRÍA LO QUE SE HACE PARA UN ARCHIVO DE TEXTO
-
-		return 0;
+			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
+			int tam = 0;
+			char* map;
+			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(file),0)) == MAP_FAILED){
+				log_error(log,"Error al mappear archivo\n");
+			}
+			int i;
+			map = strdup(map);
+			//split de \n al map y le mando cada cosa al datanode
+			char *str1 = strtok(map, "\n");
+			while (str1 != NULL)
+			{
+				if(sizeof(str1) > tamanioBloques){
+					enviarADataNode(map, i, tam, tamanioBloques);
+					//tam += tamanioBloques;
+					size_bytes -= tamanioBloques;
+				}else{
+					enviarADataNode(map, i, tam, size_bytes);
+				}
+				//printf ("%s\n",str1);
+				//Paso a la siguiente posicion
+				str1 = strtok (NULL, "\n");
+			}
+		}
+				fclose(file);
+				return 0;
 	}
 	return 1;
 }
@@ -192,7 +227,8 @@ int main(int arg, char** argv) {
 
 
 	inicializarBitmap("DataNode1");
-	almacenarArchivo("Nodo1.bin","","bin");
+	//almacenarArchivo("Nodo1.bin","","bin");
+	almacenarArchivo("Nodo1.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
 	return EXIT_SUCCESS;
 }
