@@ -43,6 +43,7 @@ void leerConfiguracion(){
 
 
 int main(int argc, char **argv) {
+	// TODO Recibir todos los parametros
 	// Recibir parametros
 	if (argc!=2){
 		puts("Ingrese la ruta de un archivo");
@@ -54,11 +55,9 @@ int main(int argc, char **argv) {
 	int transformador_fd = open(rutaTransformador,NULL);
 
 
-
 	// Manejo de logs
-	logs = log_create("master.log", "Master", false, LOG_LEVEL_TRACE);
-	log_trace(logs, "Comienza proceso master");
-	log_trace(logs, "Leyendo configuracion");
+	logs = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
+	log_trace(logs, "Comienza proceso Master");
 	leerConfiguracion();
 	log_trace(logs, "Configuracion leida");
 
@@ -69,12 +68,27 @@ int main(int argc, char **argv) {
 	MASTER_STATUS status;
 	// Etapas
 		// Transformacion
-	status = etapa_transformacion(socketYAMA,rutaTransformador);
+	status = etapa_transformacion(socketYAMA,logs,rutaTransformador);
 	if(status == EXITO){
-		puts ("Transformacion exitosa");
 		log_trace(logs, "Transformacion exitosa");
 	}
-
+		// Reduccion local
+	status = etapa_reduccionLocal(socketYAMA,logs);
+	if(status == EXITO){
+		log_trace(logs, "Reduccion local exitosa");
+	}
+		// Reduccion global
+	status = etapa_reduccionGlobal(socketYAMA,logs);
+	if(status == EXITO){
+		log_trace(logs, "Reduccion global exitosa");
+	}
+		// Almcenamiento
+	status = etapa_almacenamiento(socketYAMA,logs);
+	if(status == EXITO){
+		log_trace(logs, "Almacenamiento exitoso");
+	}
+	// Finalizar proceso
+		// Mostrar estadisticas
 
 
 	printf("Presione INTRO para terminar...\n");

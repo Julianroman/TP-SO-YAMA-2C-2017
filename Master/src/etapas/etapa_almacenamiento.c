@@ -8,28 +8,37 @@
 #include <commons/log.h>
 #include "etapas.h"
 
-MASTER_STATUS etapa_transformacion (int socketYAMA,t_log* logger, char* yamafs_archivo){
-	log_trace(logger, "Iniciando etapa de transformacion...");
+MASTER_STATUS etapa_almacenamiento (int socketYAMA,t_log* logger){
+	log_trace(logger, "Iniciando etapa de almacenamiento...");
 
 	HEADER_T header;
-	payload_INFO_TRANSFORMACION* payload;
+	payload_INFO_ALMACENAMIENTO* payload;
 	void* data;
 
-	send_SOLICITUD_PROCESAMIENTO(socketYAMA,yamafs_archivo);
+	send_SOLICITUD_ALMACENAMIENTO(socketYAMA);
 	data = receive(socketYAMA,&header);
 
-	if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion*/ }
+	if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */ }
+
 	// Recibir todas las instrucciones
 	// Hasta que termine la lista
 	while(header != FIN_LISTA){
-		if (header == INFO_TRANSFORMACION){
+		// Me aseguro que sean instrucciones de transformacion
+		if (header == INFO_ALMACENAMIENTO){
 			payload = data;
-			printf("Conectarse a nodo en %s:%d , bloque: %d , bytes:%d, nombreDelTemporal: %s\n",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
+			/*
+			 *
+			 *
+			 * CODIGO DE ACCION
+			 *
+			 *
+			 */
 		}
 		//
 		data = receive(socketYAMA,&header);
 		if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */}
 	}
+	puts("Todas las instrucciones fueron recibidas");
 	// IMPORTANTE! HAY UN LEAK DE MEMORIA
 	// LA FUNCION DE RECOLECCION ESTA EN DESARROLLO
 	// Codigo de transformacion
