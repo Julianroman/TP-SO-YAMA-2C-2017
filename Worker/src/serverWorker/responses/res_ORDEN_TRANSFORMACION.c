@@ -1,11 +1,12 @@
 /*
  * ============================================================================
- * res_orden_reduxGlobal.c
+ * res_orden_transformacion.c
  * ============================================================================
  */
 
 #include <stdio.h>
 
-void res_orden_reduxGlobal(){
-	printf("Orden de reduccion global recibida");
+void res_ORDEN_TRANSFORMACION(){
+	printf("Orden de transformacion recibida");
 };
+
