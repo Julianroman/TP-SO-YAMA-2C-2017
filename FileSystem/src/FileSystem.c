@@ -106,25 +106,48 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(file),0)) == MAP_FAILED){
 				log_error(log,"Error al mappear archivo\n");
 			}
-			int i;
+			int i = 0;
 			map = strdup(map);
 			//split de \n al map y le mando cada cosa al datanode
-			char *str1 = strtok(map, "\n");
-			while (str1 != NULL)
+			char **str1 = string_split(map, "\n");
+			char* text = string_new();
+			char* textConcat = string_new();
+			int32_t size_concat = 0;
+			int bloq = 1;
+			while (str1[i] != NULL)
 			{
-				if(sizeof(str1) > tamanioBloques){
-					enviarADataNode(map, i, tam, tamanioBloques);
-					//tam += tamanioBloques;
-					size_bytes -= tamanioBloques;
+
+				textConcat = string_duplicate(text);
+				string_append(&textConcat, str1[i]);
+				string_append(&textConcat, "\n");
+				size_concat = (strlen(textConcat) + 1) * sizeof(textConcat); //Tamaño en bytes
+
+				if(size_concat < tamanioBloques){
+					string_append(&text, str1[i]);
+					tam += size_concat;
+
 				}else{
-					enviarADataNode(map, i, tam, size_bytes);
+					size_concat = (strlen(text) + 1) * sizeof(text);
+					//printf("%s\n",text);
+					enviarADataNode(text, bloq, tam, size_concat);
+					bloq ++;
+					text = string_new();
 				}
-				//printf ("%s\n",str1);
-				//Paso a la siguiente posicion
-				str1 = strtok (NULL, "\n");
+				i++;
+
 			}
+			if(!string_is_empty(text)){
+				size_concat = (strlen(text) + 1) * sizeof(text);
+				//printf("%s\n",text);
+				enviarADataNode(text, bloq, tam, size_concat);
+				bloq ++;
+			}
+			free(str1);
+			free(map);
+			free(text);
 		}
 				fclose(file);
+
 				return 0;
 	}
 	return 1;
@@ -228,7 +251,7 @@ int main(int arg, char** argv) {
 
 	inicializarBitmap("DataNode1");
 	//almacenarArchivo("Nodo1.bin","","bin");
-	almacenarArchivo("Nodo1.txt","","txt");
+	almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
 	return EXIT_SUCCESS;
 }
