@@ -38,7 +38,21 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	cliente(ipFs, puertoFs, id);
-
+	//cliente(ipFs, puertoFs, id);
+	escribirArchivo("metadata/archivo.txt", "polenta", 3);
 	return EXIT_SUCCESS;
+}
+
+void escribirArchivo(char* path, char* data, int offset){
+	FILE* archivo;
+	if (!(archivo = fopen(path, "r"))){
+		log_error(log, "El archivo no existe o no se pudo abrir");
+	}else{
+		archivo = fopen(path,"rb+");
+		fseek(archivo, offset, SEEK_SET);
+		fwrite(data, strlen(data), 1, archivo);
+		fclose(archivo);
+		puts("Escritura Completa");
+	}
+
 }
