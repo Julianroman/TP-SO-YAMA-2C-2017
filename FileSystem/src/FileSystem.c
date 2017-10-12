@@ -18,11 +18,15 @@
 #include <pthread.h>
 #include "consola.h"
 #include <sys/mman.h>
+#include <commons/bitarray.h>
+
 t_log* log;
 int32_t miPuerto = 5040;
 int32_t cantBloques = 20;
 int32_t tamanioBloques = 1048576; //1MB
 int32_t bitmap[20];
+t_bitarray * bitarray;
+unsigned char *mmapDeBitmap;
 char* pathBitmap = "metadata/"; //Esto deberia estar en la carpeta metadata/bitmaps
 
 int32_t estadoEstable = 0;
@@ -120,14 +124,14 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 				textConcat = string_duplicate(text);
 				string_append(&textConcat, str1[i]);
 				string_append(&textConcat, "\n");
-				size_concat = (strlen(textConcat) + 1) * sizeof(textConcat); //Tamaño en bytes
+				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
 
 				if(size_concat < tamanioBloques){
 					string_append(&text, str1[i]);
 					tam += size_concat;
 
 				}else{
-					size_concat = (strlen(text) + 1) * sizeof(text);
+					size_concat = strlen(text) * sizeof(char);
 					//printf("%s\n",text);
 					enviarADataNode(text, bloq, tam, size_concat);
 					bloq ++;
@@ -137,7 +141,7 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 
 			}
 			if(!string_is_empty(text)){
-				size_concat = (strlen(text) + 1) * sizeof(text);
+				size_concat = strlen(text) * sizeof(char);
 				//printf("%s\n",text);
 				enviarADataNode(text, bloq, tam, size_concat);
 				bloq ++;
@@ -164,6 +168,7 @@ void formatear(){
 }
 
 void crearBitmap(char* pathArchivo) {
+	bitarray = bitarray_create_with_mode(mmapDeBitmap,(tamanioBloques * cantBloques / (8 * tamanioBloques)), MSB_FIRST);
 	FILE* archivoBitmap;
 	archivoBitmap = fopen(pathArchivo,"w");
 	int i;
@@ -249,9 +254,9 @@ int main(int arg, char** argv) {
 
 
 
-	inicializarBitmap("DataNode1");
+	crearBitmap("DataNode1");
 	//almacenarArchivo("Nodo1.bin","","bin");
-	almacenarArchivo("Nodo10.txt","","txt");
+	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
 	return EXIT_SUCCESS;
 }
