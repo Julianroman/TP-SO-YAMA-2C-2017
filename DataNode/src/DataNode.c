@@ -39,7 +39,8 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	//cliente(ipFs, puertoFs, id);
-	escribirArchivo("metadata/archivo.txt", "polenta", 3);
+	//escribirArchivo("metadata/archivo.txt", "polenta", 3);
+	leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
 }
 
@@ -53,6 +54,23 @@ void escribirArchivo(char* path, char* data, int offset){
 		fwrite(data, strlen(data), 1, archivo);
 		fclose(archivo);
 		puts("Escritura Completa");
+	}
+
+}
+
+void leerArchivo(char* path, int inicial, int offset){
+	FILE* archivo;
+	char* lectura;
+	if (!(archivo = fopen(path, "r"))){
+		log_error(log, "El archivo no existe o no se pudo abrir");
+	}else{
+		archivo = fopen(path,"r");
+		fseek(archivo, inicial, SEEK_SET);
+		//Se lee desde inicial hasta el desplazamiento
+		fread(lectura, offset, 1, archivo);
+		//Se guarda en lectura lo leido
+		fclose(archivo);
+		printf("%s", lectura);
 	}
 
 }

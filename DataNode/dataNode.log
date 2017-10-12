@@ -151,3 +151,7 @@
 [TRACE] 00:18:00:543 DataNode/(7880:7880): Leyendo configuracion
 [TRACE] 00:18:00:544 DataNode/(7880:7880): Configuracion leida
 [ERROR] 00:18:00:544 DataNode/(7880:7880): El archivo no existe o no se pudo abrir
+[TRACE] 18:47:23:587 DataNode/(3083:3083): Leyendo configuracion
+[TRACE] 18:47:23:599 DataNode/(3083:3083): Configuracion leida
+[TRACE] 18:48:25:284 DataNode/(3159:3159): Leyendo configuracion
+[TRACE] 18:48:25:284 DataNode/(3159:3159): Configuracion leida
