@@ -83,11 +83,16 @@ void init_serverMaster(int puertoEscucha){
 						if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 							FD_CLR(i,&master); // Eliminar de la lista
 							break;
-						}else{
+						}
+						else{
 							status = responder_SOLICITUD(i,header,data,jobs); // Responder solicitud
-							if(status != EXITO) break; // Esto esta para sacar la warning
-													   // Es verdad, si hay warning para que mantengo la variable?
-													   // No se.
+							if (status == EXITO){
+								log_trace(logs, "Solicitud respondida con exito");
+							}
+							else if(status == ERROR){
+								log_trace(logs, "Hubo un error en la solicitud");
+								break;
+							}
 						}
 					}
 				}

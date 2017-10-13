@@ -15,6 +15,28 @@
 #include <commons/config.h>
 
 #include "serverYAMA/serverYAMA.h"
+#include "Job.h"
+
+typedef struct {
+
+	char *nombre;
+	char *ip;
+	char *puerto;
+	int carga;
+	int bloque;
+
+} t_nodo;
+
+typedef struct {
+	t_job job;
+	int master;
+	t_nodo nodo;
+	int bloque;
+	char* etapa;
+	char* archivoTemporal;
+	YAMA_STATUS estado;
+} t_tablaEstados;
+
 
 
 int id = 1;

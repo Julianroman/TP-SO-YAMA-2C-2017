@@ -8,8 +8,7 @@
 #include "../../serverYAMA/responses/responses.h"
 
 YAMA_STATUS res_SOLICITUD_PROCESAMIENTO  (int socket,void*  data, t_dictionary* diccionario){
-	payload_SOLICITUD_PROCESAMIENTO* payload;
-	payload = data;
+	payload_SOLICITUD_PROCESAMIENTO* payload = data;
 	printf("SOLICITUD_PROCESAMIENTO recibida\n");
 	printf("Archivo: %s, enviando informacion sobre workers\n",payload->nombreArchivo);
 
