@@ -48,7 +48,7 @@ void send_SOLICITUD_ALMACENAMIENTO(int socket){
     free(paquete);
 };
 
-void send_ORDEN_TRANSFORMACION(int socket , uint16_t bloque , uint16_t bytesocupados , char* nombreArchivoTemporal){
+void send_ORDEN_TRANSFORMACION(int socket , uint16_t bloque , uint32_t bytesocupados , char* nombreArchivoTemporal){
     payload_ORDEN_TRANSFORMACION payload;
     payload.bloque = bloque; 
     payload.bytesocupados = bytesocupados; 
@@ -102,7 +102,7 @@ void send_ORDEN_ALMACENAMIENTO(int socket , char* nombreTemporal_ReduccionGlobal
     free(paquete);
 };
 
-void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , char* IP_Worker , uint16_t bloque , uint16_t bytesocupados , char* nombreArchivoTemporal){
+void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , char* IP_Worker , uint16_t bloque , uint32_t bytesocupados , char* nombreArchivoTemporal){
     payload_INFO_TRANSFORMACION payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -161,6 +161,31 @@ void send_INFO_ALMACENAMIENTO(int socket , uint16_t PUERTO_Worker , char* IP_Wor
 
     int tamanio_paquete;
     char* paquete = pack_INFO_ALMACENAMIENTO(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_PEDIDO_NODO(int socket , char* nombreArchivo){
+    payload_PEDIDO_NODO payload;
+    payload.tamanio_nombreArchivo = (strlen(nombreArchivo)+1)*sizeof(char);
+    payload.nombreArchivo = nombreArchivo; 
+
+    int tamanio_paquete;
+    char* paquete = pack_PEDIDO_NODO(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_NODO(int socket , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreNodo){
+    payload_NODO payload;
+    payload.PUERTO_Nodo = PUERTO_Nodo; 
+    payload.tamanio_IP_Nodo = (strlen(IP_Nodo)+1)*sizeof(char);
+    payload.IP_Nodo = IP_Nodo; 
+    payload.tamanio_nombreNodo = (strlen(nombreNodo)+1)*sizeof(char);
+    payload.nombreNodo = nombreNodo; 
+
+    int tamanio_paquete;
+    char* paquete = pack_NODO(payload,&tamanio_paquete);
     enviar_paquete(socket,paquete,tamanio_paquete);
     free(paquete);
 };

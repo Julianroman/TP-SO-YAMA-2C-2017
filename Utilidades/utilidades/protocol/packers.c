@@ -77,7 +77,7 @@ char* pack_SOLICITUD_ALMACENAMIENTO(payload_SOLICITUD_ALMACENAMIENTO payload,int
 };
 
 char* pack_ORDEN_TRANSFORMACION(payload_ORDEN_TRANSFORMACION payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -91,7 +91,7 @@ char* pack_ORDEN_TRANSFORMACION(payload_ORDEN_TRANSFORMACION payload,int* tamani
     memcpy(paquete+offset,&(payload.bloque),tamanio_envio);
     offset += tamanio_envio;
 
-    tamanio_envio = sizeof(uint16_t);
+    tamanio_envio = sizeof(uint32_t);
     memcpy(paquete+offset,&(payload.bytesocupados),tamanio_envio);
     offset += tamanio_envio;
 
@@ -209,7 +209,7 @@ char* pack_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO payload,int* tamani
 };
 
 char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Worker) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t) + (payload.tamanio_nombreArchivoTemporal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -235,7 +235,7 @@ char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_
     memcpy(paquete+offset,&(payload.bloque),tamanio_envio);
     offset += tamanio_envio;
 
-    tamanio_envio = sizeof(uint16_t);
+    tamanio_envio = sizeof(uint32_t);
     memcpy(paquete+offset,&(payload.bytesocupados),tamanio_envio);
     offset += tamanio_envio;
 
@@ -370,6 +370,64 @@ char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_
 
     tamanio_envio = (payload.tamanio_nombreTemporal_ReduccionGlobal);
     memcpy(paquete+offset,payload.nombreTemporal_ReduccionGlobal,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+
+char* pack_PEDIDO_NODO(payload_PEDIDO_NODO payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + (payload.tamanio_nombreArchivo);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = PEDIDO_NODO;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint16_t);
+    memcpy(paquete+offset,&(payload.tamanio_nombreArchivo),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_nombreArchivo);
+    memcpy(paquete+offset,payload.nombreArchivo,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+
+char* pack_NODO(payload_NODO payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t) + (payload.tamanio_IP_Nodo) + sizeof(uint16_t) + (payload.tamanio_nombreNodo);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = NODO;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint16_t);
+    memcpy(paquete+offset,&(payload.PUERTO_Nodo),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint16_t);
+    memcpy(paquete+offset,&(payload.tamanio_IP_Nodo),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_IP_Nodo);
+    memcpy(paquete+offset,payload.IP_Nodo,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint16_t);
+    memcpy(paquete+offset,&(payload.tamanio_nombreNodo),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_nombreNodo);
+    memcpy(paquete+offset,payload.nombreNodo,tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;

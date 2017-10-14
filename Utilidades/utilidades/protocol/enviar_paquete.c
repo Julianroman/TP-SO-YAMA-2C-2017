@@ -12,7 +12,7 @@
 
 void enviar_paquete(int socket, char * paquete, int tamanio_paquete) {
 
-	void * buffer = malloc(tamanio_paquete);
+	char * buffer = malloc(tamanio_paquete);
 	memcpy(buffer, paquete, tamanio_paquete);
 	send(socket, buffer, tamanio_paquete, MSG_WAITALL);
 	free(buffer);

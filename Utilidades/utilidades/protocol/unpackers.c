@@ -28,7 +28,7 @@ void* unpack_ORDEN_TRANSFORMACION(int socket){
 
     recv(socket,&(payload->bloque),sizeof(uint16_t),0);
 
-    recv(socket,&(payload->bytesocupados),sizeof(uint16_t),0);
+    recv(socket,&(payload->bytesocupados),sizeof(uint32_t),0);
 
     recv(socket,&(payload->tamanio_nombreArchivoTemporal),sizeof(uint16_t),0);
     uint16_t  tamanio_nombreArchivoTemporal = payload->tamanio_nombreArchivoTemporal;
@@ -118,7 +118,7 @@ void* unpack_INFO_TRANSFORMACION(int socket){
 
     recv(socket,&(payload->bloque),sizeof(uint16_t),0);
 
-    recv(socket,&(payload->bytesocupados),sizeof(uint16_t),0);
+    recv(socket,&(payload->bytesocupados),sizeof(uint32_t),0);
 
     recv(socket,&(payload->tamanio_nombreArchivoTemporal),sizeof(uint16_t),0);
     uint16_t  tamanio_nombreArchivoTemporal = payload->tamanio_nombreArchivoTemporal;
@@ -208,6 +208,41 @@ void* unpack_INFO_ALMACENAMIENTO(int socket){
     char* nombreTemporal_ReduccionGlobal = malloc(tamanio_nombreTemporal_ReduccionGlobal);
     recv(socket,nombreTemporal_ReduccionGlobal,tamanio_nombreTemporal_ReduccionGlobal,0);
     payload->nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal;
+
+    return (void*)payload;
+};
+
+void* unpack_PEDIDO_NODO(int socket){
+    payload_PEDIDO_NODO *payload= malloc(sizeof(payload_PEDIDO_NODO));
+
+    recv(socket,&(payload->tamanio_nombreArchivo),sizeof(uint16_t),0);
+    uint16_t  tamanio_nombreArchivo = payload->tamanio_nombreArchivo;
+
+    char* nombreArchivo = malloc(tamanio_nombreArchivo);
+    recv(socket,nombreArchivo,tamanio_nombreArchivo,0);
+    payload->nombreArchivo = nombreArchivo;
+
+    return (void*)payload;
+};
+
+void* unpack_NODO(int socket){
+    payload_NODO *payload= malloc(sizeof(payload_NODO));
+
+    recv(socket,&(payload->PUERTO_Nodo),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->tamanio_IP_Nodo),sizeof(uint16_t),0);
+    uint16_t  tamanio_IP_Nodo = payload->tamanio_IP_Nodo;
+
+    char* IP_Nodo = malloc(tamanio_IP_Nodo);
+    recv(socket,IP_Nodo,tamanio_IP_Nodo,0);
+    payload->IP_Nodo = IP_Nodo;
+
+    recv(socket,&(payload->tamanio_nombreNodo),sizeof(uint16_t),0);
+    uint16_t  tamanio_nombreNodo = payload->tamanio_nombreNodo;
+
+    char* nombreNodo = malloc(tamanio_nombreNodo);
+    recv(socket,nombreNodo,tamanio_nombreNodo,0);
+    payload->nombreNodo = nombreNodo;
 
     return (void*)payload;
 };
