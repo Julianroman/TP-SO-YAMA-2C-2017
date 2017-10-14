@@ -23,7 +23,7 @@ typedef struct {
 	char *ip;
 	char *puerto;
 	int carga;
-	int bloque;
+	t_list bloque;
 
 } t_nodo;
 
