@@ -71,6 +71,12 @@ void* receive(int socket,HEADER_T* cabecera){
         case ARCHIVO:
         payload = unpack_ARCHIVO(socket);
         break;
+        case BLOQUE:
+        payload = unpack_BLOQUE(socket);
+        break;
+        case PRESENTACION_DATANODE:
+        payload = unpack_PRESENTACION_DATANODE(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;

@@ -2,6 +2,7 @@
  * senders.c
  * Generado automaticamente por ProtoCool
 */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -212,7 +213,7 @@ void send_FIN_COMUNICACION(int socket){
     free(paquete);
 };
 
-void send_ARCHIVO(int socket , int archivo_fd){
+void send_ARCHIVO(uint64_t socket , int archivo_fd){
 	//
 	struct stat buffer;
 	int status = fstat(archivo_fd,&buffer);
@@ -222,14 +223,49 @@ void send_ARCHIVO(int socket , int archivo_fd){
 	HEADER_T header = ARCHIVO;
 	uint32_t size = buffer.st_size;
 
-	char* paquete = malloc(sizeof(HEADER_T)+sizeof(uint32_t)+size);
+	char* paquete = malloc(sizeof(HEADER_T)+sizeof(uint64_t)+size);
 	int offset = 0;
 	memcpy(paquete+offset,&header,sizeof(HEADER_T));
 	offset += sizeof(HEADER_T);
-	memcpy(paquete+offset,&size,sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+	memcpy(paquete+offset,&size,sizeof(uint64_t));
+	offset += sizeof(uint64_t);
 	read(archivo_fd,paquete+offset,size);
 	enviar_paquete(socket,paquete,size);
 	free(paquete);
 
 };
+void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_bloque){
+
+	HEADER_T header = BLOQUE;
+
+	char* paquete = malloc(sizeof(HEADER_T)+sizeof(uint64_t)+tamanio_bloque+sizeof(uint32_t));
+
+	int offset = 0;
+
+	memcpy(paquete+offset,&header,sizeof(HEADER_T));
+	offset += sizeof(HEADER_T);
+
+	memcpy(paquete+offset,&tamanio_bloque,sizeof(uint64_t));
+	offset += sizeof(uint64_t);
+
+	memcpy(paquete+offset,bloque,tamanio_bloque);
+	offset += tamanio_bloque;
+
+	memcpy(paquete+offset,&id_bloque,sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	free(paquete);
+
+};
+void send_PRESENTACION_DATANODE(int socket , uint16_t PUERTO_dataNode , char* IP_dataNode){
+    payload_PRESENTACION_DATANODE payload;
+    payload.PUERTO_dataNode = PUERTO_dataNode; 
+    payload.tamanio_IP_dataNode = (strlen(IP_dataNode)+1)*sizeof(char);
+    payload.IP_dataNode = IP_dataNode; 
+
+    int tamanio_paquete;
+    char* paquete = pack_PRESENTACION_DATANODE(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+

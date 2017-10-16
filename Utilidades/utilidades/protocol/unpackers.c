@@ -250,12 +250,41 @@ void* unpack_NODO(int socket){
 void* unpack_ARCHIVO(int socket){
     payload_ARCHIVO *payload= malloc(sizeof(payload_ARCHIVO));
 
-    recv(socket,&(payload->tamanio_archivo),sizeof(uint16_t),0);
-    uint16_t  tamanio_nombreArchivo = payload->tamanio_archivo;
+    recv(socket,&(payload->tamanio_archivo),sizeof(uint64_t),0);
+    uint64_t  tamanio_archivo = payload->tamanio_archivo;
 
-    char* nombreArchivo = malloc(tamanio_nombreArchivo);
-    recv(socket,nombreArchivo,tamanio_nombreArchivo,0);
-    payload->archivo = nombreArchivo;
+    char* archivo = malloc(tamanio_archivo);
+    recv(socket,archivo,tamanio_archivo,0);
+    payload->archivo = archivo;
 
     return (void*)payload;
 };
+void* unpack_BLOQUE(int socket){
+    payload_BLOQUE *payload= malloc(sizeof(payload_BLOQUE));
+
+    recv(socket,&(payload->tamanio_bloque),sizeof(uint64_t),0);
+    uint64_t  tamanio_bloque = payload->tamanio_bloque;
+
+    char* bloque = malloc(tamanio_bloque);
+    recv(socket,bloque,tamanio_bloque,0);
+    payload->bloque = bloque;
+
+    recv(socket,&(payload->id_bloque),sizeof(uint32_t),0);
+
+    return (void*)payload;
+};
+void* unpack_PRESENTACION_DATANODE(int socket){
+    payload_PRESENTACION_DATANODE *payload= malloc(sizeof(payload_PRESENTACION_DATANODE));
+
+    recv(socket,&(payload->PUERTO_dataNode),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->tamanio_IP_dataNode),sizeof(uint16_t),0);
+    uint16_t  tamanio_IP_dataNode = payload->tamanio_IP_dataNode;
+
+    char* IP_dataNode = malloc(tamanio_IP_dataNode);
+    recv(socket,IP_dataNode,tamanio_IP_dataNode,0);
+    payload->IP_dataNode = IP_dataNode;
+
+    return (void*)payload;
+};
+

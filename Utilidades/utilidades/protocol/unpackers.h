@@ -28,5 +28,7 @@ void* unpack_NODO(int socket);
 void* unpack_FIN_LISTA(int socket);
 void* unpack_FIN_COMUNICACION(int socket);
 void* unpack_ARCHIVO(int socket);
+void* unpack_BLOQUE(int socket);
+void* unpack_PRESENTACION_DATANODE(int socket);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */
