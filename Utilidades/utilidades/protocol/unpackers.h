@@ -23,9 +23,10 @@ void* unpack_INFO_TRANSFORMACION(int socket);
 void* unpack_INFO_REDUCCIONLOCAL(int socket);
 void* unpack_INFO_REDUCCIONGLOBAL(int socket);
 void* unpack_INFO_ALMACENAMIENTO(int socket);
-void* unpack_PEDIDO_NODO(int socket);
+void* unpack_PETICION_NODO(int socket);
 void* unpack_NODO(int socket);
 void* unpack_FIN_LISTA(int socket);
 void* unpack_FIN_COMUNICACION(int socket);
+void* unpack_ARCHIVO(int socket);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

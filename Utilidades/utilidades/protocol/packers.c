@@ -376,13 +376,13 @@ char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_
     return paquete;
 };
 
-char* pack_PEDIDO_NODO(payload_PEDIDO_NODO payload,int* tamanio_paquete){
+char* pack_PETICION_NODO(payload_PETICION_NODO payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + (payload.tamanio_nombreArchivo);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
     int tamanio_envio;
-    HEADER_T cabecera = PEDIDO_NODO;
+    HEADER_T cabecera = PETICION_NODO;
     tamanio_envio = (sizeof(HEADER_T));
     memcpy(paquete+offset,&cabecera,tamanio_envio);
     offset += tamanio_envio;

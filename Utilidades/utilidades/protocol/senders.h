@@ -23,9 +23,10 @@ void send_INFO_TRANSFORMACION(int socket  , uint16_t PUERTO_Worker , char* IP_Wo
 void send_INFO_REDUCCIONLOCAL(int socket  , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal);
 void send_INFO_REDUCCIONGLOBAL(int socket  , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado);
 void send_INFO_ALMACENAMIENTO(int socket  , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal);
-void send_PEDIDO_NODO(int socket  , char* nombreArchivo);
+void send_PETICION_NODO(int socket  , char* nombreArchivo);
 void send_NODO(int socket  , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreNodo);
 void send_FIN_LISTA(int socket );
 void send_FIN_COMUNICACION(int socket );
+void send_ARCHIVO(int socket , int archivo_fd);
 
 #endif /* UTILIDADES_PROTOCOL_SENDER_H_ */

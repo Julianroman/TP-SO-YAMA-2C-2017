@@ -212,8 +212,8 @@ void* unpack_INFO_ALMACENAMIENTO(int socket){
     return (void*)payload;
 };
 
-void* unpack_PEDIDO_NODO(int socket){
-    payload_PEDIDO_NODO *payload= malloc(sizeof(payload_PEDIDO_NODO));
+void* unpack_PETICION_NODO(int socket){
+    payload_PETICION_NODO *payload= malloc(sizeof(payload_PETICION_NODO));
 
     recv(socket,&(payload->tamanio_nombreArchivo),sizeof(uint16_t),0);
     uint16_t  tamanio_nombreArchivo = payload->tamanio_nombreArchivo;
@@ -247,3 +247,15 @@ void* unpack_NODO(int socket){
     return (void*)payload;
 };
 
+void* unpack_ARCHIVO(int socket){
+    payload_ARCHIVO *payload= malloc(sizeof(payload_ARCHIVO));
+
+    recv(socket,&(payload->tamanio_archivo),sizeof(uint16_t),0);
+    uint16_t  tamanio_nombreArchivo = payload->tamanio_archivo;
+
+    char* nombreArchivo = malloc(tamanio_nombreArchivo);
+    recv(socket,nombreArchivo,tamanio_nombreArchivo,0);
+    payload->archivo = nombreArchivo;
+
+    return (void*)payload;
+};
