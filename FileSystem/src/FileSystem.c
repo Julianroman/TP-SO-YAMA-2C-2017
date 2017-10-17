@@ -8,29 +8,23 @@
  ============================================================================
  */
 
-#include <utilidades/Sockets.c>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <pthread.h>
+
 #include "consola.h"
-#include <sys/mman.h>
-#include <commons/bitarray.h>
+#include "funcionesFS.h"
+
 
 t_log* log;
 int32_t miPuerto = 5040;
 int32_t cantBloques = 20;
 int32_t tamanioBloques = 1048576; //1MB
 int32_t bitmap[20];
-t_bitarray * bitarray;
-unsigned char *mmapDeBitmap;
+
 char* pathBitmap = "metadata/"; //Esto deberia estar en la carpeta metadata/bitmaps
 
 int32_t estadoEstable = 0;
 int32_t formateado = 0;
+
+t_list* listaDeNodos;
 //
 
 int validarArchivo(char* pathArchivo){
@@ -167,37 +161,77 @@ void formatear(){
 	formateado = 1;
 }
 
-void crearBitmap(char* pathArchivo) {
-	bitarray = bitarray_create_with_mode(mmapDeBitmap,(tamanioBloques * cantBloques / (8 * tamanioBloques)), MSB_FIRST);
-	FILE* archivoBitmap;
-	archivoBitmap = fopen(pathArchivo,"w");
-	int i;
-
-	for (i = 0; i < cantBloques; i++) {
-		fwrite("0", 1, 1, archivoBitmap);
-		bitmap[i] = 0;
-	}
-	fclose(archivoBitmap);
-}
-
-void inicializarBitmap(char* nombreNodo) {
+void almacenarBitmapEnArchivo(t_nodo *unNodo){
+	//char* name;
+	//sprintf(name, "%d", unNodo->nroNodo);
 	char *pathNewBitmap = string_new();
 	strcpy(pathNewBitmap, pathBitmap);
-	string_append(&pathNewBitmap, nombreNodo);
+	string_append(&pathNewBitmap, "Nodo");
+	string_append(&pathNewBitmap, "1"); //DEBERIA IR EL NUMERO DEL NODO
 	string_append(&pathNewBitmap, ".dat");
 
-	if(validarArchivo(pathNewBitmap) == 1){
+	FILE* archivoBitmap;
+	archivoBitmap = fopen(pathNewBitmap,"w");
 
-		FILE* archivoBitmap;
-		archivoBitmap = fopen(pathNewBitmap,"r");
-
-		fgets(bitmap, sizeof(bitmap), archivoBitmap);
-		bitmap[strlen(bitmap)] = '\0';
-	}else{
-		crearBitmap(pathNewBitmap);
-	}
+	int j;
+		for (j = 0; j < cantBloques; j++) {
+			bool a = bitarray_test_bit(unNodo->bitmap, j);
+			if(a == 0){
+				fwrite("0", 1, 1, archivoBitmap);
+			}
+			if(a == 1){
+				fwrite("1", 1, 1, archivoBitmap);
+			}
+		}
+	log_trace(log, "El bitmap fue almacenado correctamente");
+	fclose(archivoBitmap);
 
 }
+
+int proximoBloqueLibre(t_bitarray* unBitarray){
+	int j;
+	for (j = 0; j < 24; j++) {
+		bool a = bitarray_test_bit(unBitarray, j);
+		if(a == 0){
+			return j;
+		}
+	}
+	return -1;
+}
+void printBitmap(t_bitarray* unBitarray) {
+	int j;
+	for (j = 0; j < 24; j++) {
+		bool a = bitarray_test_bit(unBitarray, j);
+		log_info(log,"%i", a);
+	}
+	log_info(log,"\n");
+}
+
+t_bitarray* inicializarBitmap() {
+	char* data[] = {00000000000000000000};
+	t_bitarray* unBitarray;
+	unBitarray = bitarray_create_with_mode(data,sizeof(data), MSB_FIRST);
+
+	int j=0;
+	for(j=0; j < 24; j++){
+		bitarray_clean_bit(unBitarray, j);
+	}
+
+	return unBitarray;
+}
+
+void inicializarNodo(int nroNodo){
+	char* data[] = {00000000000000000000};
+	t_bitarray* unBitarray;
+	unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
+
+	t_nodo* nuevoNodo;
+	nuevoNodo = nodo_create(1, unBitarray);
+	almacenarBitmapEnArchivo(nuevoNodo);
+	list_add(listaDeNodos, nuevoNodo);
+
+}
+
 char* mapearArchivo(char *pathArchivo){
 	struct stat estado_archivo;
 	int fd=open(pathArchivo,R_OK|W_OK);
@@ -251,10 +285,7 @@ int main(int arg, char** argv) {
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
-
-
-
-	crearBitmap("DataNode1");
+	inicializarNodo(1);
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
