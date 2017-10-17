@@ -155,3 +155,35 @@
 [TRACE] 18:47:23:599 DataNode/(3083:3083): Configuracion leida
 [TRACE] 18:48:25:284 DataNode/(3159:3159): Leyendo configuracion
 [TRACE] 18:48:25:284 DataNode/(3159:3159): Configuracion leida
+[TRACE] 20:06:52:195 DataNode/(3151:3151): Leyendo configuracion
+[TRACE] 20:06:52:206 DataNode/(3151:3151): Configuracion leida
+[ERROR] 20:06:52:206 DataNode/(3151:3151): El archivo no existe o no se pudo abrir
+[TRACE] 20:07:45:806 DataNode/(3210:3210): Leyendo configuracion
+[TRACE] 20:07:45:806 DataNode/(3210:3210): Configuracion leida
+[ERROR] 20:07:45:806 DataNode/(3210:3210): El archivo no existe o no se pudo abrir
+[TRACE] 20:08:00:22 DataNode/(3251:3251): Leyendo configuracion
+[TRACE] 20:08:00:22 DataNode/(3251:3251): Configuracion leida
+[ERROR] 20:08:00:22 DataNode/(3251:3251): El archivo no existe o no se pudo abrir
+[TRACE] 20:08:32:428 DataNode/(3314:3314): Leyendo configuracion
+[TRACE] 20:08:32:428 DataNode/(3314:3314): Configuracion leida
+[ERROR] 20:08:32:428 DataNode/(3314:3314): El archivo no existe o no se pudo abrir
+[TRACE] 20:08:48:748 DataNode/(3361:3361): Leyendo configuracion
+[TRACE] 20:08:48:749 DataNode/(3361:3361): Configuracion leida
+[ERROR] 20:08:48:749 DataNode/(3361:3361): El archivo no existe o no se pudo abrir
+[TRACE] 20:09:19:801 DataNode/(3424:3424): Leyendo configuracion
+[TRACE] 20:09:19:801 DataNode/(3424:3424): Configuracion leida
+[TRACE] 20:09:53:833 DataNode/(3477:3477): Leyendo configuracion
+[TRACE] 20:09:53:833 DataNode/(3477:3477): Configuracion leida
+[TRACE] 20:10:49:553 DataNode/(3556:3556): Leyendo configuracion
+[TRACE] 20:10:49:554 DataNode/(3556:3556): Configuracion leida
+[TRACE] 20:11:54:916 DataNode/(3645:3645): Leyendo configuracion
+[TRACE] 20:11:54:916 DataNode/(3645:3645): Configuracion leida
+[TRACE] 20:12:10:431 DataNode/(3705:3705): Leyendo configuracion
+[TRACE] 20:12:10:431 DataNode/(3705:3705): Configuracion leida
+[TRACE] 20:12:22:961 DataNode/(3753:3753): Leyendo configuracion
+[TRACE] 20:12:22:961 DataNode/(3753:3753): Configuracion leida
+[TRACE] 20:18:08:479 DataNode/(3874:3874): Leyendo configuracion
+[TRACE] 20:18:08:479 DataNode/(3874:3874): Configuracion leida
+[ERROR] 20:18:08:479 DataNode/(3874:3874): El archivo no existe o no se pudo abrir
+[TRACE] 20:18:34:253 DataNode/(3922:3922): Leyendo configuracion
+[TRACE] 20:18:34:253 DataNode/(3922:3922): Configuracion leida

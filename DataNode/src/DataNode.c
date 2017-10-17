@@ -38,8 +38,8 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	clienteDatanode(ipFs, puertoFs, id);
-	//escribirArchivo("metadata/archivo.txt", "polenta", 3);
+	//clienteDatanode(ipFs, puertoFs, id);
+	escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 0);
 	//leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
 }
@@ -69,6 +69,9 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 			exit(1);
 		}
 		buffer[bytesRecibidos] = '\0';
+		//ver el tema del mensaje
+		int id_bloque = 0;
+		escribirArchivo("metadata/bloquesDataNode.txt", buffer, id_bloque);
 		printf("%s dice: %s\n", tipo_proceso(0), buffer);
 	}
 	free(buffer);
@@ -77,15 +80,15 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 void escribirArchivo(char* path, char* data, int offset){
 	FILE* archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "El archivo no existe o no se pudo abrir");
-	}else{
-		archivo = fopen(path,"rb+");
-		fseek(archivo, offset, SEEK_SET);
-		fwrite(data, strlen(data), 1, archivo);
+		log_error(log, "El archivo inexistente se crea");
+		archivo = fopen(path,"w");
 		fclose(archivo);
-		puts("Escritura Completa");
 	}
-
+	archivo = fopen(path,"rb+");
+	fseek(archivo, offset, SEEK_SET);
+	fwrite(data, strlen(data), 1, archivo);
+	fclose(archivo);
+	puts("Escritura Completa");
 }
 
 void leerArchivo(char* path, int inicial, int offset){
