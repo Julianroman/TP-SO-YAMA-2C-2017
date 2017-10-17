@@ -38,10 +38,40 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	//cliente(ipFs, puertoFs, id);
+	clienteDatanode(ipFs, puertoFs, id);
 	//escribirArchivo("metadata/archivo.txt", "polenta", 3);
-	leerArchivo("metadata/archivo.txt", 7, 7);
+	//leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
+}
+
+
+void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
+	struct sockaddr_in direccionServidor;
+	direccionServidor.sin_family = AF_INET;
+	direccionServidor.sin_addr.s_addr = INADDR_ANY;
+	//direccionServidor.sin_addr.s_addr = inet_addr(ip);
+	direccionServidor.sin_port = htons(puerto);
+
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+	if (connect(cliente, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+		perror("No se pudo conectar");
+		exit(1);
+	}
+
+	int numeroConvertido = htonl(id_tipo_proceso);
+	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
+
+	char* buffer = malloc(1000);
+	while (1) {
+		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+		if (bytesRecibidos <= 0) {
+			perror("El FS se desconectó");
+			exit(1);
+		}
+		buffer[bytesRecibidos] = '\0';
+		printf("%s dice: %s\n", tipo_proceso(0), buffer);
+	}
+	free(buffer);
 }
 
 void escribirArchivo(char* path, char* data, int offset){
