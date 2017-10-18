@@ -17,7 +17,7 @@
 
 
 void init_serverMaster(int puertoEscucha, t_log* logger){
-	log_trace(logs, "Esperando instrucciones");
+	log_trace(logger, "Esperando instrucciones");
 	// Recibir conexion
 	int socket_listener = crear_listener(puertoEscucha);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
@@ -29,14 +29,18 @@ void init_serverMaster(int puertoEscucha, t_log* logger){
 			printf("Error en fork");
 		}
 		if (pid == 0){
+			puts("Proceso creado");
 			//Hijo
 			init_child(socket_cliente);  // una funcion que dada la nueva conexion,
 										 // se encargara de responder al master
 			exit(0);
 		}
-		log_trace(logs, "Proceso %d creado",pid);
-		//Padre
-		socket_cliente = escuchar_socket(socket_listener,BACKLOG);
+		if (pid > 0){
+			log_trace(logger, "Proceso %d creado",pid);
+			//Padre
+			close(socket_cliente);
+			socket_cliente = escuchar_socket(socket_listener,BACKLOG);
+		}
 
 	}
 };

@@ -27,13 +27,14 @@
 t_log* logs;
 
 int main(int argc, char **argv) {
-	if (argc!=2){
+	/*if (argc!=2){
 		puts("Ingrese un puerto");
 		return 1;
 	}
 	char* puertoString = argv[1];
-	int puerto = atoi(puertoString);
+	int puerto = atoi(puertoString);*/
 
+	int puerto = 9095;
 	printf("Comenzando Worker en el puerto %d\n",puerto);
 
 	// Manejo de logs

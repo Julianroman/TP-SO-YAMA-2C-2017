@@ -6,20 +6,24 @@
  */
 #include "responses.h"
 #include <stdio.h>
+#include <utilidades/protocol/senders.h>
+#include <utilidades/protocol/types.h>
+#include <utilidades/protocol/receive.h>
+
 void responder_ORDENES(int socket_cliente,HEADER_T tipoDeMensaje,void* data){
 
 	switch (tipoDeMensaje){
 	case ORDEN_TRANSFORMACION:
-		res_orden_transformacion();
+		res_ORDEN_TRANSFORMACION(socket_cliente,tipoDeMensaje,data);
 		break;
 	case ORDEN_REDUCCIONLOCAL:
-		res_orden_reduxLocal();
+		res_ORDEN_REDUCCIONLOCAL(socket_cliente,tipoDeMensaje,data);
 		break;
 	case ORDEN_REDUCCIONGLOBAL:
-		res_orden_reduxGlobal();
+		res_ORDEN_REDUCCIONGLOBAL(socket_cliente,tipoDeMensaje,data);
 		break;
 	case ORDEN_ALMACENAMIENTO:
-		res_orden_almacenamiento();
+		res_ORDEN_ALMACENAMIENTO(socket_cliente,tipoDeMensaje,data);
 		break;
 	default:
 		printf("Mensaje desconocido");
