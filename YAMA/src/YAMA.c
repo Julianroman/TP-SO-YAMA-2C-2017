@@ -14,6 +14,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 
+#include "serverYAMA/responses/responses.h"
 #include "serverYAMA/serverYAMA.h"
 #include "Job.h"
 

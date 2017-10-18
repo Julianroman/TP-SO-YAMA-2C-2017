@@ -17,11 +17,14 @@
 
 
 #include <commons/collections/dictionary.h>
+#include <commons/log.h>
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
 #include <utilidades/protocol/senders.h>
 #include "../serverYAMA/responses/responses.h"
+
+extern t_log* logs;
 
 #define BACKLOG       5
 

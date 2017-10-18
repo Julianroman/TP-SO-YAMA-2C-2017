@@ -13,13 +13,12 @@ YAMA_STATUS res_SOLICITUD_REDUCCIONGLOBAL  (int socket,void*  data, t_dictionary
 	printf("SOLICITUD_REDUCCIONGLOBAL recibida\n");
 
 	//DUMMIE WORKERS
-	/*
-	send_INFO_TRANSFORMACION(socket,5000,"192.168.1.10",38,10180,"/tmp/Master1-temp38");
-	send_INFO_TRANSFORMACION(socket,5000,"192.168.1.10",39,10180,"/tmp/Master1-temp39");
-	send_INFO_TRANSFORMACION(socket,5555,"192.168.1.11",44,10180,"/tmp/Master1-temp44");
-	send_INFO_TRANSFORMACION(socket,5555,"192.168.1.11",39,10180,"/tmp/Master1-temp39");
-	send_INFO_TRANSFORMACION(socket,5555,"192.168.1.11",46,10180,"/tmp/Master1-temp46");
-	*/
+
+	send_INFO_REDUCCIONGLOBAL(socket,5000,"192.168.1.10","/tmp/Master1-tempredLoc38"," ",0);
+	send_INFO_REDUCCIONGLOBAL(socket,5000,"192.168.1.10","/tmp/Master1-tempredLoc39"," ",0);
+	send_INFO_REDUCCIONGLOBAL(socket,5555,"192.168.1.11","/tmp/Master1-tempredLoc44","/tmp/Master1-tempredGlob44",1);
+	send_INFO_REDUCCIONGLOBAL(socket,5555,"192.168.1.11","/tmp/Master1-tempredLoc39"," ",0);
+	send_INFO_REDUCCIONGLOBAL(socket,5555,"192.168.1.11","/tmp/Master1-tempredLoc46"," ",0);
 	send_FIN_LISTA(socket);
 
 	// IMPORTANTE! HAY UN LEAK DE MEMORIA
