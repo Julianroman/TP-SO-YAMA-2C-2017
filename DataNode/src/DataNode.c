@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <utilidades/protocol/receive.h>
 //
 int puertoFs = 0;
 int id = 1;
@@ -61,20 +62,16 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	int numeroConvertido = htonl(id_tipo_proceso);
 	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
 
-	char* buffer = malloc(1000);
+	void* payload;
+	int id_bloque;
 	while (1) {
-		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
-		if (bytesRecibidos <= 0) {
-			perror("El FS se desconectó");
-			exit(1);
-		}
-		buffer[bytesRecibidos] = '\0';
-		//ver el tema del mensaje
-		int id_bloque = 0;
-		escribirArchivo("metadata/bloquesDataNode.txt", buffer, id_bloque);
-		printf("%s dice: %s\n", tipo_proceso(0), buffer);
+		HEADER_T* header;
+		payload = receive(cliente, header);
+		//este id deberia estan en el header
+		//id_bloque = header->id o como sea;
+		escribirArchivo("metadata/bloquesDataNode.txt", payload, id_bloque);
+		printf("%s dice: %s\n", tipo_proceso(0), payload);
 	}
-	free(buffer);
 }
 
 void escribirArchivo(char* path, char* data, int offset){
