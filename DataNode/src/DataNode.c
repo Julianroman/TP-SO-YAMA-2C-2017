@@ -38,24 +38,57 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	//cliente(ipFs, puertoFs, id);
-	//escribirArchivo("metadata/archivo.txt", "polenta", 3);
-	leerArchivo("metadata/archivo.txt", 7, 7);
+	//clienteDatanode(ipFs, puertoFs, id);
+	escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 0);
+	//leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
+}
+
+
+void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
+	struct sockaddr_in direccionServidor;
+	direccionServidor.sin_family = AF_INET;
+	direccionServidor.sin_addr.s_addr = INADDR_ANY;
+	//direccionServidor.sin_addr.s_addr = inet_addr(ip);
+	direccionServidor.sin_port = htons(puerto);
+
+	int cliente = socket(AF_INET, SOCK_STREAM, 0);
+	if (connect(cliente, (void*) &direccionServidor, sizeof(direccionServidor)) != 0) {
+		perror("No se pudo conectar");
+		exit(1);
+	}
+
+	int numeroConvertido = htonl(id_tipo_proceso);
+	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
+
+	char* buffer = malloc(1000);
+	while (1) {
+		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+		if (bytesRecibidos <= 0) {
+			perror("El FS se desconectó");
+			exit(1);
+		}
+		buffer[bytesRecibidos] = '\0';
+		//ver el tema del mensaje
+		int id_bloque = 0;
+		escribirArchivo("metadata/bloquesDataNode.txt", buffer, id_bloque);
+		printf("%s dice: %s\n", tipo_proceso(0), buffer);
+	}
+	free(buffer);
 }
 
 void escribirArchivo(char* path, char* data, int offset){
 	FILE* archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "El archivo no existe o no se pudo abrir");
-	}else{
-		archivo = fopen(path,"rb+");
-		fseek(archivo, offset, SEEK_SET);
-		fwrite(data, strlen(data), 1, archivo);
+		log_error(log, "El archivo inexistente se crea");
+		archivo = fopen(path,"w");
 		fclose(archivo);
-		puts("Escritura Completa");
 	}
-
+	archivo = fopen(path,"rb+");
+	fseek(archivo, offset, SEEK_SET);
+	fwrite(data, strlen(data), 1, archivo);
+	fclose(archivo);
+	puts("Escritura Completa");
 }
 
 void leerArchivo(char* path, int inicial, int offset){

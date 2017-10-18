@@ -114,7 +114,9 @@ void servidor(int puerto){
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
 						proceso = malloc(16);
 						snprintf(proceso, 16, "%d", 0);
-						dictionary_put(diccionario, proceso, cliente);
+						if(dictionary_get(diccionario, proceso) == 0){
+							dictionary_put(diccionario, proceso, cliente);
+						}
 						free(proceso);
 						//vector[cliente]= "0";
 						char* mensaje = "Bienvenido!!";
@@ -142,6 +144,7 @@ void servidor(int puerto){
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
 								printf("El socket %s se desconectó\n", tipo_proceso(id_proceso));
+								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else {
