@@ -225,7 +225,7 @@ void escribirBloqueLibre(t_nodo* unNodo,int bloque){
 }
 int proximoBloqueLibre(t_nodo* unNodo){
 	int j;
-	for (j = 0; j < 24; j++) {
+	for (j = 0; j < tamanioBloques; j++) {
 		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
 			log_trace(log, "El proximo bloque libre es el: %d", j);
@@ -237,7 +237,7 @@ int proximoBloqueLibre(t_nodo* unNodo){
 }
 void printBitmap(t_bitarray* unBitarray) {
 	int j;
-	for (j = 0; j < 24; j++) {
+	for (j = 0; j < tamanioBloques; j++) {
 		bool a = bitarray_test_bit(unBitarray, j);
 		log_info(log,"%i", a);
 	}
@@ -271,6 +271,23 @@ void inicializarNodo(int nroNodo){
 
 }
 
+void createDirectory(char* path){
+	//path de la forma: dir
+	struct stat st = {0};
+
+	if (stat(path, &st) == -1) { //Si no existe el path, lo creo
+	    if(mkdir(path, 0700) == 0){
+	    	log_trace(log, "El directorio fue creado con exito");
+	    }else{
+	    	log_trace(log, "Error al crear directorio");
+	    }
+	}
+	else{
+		log_trace(log, "El directorio ya existe o no se pudo crear");
+	}
+
+}
+
 int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
@@ -295,7 +312,7 @@ int main(int arg, char** argv) {
 	//init_consola();
 
 	///Creo el hiloConsola que llama a la funcion init_consola()
-	/*pthread_t hiloConsola;
+	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	//Creo el hiloServidor que llama a la funcion servidor(miPuerto)
@@ -304,16 +321,20 @@ int main(int arg, char** argv) {
 
 	//El proceso no termina hasta que mueren los dos hilos
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);*/
+	pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
 
-	inicializarNodo(2);
-	inicializarNodo(1);
-	cantidadTotalBloquesLibres();
+	//inicializarNodo(2);
+	//inicializarNodo(1);
+	//cantidadTotalBloquesLibres();
+
+	//createDirectory("some");
+	//createDirectory("some/dir");
+
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
