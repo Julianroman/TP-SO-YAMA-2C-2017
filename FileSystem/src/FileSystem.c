@@ -19,7 +19,7 @@ int32_t cantBloques = 20;
 int32_t tamanioBloques = 1048576; //1MB
 int32_t bitmap[20];
 
-char* pathBitmap = "metadata/"; //Esto deberia estar en la carpeta metadata/bitmaps
+char* pathBitmap = "metadata/bitmaps/";//Esto deberia estar en la carpeta metadata/bitmaps
 
 int32_t estadoEstable = 0;
 int32_t formateado = 0;
@@ -162,40 +162,77 @@ void formatear(){
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){
-	//char* name;
-	//sprintf(name, "%d", unNodo->nroNodo);
-	char *pathNewBitmap = string_new();
+	//pathBitmap = malloc(1000);
+	char* name = string_itoa(unNodo->nroNodo);
+	char *pathNewBitmap = malloc(1000);
 	strcpy(pathNewBitmap, pathBitmap);
 	string_append(&pathNewBitmap, "Nodo");
-	string_append(&pathNewBitmap, "1"); //DEBERIA IR EL NUMERO DEL NODO
+	string_append(&pathNewBitmap, name);
 	string_append(&pathNewBitmap, ".dat");
 
 	FILE* archivoBitmap;
 	archivoBitmap = fopen(pathNewBitmap,"w");
 
 	int j;
-		for (j = 0; j < cantBloques; j++) {
-			bool a = bitarray_test_bit(unNodo->bitmap, j);
-			if(a == 0){
-				fwrite("0", 1, 1, archivoBitmap);
-			}
-			if(a == 1){
-				fwrite("1", 1, 1, archivoBitmap);
-			}
+	for (j = 0; j < cantBloques; j++) {
+		bool a = bitarray_test_bit(unNodo->bitmap, j);
+		if(a == 0){
+			fwrite("0", 1, 1, archivoBitmap);
 		}
-	log_trace(log, "El bitmap fue almacenado correctamente");
+		if(a == 1){
+			fwrite("1", 1, 1, archivoBitmap);
+		}
+	}
+	log_trace(log, "El bitmap fue almacenado en: %s", pathNewBitmap);
 	fclose(archivoBitmap);
-
+	free(pathNewBitmap);
 }
 
-int proximoBloqueLibre(t_bitarray* unBitarray){
+int bloquesLibresEnNodo(t_nodo* unNodo){
+	int cantidad = 0;
+
+	int j;
+	for (j = 0; j < cantBloques; j++) {
+		bool a = bitarray_test_bit(unNodo->bitmap, j); //TODO Rompe acá
+		if(a == 0){
+			cantidad ++;
+		}
+	}
+	return cantidad;
+}
+
+int cantidadTotalBloquesLibres(){
+	int cantidad;
+	cantidad = 0;
+	//PARA CADA ELEMENTO DE LA LISTA
+	int i;
+	for (i = 0; i < list_size(listaDeNodos); i ++){
+		t_nodo *unNodo = malloc(sizeof(t_nodo));
+		unNodo = list_get(listaDeNodos, i);
+		cantidad += bloquesLibresEnNodo(unNodo);
+		nodo_destroy(unNodo);
+	}
+	log_trace(log,"Total bloques libres: %d", cantidad);
+	return cantidad;
+}
+
+
+void escribirBloqueLibre(t_nodo* unNodo,int bloque){
+
+	//ESCRIBO LO QUE TENGA QUE ESCRIBIR Y DESPUES CAMBIO EL BITMAP Y LO ALMACENO
+	bitarray_set_bit(unNodo->bitmap, bloque);
+	almacenarBitmapEnArchivo(unNodo);
+}
+int proximoBloqueLibre(t_nodo* unNodo){
 	int j;
 	for (j = 0; j < 24; j++) {
-		bool a = bitarray_test_bit(unBitarray, j);
+		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
+			log_trace(log, "El proximo bloque libre es el: %d", j);
 			return j;
 		}
 	}
+	log_trace(log, "No hay bloques libres en el nodo indicado");
 	return -1;
 }
 void printBitmap(t_bitarray* unBitarray) {
@@ -207,7 +244,7 @@ void printBitmap(t_bitarray* unBitarray) {
 	log_info(log,"\n");
 }
 
-t_bitarray* inicializarBitmap() {
+t_bitarray* inicializarBitmap() { //EN REVISIÓN
 	char* data[] = {00000000000000000000};
 	t_bitarray* unBitarray;
 	unBitarray = bitarray_create_with_mode(data,sizeof(data), MSB_FIRST);
@@ -217,6 +254,7 @@ t_bitarray* inicializarBitmap() {
 		bitarray_clean_bit(unBitarray, j);
 	}
 
+	log_trace(log, "El bitmap fue inicializado correctamente");
 	return unBitarray;
 }
 
@@ -226,38 +264,25 @@ void inicializarNodo(int nroNodo){
 	unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
 
 	t_nodo* nuevoNodo;
-	nuevoNodo = nodo_create(1, unBitarray);
+	nuevoNodo = nodo_create(nroNodo, unBitarray);
 	almacenarBitmapEnArchivo(nuevoNodo);
 	list_add(listaDeNodos, nuevoNodo);
+	bitarray_destroy(unBitarray);
 
 }
 
-char* mapearArchivo(char *pathArchivo){
-	struct stat estado_archivo;
-	int fd=open(pathArchivo,R_OK|W_OK);
-	char *archivoMapeado;
-	if(fd<0){
-		perror("open");
-		exit(1);
-	}
-	if(fstat(fd,&estado_archivo)<0){
-		perror("fstat");
-		exit(1);
-	}
-	archivoMapeado=mmap(NULL,estado_archivo.st_size,PROT_READ | PROT_WRITE,MAP_SHARED,fd,0);
-	close(fd);
-	return archivoMapeado;
-}
 int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
 
+	listaDeNodos = list_create();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
 		log_info(log,"Iniciar ignorando/eliminando estado anterior");
 		//format_fs(configFS,directorios);
 	}
 	else{
+		//log_info(log,"Iniciar reestableciendo desde estado anterior");
 		/*restablecerEstado();
 		for(int i = 0; i < list_size(archivos); i++){
 			t_arch* archivo = list_get(archivos, i);
@@ -285,7 +310,10 @@ int main(int arg, char** argv) {
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
+
+	inicializarNodo(2);
 	inicializarNodo(1);
+	cantidadTotalBloquesLibres();
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
