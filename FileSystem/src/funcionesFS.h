@@ -41,4 +41,20 @@ static void nodo_destroy(t_nodo *self) {
     free(self);
 }
 
+typedef struct {
+	int32_t index;
+	//char nombre[255];
+	char* nombre;
+	int32_t padre;
+}t_directory;
+
+static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
+	t_directory *new = malloc(sizeof(t_directory));
+    new->index = index;
+    new->nombre = nombre;
+    new->padre = padre;
+
+    return new;
+}
+
 #endif /* FUNCIONESFS_H_ */

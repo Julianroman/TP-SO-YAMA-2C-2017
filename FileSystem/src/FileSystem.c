@@ -19,12 +19,14 @@ int32_t cantBloques = 20;
 int32_t tamanioBloques = 1048576; //1MB
 int32_t bitmap[20];
 
-char* pathBitmap = "metadata/bitmaps/";//Esto deberia estar en la carpeta metadata/bitmaps
+char* directorioRaiz = "root/";
+char* pathBitmap = "root/metadata/bitmaps/";
 
 int32_t estadoEstable = 0;
 int32_t formateado = 0;
 
 t_list* listaDeNodos;
+t_list* tablaDirectorios;
 //
 
 int validarArchivo(char* pathArchivo){
@@ -271,20 +273,40 @@ void inicializarNodo(int nroNodo){
 
 }
 
-void createDirectory(char* path){
-	//path de la forma: dir
-	struct stat st = {0};
+void createDirectory(char* path){ //path de la forma: dir
+	int cantidadDirectorios;
+	cantidadDirectorios = list_size(tablaDirectorios);
+	if(cantidadDirectorios < 100){
+		struct stat st = {0};
 
-	if (stat(path, &st) == -1) { //Si no existe el path, lo creo
-	    if(mkdir(path, 0700) == 0){
-	    	log_trace(log, "El directorio fue creado con exito");
-	    }else{
-	    	log_trace(log, "Error al crear directorio");
-	    }
+		if (stat(path, &st) == -1) { //Si no existe el path, lo creo
+			if(mkdir(path, 0700) == 0){
+				//TODO tabla de directorios
+				char **padres = string_split(path, "/");
+				int cant = strlen(padres) / sizeof(char*); //Length de padres
+				if(cant == 0){
+					directory_create(cantidadDirectorios - 1, padres[0], 0);
+				}
+				else{
+					//int father = getIndex(padres(cant-2)); Me daria el index del padre
+					//directory_create(cantidadDirectorios - 1, padres[0], father);
+
+				}
+
+
+				log_trace(log, "El directorio %s fue creado con exito.", path);
+
+			}else{
+				log_error(log, "Error al crear directorio");
+			}
+		}
+		else{
+			log_error(log, "El directorio ya existe o no se pudo crear");
+		}
+	}else{
+		log_error(log, "Tabla de directorios completa");
 	}
-	else{
-		log_trace(log, "El directorio ya existe o no se pudo crear");
-	}
+
 
 }
 
@@ -293,6 +315,7 @@ int main(int arg, char** argv) {
 	log_trace(log, "Comienza el proceso FileSystem");
 
 	listaDeNodos = list_create();
+	tablaDirectorios = list_create();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
 		log_info(log,"Iniciar ignorando/eliminando estado anterior");
@@ -307,10 +330,6 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	//servidor(miPuerto);
-
-	//init_consola();
-
 	///Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
@@ -320,8 +339,8 @@ int main(int arg, char** argv) {
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	//El proceso no termina hasta que mueren los dos hilos
-	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	//pthread_join(hiloConsola, NULL);
+	//pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
@@ -338,5 +357,7 @@ int main(int arg, char** argv) {
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
+
+
 	return EXIT_SUCCESS;
 }
