@@ -1,3 +1,15 @@
 [TRACE] 16:16:01:167 Worker/(3602:3602): Esperando instrucciones
 [TRACE] 16:16:14:722 Worker/(3602:3602): Proceso 3616 creado
 [TRACE] 16:17:34:490 Worker/(3649:3649): Esperando instrucciones
+[TRACE] 22:27:09:114 Worker/(17431:17431): Comenzando Worker en el puerto 9095
+
+[TRACE] 22:27:14:561 Worker/(17431:17431): Esperando instrucciones
+[INFO] 22:28:53:940 Worker/(17431:17449): Respondiendo ORDEN_TRANSFORMACION
+[TRACE] 22:29:10:529 Worker/(17431:17431): Proceso 17449 creado
+[TRACE] 22:29:14:741 Worker/(17431:17431): Esperando instrucciones
+[INFO] 22:29:19:212 Worker/(17431:17459): Respondiendo ORDEN_TRANSFORMACION
+[TRACE] 22:29:21:381 Worker/(17431:17431): Proceso 17459 creado
+[TRACE] 22:29:24:964 Worker/(17431:17431): Esperando instrucciones
+[INFO] 22:29:33:683 Worker/(17431:17469): Respondiendo ORDEN_TRANSFORMACION
+[TRACE] 22:29:42:632 Worker/(17431:17431): Proceso 17469 creado
+[TRACE] 22:29:50:523 Worker/(17431:17431): Esperando instrucciones
