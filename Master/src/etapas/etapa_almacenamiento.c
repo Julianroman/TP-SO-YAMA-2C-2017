@@ -8,7 +8,9 @@
 #include <commons/log.h>
 #include "etapas.h"
 
-MASTER_STATUS etapa_almacenamiento (int socketYAMA,t_log* logger){
+extern t_log* logger;
+
+MASTER_STATUS etapa_almacenamiento (int socketYAMA){
 	log_trace(logger, "Iniciando etapa de almacenamiento...");
 
 	HEADER_T header;
