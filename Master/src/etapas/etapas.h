@@ -19,9 +19,9 @@ typedef enum {EXITO} MASTER_STATUS;
  *     (int)    socketYAMA : FD de un socket con el cual comunicarse con el YAMA
  *     #Depricated#(t_log*) logs       : Un puntero de logs para documentar todos los sucesos  ## Es una variable global
  */
-MASTER_STATUS etapa_transformacion (int socketYAMA,t_log* logger, char* yamafs_archivo);
-MASTER_STATUS etapa_reduccionLocal (int socketYAMA,t_log* logger);
-MASTER_STATUS etapa_reduccionGlobal(int socketYAMA,t_log* logger);
-MASTER_STATUS etapa_almacenamiento (int socketYAMA,t_log* logger);
+MASTER_STATUS etapa_transformacion (int socketYAMA, char* yamafs_archivo);
+MASTER_STATUS etapa_reduccionLocal (int socketYAMA);
+MASTER_STATUS etapa_reduccionGlobal(int socketYAMA);
+MASTER_STATUS etapa_almacenamiento (int socketYAMA);
 
 #endif /* ETAPAS_ETAPAS_H_ */

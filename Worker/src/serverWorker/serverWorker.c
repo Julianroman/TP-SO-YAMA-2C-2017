@@ -15,8 +15,9 @@
 
 #define BACKLOG       5
 
+extern t_log* logger;
 
-void init_serverMaster(int puertoEscucha, t_log* logger){
+void init_serverMaster(int puertoEscucha){
 	log_trace(logger, "Esperando instrucciones");
 	// Recibir conexion
 	int socket_listener = crear_listener(puertoEscucha);
@@ -29,7 +30,6 @@ void init_serverMaster(int puertoEscucha, t_log* logger){
 			printf("Error en fork");
 		}
 		if (pid == 0){
-			puts("Proceso creado");
 			//Hijo
 			init_child(socket_cliente);  // una funcion que dada la nueva conexion,
 										 // se encargara de responder al master
@@ -39,6 +39,7 @@ void init_serverMaster(int puertoEscucha, t_log* logger){
 			log_trace(logger, "Proceso %d creado",pid);
 			//Padre
 			close(socket_cliente);
+			log_trace(logger, "Esperando instrucciones");
 			socket_cliente = escuchar_socket(socket_listener,BACKLOG);
 		}
 

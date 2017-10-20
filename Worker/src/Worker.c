@@ -24,7 +24,7 @@
 #define PUERTOESCUCHA 8085
 
 
-t_log* logs;
+t_log* logger;
 
 int main(int argc, char **argv) {
 	/*if (argc!=2){
@@ -34,15 +34,16 @@ int main(int argc, char **argv) {
 	char* puertoString = argv[1];
 	int puerto = atoi(puertoString);*/
 
-	int puerto = 9095;
-	printf("Comenzando Worker en el puerto %d\n",puerto);
-
 	// Manejo de logs
-	logs = log_create("worker.log", "Worker", false, LOG_LEVEL_TRACE);
+	logger = log_create("worker.log", "Worker", true, LOG_LEVEL_TRACE);
+
+	int puerto = 9095;
+	log_trace(logger, "Comenzando Worker en el puerto %d\n",puerto);
+
 
 
 	// Servidor de Master
-	init_serverMaster(puerto,logs);
+	init_serverMaster(puerto);
 
 	return EXIT_SUCCESS;
 }

@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <semaphore.h>
 
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/senders.h>
@@ -29,7 +30,8 @@
 
 int puertoYama = 0;
 char* ipYama = "";
-t_log* logs;
+t_log* logger;
+sem_t threadManager;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
@@ -49,43 +51,44 @@ int main(int argc, char **argv) {
 		puts("Ingrese la ruta de un archivo");
 		return 1;
 	}
-	char* rutaTransformador = argv[1];
+	sem_init(&threadManager,0,0);
+	char* ruta_yamafs = argv[1];
 
 	// Abrir archivo
-	int transformador_fd = open(rutaTransformador,NULL);
+	//int transformador_fd = open(rutaTransformador,NULL);
 
 
 	// Manejo de logs
-	logs = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
-	log_trace(logs, "Comienza proceso Master");
+	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
+	log_trace(logger, "Comienza proceso Master");
 	leerConfiguracion();
-	log_trace(logs, "Configuracion leida");
+	log_trace(logger, "Configuracion leida");
 
 	// Conectarse al YAMA
 	int socketYAMA = crear_conexion(IPYAMA,puertoYama);
-	log_trace(logs, "Conectado al YAMA");
+	log_trace(logger, "Conectado al YAMA en socket %d",socketYAMA);
 
 	MASTER_STATUS status;
 	// Etapas
 		// Transformacion
-	status = etapa_transformacion(socketYAMA,logs,rutaTransformador);
+	status = etapa_transformacion(socketYAMA,ruta_yamafs);
 	if(status == EXITO){
-		log_trace(logs, "Transformacion exitosa");
+		log_trace(logger, "Transformacion exitosa");
 	}
 		// Reduccion local
-	status = etapa_reduccionLocal(socketYAMA,logs);
+	status = etapa_reduccionLocal(socketYAMA);
 	if(status == EXITO){
-		log_trace(logs, "Reduccion local exitosa");
+		log_trace(logger, "Reduccion local exitosa");
 	}
 		// Reduccion global
-	status = etapa_reduccionGlobal(socketYAMA,logs);
+	status = etapa_reduccionGlobal(socketYAMA);
 	if(status == EXITO){
-		log_trace(logs, "Reduccion global exitosa");
+		log_trace(logger, "Reduccion global exitosa");
 	}
 		// Almcenamiento
-	status = etapa_almacenamiento(socketYAMA,logs);
+	status = etapa_almacenamiento(socketYAMA);
 	if(status == EXITO){
-		log_trace(logs, "Almacenamiento exitoso");
+		log_trace(logger, "Almacenamiento exitoso");
 	}
 	// Finalizar proceso
 		// Mostrar estadisticas
