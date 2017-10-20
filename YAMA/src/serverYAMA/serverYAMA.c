@@ -29,7 +29,7 @@ extern t_log* logs;
 #define BACKLOG       5
 
 
-void init_serverMaster(int puertoEscucha){
+void init_serverYAMA(int puertoEscucha){
 
 	// Variable de estado que devuelven las respuestas a solicitudes
 	YAMA_STATUS status;
