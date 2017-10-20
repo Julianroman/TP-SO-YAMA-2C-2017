@@ -81,4 +81,47 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
+/*
+void planificacionClock(){
+	int base;
+	t_list* listaWorker;//Esta seria la lista o diccionario de workers
+	t_worker* workerInicial = mayorDisponibilidad(listaWorker); //agarro el primer worker para comparar
+	//ver como posicionar primero al worker workerInicial y empezar
+	int i;
+	t_worker* workerActual = listaWorker->head;
+	char* bloquesTotales;
+	for(i = 0; i < sizeof(bloquesTotales);i++){
+		while(i != '\0'){
+			//auxiliar->head->data te da los datos de la primea posicion de la lista
+			//auxiliar->head->next te da el siguiente
+			if(existeEn(workerActual,bloquesTotales[i]) && workerActual->disponibilidad > 0){
+				asignarBloque(workerActual,bloquesTotales[i]);
+				workerActual->data->disponibilidad -= 1;
+				break;
+			}else{
+				workerActual->data->disponibilidad = 0;
+				//es para saltearse el que tenga disponibilidad 0
+				workerActual = workerActual->next;
+			}
+			workerActual = workerActual->next;
+			if(workerActual == NULL)
+				//reiniciar el recorrido de la lista
+				workerActual = listaWorker->head;
+		}
+		workerActual = workerActual->next;
+	}
+}
+
+t_worker* mayorDisponibilidad(t_list * listaWorker) {
+	t_worker* workerMax = listaWorker.head;
+	t_worker* workerActual= listaWorker.head;
+	while(workerActual != NULL){
+		if(workerActual->data->disponibilidad > workerMax->data->disponibilidad){
+			workerMax = workerActual;
+		}
+		workerActual = workerActual->next;
+	}
+		return workerMax;
+}*/
+
 
