@@ -272,7 +272,14 @@ void inicializarNodo(int nroNodo){
 	bitarray_destroy(unBitarray);
 
 }
+int findFatherByName(char *name) {
+	int isTheOne(t_directory *d) {
+		return string_equals_ignore_case(d->nombre, name);
+	}
 
+	t_directory* padre = list_find(tablaDirectorios, (void*) isTheOne);
+	return padre->index;
+}
 void createDirectory(char* path){ //path de la forma: dir
 	int cantidadDirectorios;
 	cantidadDirectorios = list_size(tablaDirectorios);
@@ -284,12 +291,19 @@ void createDirectory(char* path){ //path de la forma: dir
 				//TODO tabla de directorios
 				char **padres = string_split(path, "/");
 				int cant = strlen(padres) / sizeof(char*); //Length de padres
-				if(cant == 0){
+				if(cant == 1){
 					directory_create(cantidadDirectorios - 1, padres[0], 0);
 				}
 				else{
-					//int father = getIndex(padres(cant-2)); Me daria el index del padre
-					//directory_create(cantidadDirectorios - 1, padres[0], father);
+					int father;
+					if(strcmp(padres[cant-2], "root") == 0){
+						father = 0;
+					}else{
+						father = findFatherByName(padres[cant-2]); //Me daria el index del padre
+					}
+					log_trace(log, "El directorio %s fue agregado a la tabla. Padre: %i .", path, father);
+					directory_create(cantidadDirectorios - 1, padres[cant-1], father);
+
 
 				}
 
@@ -351,7 +365,8 @@ int main(int arg, char** argv) {
 	//inicializarNodo(1);
 	//cantidadTotalBloquesLibres();
 
-	//createDirectory("some");
+	//createDirectory("root/some");
+	//createDirectory("root/some/other"); //TODO
 	//createDirectory("some/dir");
 
 	//almacenarArchivo("Nodo1.bin","","bin");
