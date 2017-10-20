@@ -187,3 +187,11 @@
 [ERROR] 20:18:08:479 DataNode/(3874:3874): El archivo no existe o no se pudo abrir
 [TRACE] 20:18:34:253 DataNode/(3922:3922): Leyendo configuracion
 [TRACE] 20:18:34:253 DataNode/(3922:3922): Configuracion leida
+[TRACE] 17:01:03:275 DataNode/(4298:4298): Leyendo configuracion
+[TRACE] 17:01:03:302 DataNode/(4298:4298): Configuracion leida
+[TRACE] 17:01:39:240 DataNode/(4412:4412): Leyendo configuracion
+[TRACE] 17:01:39:240 DataNode/(4412:4412): Configuracion leida
+[TRACE] 17:02:14:13 DataNode/(4479:4479): Leyendo configuracion
+[TRACE] 17:02:14:13 DataNode/(4479:4479): Configuracion leida
+[TRACE] 17:04:07:531 DataNode/(4606:4606): Leyendo configuracion
+[TRACE] 17:04:07:533 DataNode/(4606:4606): Configuracion leida

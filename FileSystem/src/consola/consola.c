@@ -15,12 +15,12 @@ void ejecutar_comando(char* linea){
 	void (*accion) ();
 	// Divido el string en tokens, separando donde haya un espacio
 	// El primer token sera el comando
-	char* comando = strtok(linea," ");
-
+	//char* comando = strtok(linea," ");
+	char **comando = string_split(linea, " ");
 	// Si el comando es reconocido
-	if((accion = buscar_interfaz(comando))!=NULL){
+	if((accion = buscar_interfaz(comando[0]))!=NULL){
 		// ejecuto la interfaz del comando
-		accion();
+		accion(comando);
 	}else{
 		// Sino muestro un error
 		printf("Comando desconocido\n");

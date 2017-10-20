@@ -22,6 +22,7 @@ void rm_interface();
 void rename_interface();
 void mv_interface();
 void cat_interface();
+void mkdir_interface();
 void cpfrom_interface();
 void cpto_interface();
 void cpblock_interface();

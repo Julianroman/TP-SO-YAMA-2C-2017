@@ -16,15 +16,16 @@ typedef struct {
 }fila_tabla_comandos;
 
 fila_tabla_comandos tablaDeComandos[]={{"format"  ,&format_interface},
-									   {"rm"      ,&rm_interface},
-									   {"rename"  ,&rename_interface},
+									   {"rm"      ,&rm_interface}, //TODO flags
+									   {"rename"  ,&rename_interface}, //OK
 									   {"mv"      ,&mv_interface},
 									   {"cat"     ,&cat_interface},
+									   {"mkdir"  , &mkdir_interface}, //OK
 									   {"cpfrom"  ,&cpfrom_interface},
 									   {"cpto"    ,&cpto_interface},
 									   {"cpblock" ,&cpblock_interface},
 									   {"md5"     ,&md5_interface},
-									   {"ls"      ,&ls_interface},
+									   {"ls"      ,&ls_interface}, //OK (creo)
 									   {"info"    ,&info_interface}};
 /**/
 
