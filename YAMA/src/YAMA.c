@@ -82,24 +82,22 @@ int main(void) {
 }
 
 /*
-void planificacionClock(){
+void planificacionClock(t_list* listaWorker){//Esta seria la lista o diccionario de workers
 	int base;
-	t_list* listaWorker;//Esta seria la lista o diccionario de workers
-	t_worker* workerInicial = mayorDisponibilidad(listaWorker); //agarro el primer worker para comparar
-	//ver como posicionar primero al worker workerInicial y empezar
 	int i;
-	t_worker* workerActual = listaWorker->head;
+	t_nodo* workerInicial = workerConMenorCarga(listaWorker); //agarro el primer worker para comparar
+	t_nodo* workerActual = listaWorker->head;
 	char* bloquesTotales;
 	for(i = 0; i < sizeof(bloquesTotales);i++){
 		while(i != '\0'){
 			//auxiliar->head->data te da los datos de la primea posicion de la lista
 			//auxiliar->head->next te da el siguiente
-			if(existeEn(workerActual,bloquesTotales[i]) && workerActual->disponibilidad > 0){
+			if(existeEn(workerActual,bloquesTotales[i]) && workerActual->carga > 0){
 				asignarBloque(workerActual,bloquesTotales[i]);
-				workerActual->data->disponibilidad -= 1;
+				workerActual->carga -= 1;
 				break;
 			}else{
-				workerActual->data->disponibilidad = 0;
+				workerActual->carga = 0;
 				//es para saltearse el que tenga disponibilidad 0
 				workerActual = workerActual->next;
 			}
@@ -112,16 +110,18 @@ void planificacionClock(){
 	}
 }
 
-t_worker* mayorDisponibilidad(t_list * listaWorker) {
-	t_worker* workerMax = listaWorker.head;
-	t_worker* workerActual= listaWorker.head;
-	while(workerActual != NULL){
-		if(workerActual->data->disponibilidad > workerMax->data->disponibilidad){
-			workerMax = workerActual;
+t_nodo* workerConMenorCarga(t_list * listaWorker) {
+	int i = 0;
+	t_nodo* workerMin = listaWorker->head;
+	t_nodo* workerActual= listaWorker->head;
+	while(i <= list_size(listaWorker)){
+		if(workerActual->carga < workerMin->carga){
+			workerMin = workerActual;
 		}
-		workerActual = workerActual->next;
+		i++;
+		workerActual = list_get(listaWorker, i);
 	}
-		return workerMax;
+		return workerMin;
 }*/
 
 
