@@ -13,7 +13,7 @@ YAMA_STATUS res_SOLICITUD_ALMACENAMIENTO  (int socket,void*  data, t_dictionary*
 	printf("SOLICITUD_ALMACENAMIENTO recibida\n");
 
 	//DUMMIE WORKERS
-	send_INFO_ALMACENAMIENTO(socket,5555,"192.168.1.11","/tmp/Master1-tempredGlob44");
+	send_INFO_ALMACENAMIENTO(socket,9095,"127.0.0.1","/tmp/Master1-tempredGlob44");
 	send_FIN_LISTA(socket);
 
 	// IMPORTANTE! HAY UN LEAK DE MEMORIA
