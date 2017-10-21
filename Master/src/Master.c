@@ -24,7 +24,8 @@
 
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/senders.h>
-#include "etapas/etapas.h"
+#include <utilidades/protocol/receive.h>
+#include "operaciones/operaciones.h"
 // Eliminar define en cuanto la funcion log devuelva la ip
 #define IPYAMA "127.0.0.1"
 
@@ -68,31 +69,37 @@ int main(int argc, char **argv) {
 	int socketYAMA = crear_conexion(IPYAMA,puertoYama);
 	log_trace(logger, "Conectado al YAMA en socket %d",socketYAMA);
 
-	MASTER_STATUS status;
-	// Etapas
-		// Transformacion
-	status = etapa_transformacion(socketYAMA,ruta_yamafs);
-	if(status == EXITO){
-		log_trace(logger, "Transformacion exitosa");
-	}
-		// Reduccion local
-	status = etapa_reduccionLocal(socketYAMA);
-	if(status == EXITO){
-		log_trace(logger, "Reduccion local exitosa");
-	}
-		// Reduccion global
-	status = etapa_reduccionGlobal(socketYAMA);
-	if(status == EXITO){
-		log_trace(logger, "Reduccion global exitosa");
-	}
-		// Almcenamiento
-	status = etapa_almacenamiento(socketYAMA);
-	if(status == EXITO){
-		log_trace(logger, "Almacenamiento exitoso");
-	}
-	// Finalizar proceso
-		// Mostrar estadisticas
+	// Enviar solicitud de procesamiento
+	send_SOLICITUD_PROCESAMIENTO(socketYAMA,ruta_yamafs);
 
+
+	// Escuchar Informaciones
+	STATUS_MASTER status;
+	HEADER_T header;
+	void *data;
+	data = receive(socketYAMA,&header);
+	while(header != FIN_COMUNICACION){
+		switch (header){
+			case INFO_TRANSFORMACION:
+				status = transformacion (socketYAMA, data);
+			break;
+			case INFO_REDUCCIONLOCAL:
+				status = reduccionLocal (socketYAMA, data);
+			break;
+			case INFO_REDUCCIONGLOBAL:
+				status = reduccionGlobal(socketYAMA, data);
+			break;
+			case INFO_ALMACENAMIENTO:
+				status = almacenamiento (socketYAMA, data);
+			break;
+			default:
+				log_warning(logger,"No se conoce el mensaje enviado por el YAMA");
+			break;
+		}
+		data = receive(socketYAMA,&header);
+	}
+
+	// TODO Mostrar estadisticas
 
 	printf("Presione INTRO para terminar...\n");
 	getchar();

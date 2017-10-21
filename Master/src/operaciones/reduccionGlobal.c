@@ -1,6 +1,10 @@
 /*
- * etapa_transformacion.c
+ * reduccionGlobal.c
+ *
+ *  Created on: 21/10/2017
+ *      Author: utnso
  */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <utilidades/protocol/senders.h>
@@ -11,52 +15,47 @@
 #include <commons/collections/queue.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "etapas.h"
+#include "operaciones.h"
 
 extern t_log* logger;
 
-
-MASTER_STATUS etapa_reduccionGlobal (int socketYAMA){
-	log_trace(logger, "Iniciando etapa de reduccion global...");
-
-	payload_INFO_REDUCCIONGLOBAL* payload;
+STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
+	HEADER_T            header;
+	payload_INFO_REDUCCIONGLOBAL* payload   = data;
 	payload_INFO_REDUCCIONGLOBAL* payloadEncargado;
+
 	t_queue * colaDeInformaciones = queue_create();
-	HEADER_T header;
-	void* data;
 
-	send_SOLICITUD_REDUCCIONGLOBAL(socketYAMA);
-	data = receive(socketYAMA,&header);
+	// Primer hilo de transformacion
+	if(payload -> encargado == 0){
+		queue_push(colaDeInformaciones,payload);
+	}else if(payload -> encargado == 1){
+		payloadEncargado  = payload;
+	}
+	// TODO destruir payload
 
-	if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion*/ }
-
-	// Recibir todas las instrucciones
-	// Hasta que termine la lista
-	while(header != FIN_LISTA){
-		if (header == INFO_REDUCCIONGLOBAL){
-			payload = data; // Casteo impicito
-			if(payload->encargado ==  1){
-				payloadEncargado  = payload;
-			}
-			if(payload->encargado ==  0){
-				queue_push(colaDeInformaciones,payload);
-			}
+	// Recibir mas informaciones
+	payload = receive(socketYAMA,&header);
+	while(header == INFO_REDUCCIONGLOBAL){
+		if(payload -> encargado == 0){
+			queue_push(colaDeInformaciones,payload);
+		}else if(payload -> encargado == 1){
+			payloadEncargado  = payload;
 		}
-		data = receive(socketYAMA,&header);
-		if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */}
+		payload = receive(socketYAMA,&header);
 	}
 
 	// Conectarse al encargado
 	int socketWorker = crear_conexion(payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payload->PUERTO_Worker,payload->IP_Worker,payload->nombreTemporal_ReduccionLocal,payload->nombreTemporal_ReduccionGlobal,payload->encargado);
 
-	int i = 0;
+	// Enviar nodos subordinados
+	int i;
 	payload_INFO_REDUCCIONGLOBAL*  payloadSubordinado;
-	for(i;i < queue_size(colaDeInformaciones);i++){
+	for(i = 0; i < queue_size(colaDeInformaciones);i++){
 		payloadSubordinado = queue_pop(colaDeInformaciones);
 		send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadSubordinado->PUERTO_Worker,payloadSubordinado->IP_Worker,payloadSubordinado->nombreTemporal_ReduccionLocal,payloadSubordinado->nombreTemporal_ReduccionGlobal,payloadSubordinado->encargado);
-		// IMPORTANTE! HAY UN LEAK DE MEMORIA
-		// LA FUNCION DE RECOLECCION ESTA EN DESARROLLO
+		// TODO destruir payload
 	}
 	send_FIN_LISTA(socketWorker);
 
@@ -71,4 +70,3 @@ MASTER_STATUS etapa_reduccionGlobal (int socketYAMA){
 
 	return EXITO;
 };
-
