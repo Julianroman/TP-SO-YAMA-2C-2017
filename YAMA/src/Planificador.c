@@ -20,6 +20,7 @@ void inicializarPlanificador(){
 	int idUltimaTarea = 0;
 	diccionarioJobs = dictionary_create();
 	bloques_ejecutados = dictionary_create();
+	tablaEstados = list_create();
 	t_job* job = newJob();
 	agregarJob(job);
 }
@@ -41,13 +42,13 @@ void iniciarPlanificacion(){
 	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
 		realizarSiguienteInstruccion(respuesta);
 	}
-	t_nodo* encargado = elegirEncargadoReduccionGlobal(nodosDisponibles);
+	t_worker* encargado = elegirEncargadoReduccionGlobal(nodosDisponibles);
 	realizarReduccionGlobal(encargado);
 	finalizar(); // Como debe finalizar todo?
 }
 
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
-	int nodoTerminoReduccionLocal(t_nodo* nodo){
+	int nodoTerminoReduccionLocal(t_worker* nodo){
 		return tareaEstaFinalizada(nodo->jobActivo->reduccion_local);
 	}
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
@@ -80,33 +81,32 @@ void actualizarEstados(respuestaInfoMaster* respuesta){
 }
 
 void actualizarTablaEstados(respuestaInfoMaster* respuesta){
-	t_tablaEstados tablaEstados;
-	tablaEstados->job = respuesta->jobEjecutado;
-	tablaEstados->master = respuesta->master;
-	tablaEstados->nodo = respuesta->nodo;
-	//tablaEstados->bloque = Habría que sacar la info del bloque
-	tablaEstados->etapa = respuesta->tareaEjecutada;
-	//tablaEstados->archivoTemporal = idem bloque
-	tablaEstados->estado = respuesta->estadoEjecucion;
+	t_tablaEstados* registroEstado = malloc(sizeof(t_tablaEstados));
+	registroEstado->job = respuesta->jobEjecutado;
+	registroEstado->master = respuesta->master;
+	registroEstado->nodo = respuesta->nodo;
+	//registroEstado->bloque = Habría que sacar la info del bloque
+	registroEstado->etapa = respuesta->tareaEjecutada;
+	//registroEstado->archivoTemporal = idem bloque
+	registroEstado->estado = respuesta->estadoEjecucion;
+	list_add(tablaEstados, registroEstado);
 }
 
 void actualizarEstadosNodo(respuestaInfoMaster* respuesta){
-	switch(respuesta->tareaEjecutada){
-	case "TRANSFORMACION":
-		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+	if(tareaEsTransformacion(respuesta->tareaEjecutada)){
+		if(respuesta->estadoEjecucion == EJECUCION_OK){
 			tareaMarcarFinalizada(respuesta->nodo->jobActivo->transformacion);
 		}
-	break;
-	case "REDUCCION_GLOBAL":
-		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+	}
+	if(tareaEsReduccionLocal(respuesta->tareaEjecutada)){
+		if(respuesta->estadoEjecucion == EJECUCION_OK){
 			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_local);
 		}
-	break;
-	case "REDUCCION_GLOBAL":
-		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+	}
+	if(tareaEsReduccionGlobal(respuesta->tareaEjecutada)){
+		if(respuesta->estadoEjecucion == EJECUCION_OK){
 			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_global);
 		}
-	break;
 	}
 }
 
@@ -117,18 +117,18 @@ void actualizarEstadosNodo(respuestaInfoMaster* respuesta){
 	int carga;
 	t_list * bloquesMios;
 	t_list * bloquesAdquiridos;
-} t_nodo;
+} t_worker;
 
 t_list* listaWorkers;
-t_nodo* worker1;
-t_nodo* worker2;
-t_nodo* worker3;
+t_worker* worker1;
+t_worker* worker2;
+t_worker* worker3;
 
 int main(void) {
 	iniciarPlanificador();
-	worker1 = malloc(sizeof(t_nodo));
-	worker2 = malloc(sizeof(t_nodo));
-	worker3 = malloc(sizeof(t_nodo));
+	worker1 = malloc(sizeof(t_worker));
+	worker2 = malloc(sizeof(t_worker));
+	worker3 = malloc(sizeof(t_worker));
 	worker1->disponibilidad = 1;
 	worker1->cantTareasHistoricas = 1;
 	worker1->bloques = list_create();
@@ -156,9 +156,9 @@ int main(void) {
 
 void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	int base = 2;
-	t_nodo* workerMin = malloc(sizeof(t_nodo));
+	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
-	t_nodo* workerActual = malloc(sizeof(t_nodo));
+	t_worker* workerActual = malloc(sizeof(t_worker));
 	t_link_element* valor = malloc(sizeof(t_link_element));
 	int verificador = 0;
 	int i;
@@ -197,16 +197,16 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 	printf("Clock Terminaado");
 }
 
-int existeEn(t_list* lista , char* dato){
+/*int existeEn(t_list* lista , char* dato){
 	int existeBloque(char* d){
 			 return strcmp(d, dato);
 	}
-	return list_find(lista, (void*) existeBloque);
-}
+	return list_any_satisfy(lista, (void*) existeBloque);
+} Ver en detalle esta funcion*/
 
 void nodoConMayorDisponibilidad(){ // ordena la lista de nodos segun la disponibilidad
-	t_nodo* worker;
-	int mayorDisponibilidad(t_nodo* nodo1, t_nodo* nodo2){
+	t_worker* worker = malloc(sizeof(t_worker));
+	int mayorDisponibilidad(t_worker* nodo1, t_worker* nodo2){
 		if(disponibilidad(nodo1) == disponibilidad(nodo2)){
 			return tareasHistoricas(nodo1) < tareasHistoricas(nodo2);
 		}
@@ -218,25 +218,25 @@ void nodoConMayorDisponibilidad(){ // ordena la lista de nodos segun la disponib
 	worker = listaNodos->head->data;
 }
 
-int disponibilidad(t_nodo* worker){
+int disponibilidad(t_worker* worker){
 	return worker->disponibilidad;
 }
 
-int tareasHistoricas(t_nodo* worker){
+int tareasHistoricas(t_worker* worker){
 	return worker->cantTareasHistoricas;
 }
 
-t_nodo* buscarNodo(t_list* listaNodos, int numNodo){
-	int nodoConNombre(t_nodo* nodo){
-		return nodo->numero == numNodo;
+t_worker* buscarNodo(t_list* listaNodos, int numNodo){
+	int nodoConNombre(t_worker* nodo){
+		return nodo->id == numNodo;
 	}
 	return list_find(listaNodos, (void*) nodoConNombre);
 }
 
-int estaActivo(t_nodo* worker){
+int estaActivo(t_worker* worker){
 	return worker->activo == 1;
 }
 
-/*void calcularDisponibilidadWorker(t_nodo* worker){
+/*void calcularDisponibilidadWorker(t_worker* worker){
 	worker->disponibilidad = getDisponibilidadBase() + calcularPWL(worker); //Esto es la base de como trabaja el algoritmo wClock
 }*/

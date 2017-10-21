@@ -8,15 +8,44 @@
 #ifndef YAMA_H_
 #define YAMA_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/config.h>
+#include <commons/log.h>
+#include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
+#include <commons/string.h>
+#include "Job.h"
+#include "Tarea.h"
+
+// Tipo de dato de uso interno del yama
+// las respuestas deberan retornar un YAMA_STATUS
+// para poder tomar las medidas necesarias en caso de error
+typedef enum {EXITO, EN_EJECUCION, ERROR} YAMA_STATUS;
+
 typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} ETAPA_JOB;
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
 
 typedef struct {
+
+	int id;
+	char *ip;
+	char *puerto;
+	int carga;
+	t_list* bloques;
+	int disponibilidad;
+	int activo;
+	int cantTareasHistoricas;
+	t_job* jobActivo;
+
+} t_worker;
+
+typedef struct {
 	t_job* job;
 	int master;
-	t_nodo* nodo;
+	t_worker* nodo;
 	int bloque;
-	ETAPA_JOB etapa; // El job tiene una etapa especifica? Debería poder estar en varias a la vez
+	t_tarea* etapa; // El job tiene una etapa especifica? Debería poder estar en varias a la vez
 	char* archivoTemporal;
 	YAMA_STATUS estado;
 } t_tablaEstados;
@@ -31,7 +60,7 @@ typedef struct {
 } t_yama;
 
 typedef struct {
-	t_nodo* nodo;
+	t_worker* nodo;
 	t_job* jobEjecutado;
 	t_tarea* tareaEjecutada;
 	ESTADO_EJECUCION estadoEjecucion;

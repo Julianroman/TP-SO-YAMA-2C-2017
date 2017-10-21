@@ -6,8 +6,8 @@
 #include <utilidades/protocol/senders.h>
 
 #include "../../serverYAMA/responses/responses.h"
-#include "Job.h"
-#include "Tarea.h"
+#include "../../Job.h"
+#include "../../Tarea.h"
 
 YAMA_STATUS res_SOLICITUD_PROCESAMIENTO  (int socket,void*  data, t_dictionary* diccionario){
 	payload_SOLICITUD_PROCESAMIENTO* payload = data;

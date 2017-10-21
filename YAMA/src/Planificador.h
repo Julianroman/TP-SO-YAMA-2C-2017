@@ -10,26 +10,11 @@
 
 #include "YAMA.h"
 
-t_list* jobsAPlanificar;
-
-typedef struct {
-
-	int numero;
-	char *ip;
-	char *puerto;
-	int carga;
-	t_list* bloques;
-	int disponibilidad;
-	int activo;
-	int cantTareasHistoricas;
-	t_job* jobActivo;
-
-} t_nodo;
-
 t_list* listaNodos;
 t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
 t_list* listaRespuestasMaster;
+t_list* tablaEstados;
 
 int idUltimoJobCreado;
 int idUltimoJobPlanificado;
@@ -46,8 +31,8 @@ void actualizarTablaEstados(respuestaInfoMaster* respuesta);
 void actualizarEstadosNodo(respuestaInfoMaster* respuesta);
 void planificacionClock(t_list* listaNodos);
 int existeEn(t_list* lista , void* dato);
-int obtenerDisponibilidadNodo(t_nodo* worker);
-t_nodo* buscarNodo(t_list* listaNodos, int numNodo);
-int estaActivo(t_nodo* worker);
+int obtenerDisponibilidadNodo(t_worker* worker);
+t_worker* buscarNodo(t_list* listaNodos, int numNodo);
+int estaActivo(t_worker* worker);
 
 #endif /* PLANIFICADOR_H_ */
