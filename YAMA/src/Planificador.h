@@ -23,4 +23,6 @@ typedef struct {
 
 } t_nodo;
 
+t_list* listaNodos;
+
 #endif /* PLANIFICADOR_H_ */

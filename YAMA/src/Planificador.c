@@ -7,12 +7,13 @@
 
 #include "Planificador.h"
 
-/*
-void planificacionClock(t_list* listaWorker){//Esta seria la lista o diccionario de workers
+
+
+/*void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	int base;
 	int i;
-	t_nodo* workerInicial = workerConMenorCarga(listaWorker); //agarro el primer worker para comparar
-	t_nodo* workerActual = listaWorker->head;
+	t_nodo* workerInicial = workerConMenorCarga(listaNodos); //agarro el primer worker para comparar
+	t_nodo* workerActual = listaNodos->head;
 	char* bloquesTotales;
 	for(i = 0; i < sizeof(bloquesTotales);i++){
 		while(i != '\0'){
@@ -30,22 +31,22 @@ void planificacionClock(t_list* listaWorker){//Esta seria la lista o diccionario
 			workerActual = workerActual->next;
 			if(workerActual == NULL)
 				//reiniciar el recorrido de la lista
-				workerActual = listaWorker->head;
+				workerActual = listaNodos->head;
 		}
 		workerActual = workerActual->next;
 	}
 }
 
-t_nodo* workerConMenorCarga(t_list * listaWorker) {
+t_nodo* workerConMenorCarga(t_list * listaNodos) {
 	int i = 0;
-	t_nodo* workerMin = listaWorker->head;
-	t_nodo* workerActual= listaWorker->head;
-	while(i <= list_size(listaWorker)){
+	t_nodo* workerMin = listaNodos->head;
+	t_nodo* workerActual= listaNodos->head;
+	while(i <= list_size(listaNodos)){
 		if(workerActual->carga < workerMin->carga){
 			workerMin = workerActual;
 		}
 		i++;
-		workerActual = list_get(listaWorker, i);
+		workerActual = list_get(listaNodos, i);
 	}
 		return workerMin;
 }*/
