@@ -50,11 +50,9 @@ MASTER_STATUS etapa_reduccionGlobal (int socketYAMA){
 	int socketWorker = crear_conexion(payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payload->PUERTO_Worker,payload->IP_Worker,payload->nombreTemporal_ReduccionLocal,payload->nombreTemporal_ReduccionGlobal,payload->encargado);
 
-	int itr = 0;
+	int i = 0;
 	payload_INFO_REDUCCIONGLOBAL*  payloadSubordinado;
-	printf("subordinados: %d\n",queue_size(colaDeInformaciones));
-	for(itr;itr < queue_size(colaDeInformaciones);itr++){
-		printf("%d",itr);
+	for(i;i < queue_size(colaDeInformaciones);i++){
 		payloadSubordinado = queue_pop(colaDeInformaciones);
 		send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadSubordinado->PUERTO_Worker,payloadSubordinado->IP_Worker,payloadSubordinado->nombreTemporal_ReduccionLocal,payloadSubordinado->nombreTemporal_ReduccionGlobal,payloadSubordinado->encargado);
 		// IMPORTANTE! HAY UN LEAK DE MEMORIA
