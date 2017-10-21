@@ -6,6 +6,29 @@
  */
 
 #include "Planificador.h"
+#include "Job.h"
+
+static int idUltimoJobCreado;
+static int idUltimoJobPlanificado;
+static int idUltimaTarea;
+
+void iniciarPlanificador(){
+	listaNodos = list_create();
+	//Habria que cargar la lista de nodos con su carga y disponibilidad
+	int idUltimoJobCreado = 0;
+	int idUltimoJobPlanificado = 0;
+	int idUltimaTarea = 0;
+	diccionarioJobs = dictionary_create();
+}
+
+void agregarJob(t_job* job){
+	idUltimoJobCreado++;
+	job->id = idUltimoJobCreado;
+	char* keyJob = string_itoa(idUltimoJobCreado);
+
+	dictionary_put(diccionarioJobs, keyJob, job);
+	//Actualizar tabla de estados con el job creado
+}
 
 typedef struct {
 	char *nombre;
@@ -21,7 +44,7 @@ t_nodo* worker1;
 t_nodo* worker2;
 t_nodo* worker3;
 
-/*int main(void) { 				era para probar
+/*int main(void) {
 	puts("hola");
 	worker1 = malloc(sizeof(t_nodo));
 	worker2 = malloc(sizeof(t_nodo));
@@ -55,8 +78,8 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 		while(1){
 			workerActual = valor->data;
 			if(workerActual->carga > 0){
-				////// hacer esta funcion y descomentar /////////
-			//	if(existeEn(workerActual->bloquesMios,bloquesTotales[i]) != NULL){
+				////// hacer esta funcion vvvveeeerrrr /////////
+				//if(existeEn(workerActual->bloquesMios,bloquesTotales[i]) != NULL){
 				//////////////////////////////////
 					list_add(workerActual->bloquesAdquiridos,bloquesTotales[i]);
 					workerActual->carga -= 1;
@@ -110,4 +133,3 @@ int existeEn(t_list* lista , void* dato){
 	}
 		return workerMin;
 }*/
-

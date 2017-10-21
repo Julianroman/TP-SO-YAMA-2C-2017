@@ -24,5 +24,6 @@ typedef struct {
 } t_nodo;
 
 t_list* listaNodos;
+t_dictionary* diccionarioJobs;
 
 #endif /* PLANIFICADOR_H_ */
