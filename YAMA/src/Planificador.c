@@ -19,6 +19,7 @@ void inicializarPlanificador(){
 	int idUltimoJobPlanificado = 0;
 	int idUltimaTarea = 0;
 	diccionarioJobs = dictionary_create();
+	bloques_ejecutados = dictionary_create();
 	t_job* job = newJob();
 	agregarJob(job);
 }
@@ -57,24 +58,34 @@ void iniciarPlanificacion(){
 t_list* listaWorkers;
 t_nodo* worker1;
 t_nodo* worker2;
-t_nodo* worker3;*/
+t_nodo* worker3;
 
-/*int main(void) {
-	puts("hola");
+int main(void) {
+	iniciarPlanificador();
 	worker1 = malloc(sizeof(t_nodo));
 	worker2 = malloc(sizeof(t_nodo));
-	worker1->carga = 0;
-	worker1->bloquesMios = list_create();
-	worker2->bloquesMios = list_create();
-	list_add(worker1->bloquesMios, "1");
-	list_add(worker1->bloquesMios, "2");
-	worker2->carga = 0;
-	list_add(worker2->bloquesMios, "0");
-	list_add(worker2->bloquesMios, "3");
-	listaWorkers = list_create();
-	list_add(listaWorkers, worker1);
-	list_add(listaWorkers, worker2);
- 	planificacionClock(listaWorkers);
+	worker3 = malloc(sizeof(t_nodo));
+	worker1->disponibilidad = 1;
+	worker1->cantTareasHistoricas = 1;
+	worker1->bloques = list_create();
+	worker2->bloques = list_create();
+	worker3->bloques = list_create();
+	list_add(worker1->bloques, "1");
+	list_add(worker1->bloques, "2");
+	list_add(worker1->bloques, "0");
+	worker2->disponibilidad = 0;
+	worker2->cantTareasHistoricas = 2;
+	list_add(worker2->bloques, "0");
+	list_add(worker2->bloques, "3");
+	worker3->disponibilidad = 1;
+	worker3->cantTareasHistoricas = 3;
+	list_add(worker3->bloques, "1");
+	list_add(worker3->bloques, "3");
+	list_add(listaNodos, worker1);
+	list_add(listaNodos, worker2);
+	list_add(listaNodos, worker3);
+	nodoConMayorDisponibilidad();
+ 	planificacionClock(listaNodos);
 
 	return EXIT_SUCCESS;
 }*/
@@ -87,17 +98,15 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 	t_link_element* valor = malloc(sizeof(t_link_element));
 	int verificador = 0;
 	int i;
-	char* bloquesTotales = {"0","1","2","3"};
+	char *bloquesTotales[4] = {"0","1","2","3"};
 	valor = listaNodos->head;
-	for(i = 0; i < sizeof(bloquesTotales);i++){
+	for(i = 0; i < sizeof(&bloquesTotales);i++){
 		while(1){
 			workerActual = valor->data;
-			if(workerActual->carga > 0){
-				////// hacer esta funcion vvvveeeerrrr /////////
-				//if(existeEn(workerActual->bloquesMios,bloquesTotales[i]) != NULL){
-				//////////////////////////////////
-					list_add(workerActual->bloquesAdquiridos,bloquesTotales[i]);
-					workerActual->carga -= 1;
+			if(existeEn(workerActual->bloques, bloquesTotales[i]) == 0){
+				if(workerActual->disponibilidad > 0){
+					dictionary_put(bloques_ejecutados, bloquesTotales[i], workerActual);
+					workerActual->disponibilidad -= 1;
 					if(valor->next){
 						valor = valor->next;
 						verificador = 0;
@@ -106,65 +115,51 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 					}
 					if(verificador == 1)
 						valor = listaNodos->head;
-				//}
-				break;
-			}else{
-					workerActual->carga = base;
-
-				if(valor->next){
-					valor = valor->next;
-					verificador = 0;
+					break;
 				}else{
-					verificador = 1;
-				}
-				if(verificador == 1)
-					valor = listaNodos->head;
-			}
-		}
-	}
-}
-
-int existeEn(t_list* lista , void* dato){
-
-	return 1;
-}
-/*t_nodo* workerConMenorCarga(t_list * listaWorker){
-	t_nodo* workerMin = malloc(sizeof(t_nodo));
-	workerMin = listaWorker->head->data;
-	t_nodo* workerActual = malloc(sizeof(t_nodo));
-	t_link_element* valor = malloc(sizeof(t_link_element));
-	valor = listaWorker->head;
-	int verificador = 0;
-	while(verificador == 0){
-		workerActual = valor->data;
-		if(workerActual->carga > workerMin->carga){
-			workerMin = workerActual;
-		}
-		else if(workerActual->carga == workerMin->carga){ // Si son iguales hay que desempatar por tareas historicas
-			if(workerMin->cantTareasHistoricas > workerActual->cantTareasHistoricas){
-				workerMin = workerActual;
+					workerActual->disponibilidad = base;
 				}
 			}
-		if(valor->next){
-			valor = valor->next;
-		}else{
-			verificador = 1;
+			if(valor->next){
+				valor = valor->next;
+				verificador = 0;
+			}else{
+				verificador = 1;
+			}
+			if(verificador == 1)
+				valor = listaNodos->head;
 		}
 	}
-		return workerMin;
+	printf("Clock Terminaado");
 }
 
-t_nodo nodoConMenorCarga(){ // Ordena por mayor carga y tomo el último de la lista
+int existeEn(t_list* lista , char* dato){
+	int existeBloque(char* d){
+			 return strcmp(d, dato);
+	}
+	return list_find(lista, (void*) existeBloque);
+}
+
+void nodoConMayorDisponibilidad(){ // ordena la lista de nodos segun la disponibilidad
 	t_nodo* worker;
-	int mayorCarga(t_nodo* nodoMasCarga, t_nodo* nodo){
-		return nodoMasCarga->carga > nodo->carga;
-	}
-	list_sort(listaNodos,(void*)mayorCarga);
-	worker = list_get(listaNodos, listSize(listaNodos));
-}*/
+	int mayorDisponibilidad(t_nodo* nodo1, t_nodo* nodo2){
+		if(disponibilidad(nodo1) == disponibilidad(nodo2)){
+			return tareasHistoricas(nodo1) < tareasHistoricas(nodo2);
+		}
+		else
+			return disponibilidad(nodo1) > disponibilidad(nodo2);
+		}
+	list_sort(listaNodos,(void*)mayorDisponibilidad);
+	//para verificar que el primero este bien
+	worker = listaNodos->head->data;
+}
 
-int obtenerDisponibilidadNodo(t_nodo* worker){
+int disponibilidad(t_nodo* worker){
 	return worker->disponibilidad;
+}
+
+int tareasHistoricas(t_nodo* worker){
+	return worker->cantTareasHistoricas;
 }
 
 t_nodo* buscarNodo(t_list* listaNodos, int numNodo){
