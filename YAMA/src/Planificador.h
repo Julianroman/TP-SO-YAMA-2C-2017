@@ -27,6 +27,7 @@ typedef struct {
 } t_nodo;
 
 t_list* listaNodos;
+t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
 t_list* listaRespuestasMaster;
 
