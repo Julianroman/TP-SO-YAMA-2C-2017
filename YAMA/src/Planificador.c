@@ -30,7 +30,7 @@ void agregarJob(t_job* job){
 	//Actualizar tabla de estados con el job creado
 }
 
-typedef struct {
+/*typedef struct {
 	char *nombre;
 	char *ip;
 	char *puerto;
@@ -42,7 +42,7 @@ typedef struct {
 t_list* listaWorkers;
 t_nodo* worker1;
 t_nodo* worker2;
-t_nodo* worker3;
+t_nodo* worker3;*/
 
 /*int main(void) {
 	puts("hola");
@@ -125,6 +125,11 @@ int existeEn(t_list* lista , void* dato){
 		if(workerActual->carga > workerMin->carga){
 			workerMin = workerActual;
 		}
+		else if(workerActual->carga == workerMin->carga){ // Si son iguales hay que desempatar por tareas historicas
+			if(workerMin->cantTareasHistoricas > workerActual->cantTareasHistoricas){
+				workerMin = workerActual;
+				}
+			}
 		if(valor->next){
 			valor = valor->next;
 		}else{
@@ -132,4 +137,32 @@ int existeEn(t_list* lista , void* dato){
 		}
 	}
 		return workerMin;
+}
+
+t_nodo nodoConMenorCarga(){ // Ordena por mayor carga y tomo el último de la lista
+	t_nodo* worker;
+	int mayorCarga(t_nodo* nodoMasCarga, t_nodo* nodo){
+		return nodoMasCarga->carga > nodo->carga;
+	}
+	list_sort(listaNodos,(void*)mayorCarga);
+	worker = list_get(listaNodos, listSize(listaNodos));
+}*/
+
+int obtenerDisponibilidadNodo(t_nodo* worker){
+	return worker->disponibilidad;
+}
+
+t_nodo* buscarNodo(t_list* listaNodos, int numNodo){
+	int nodoConNombre(t_nodo* nodo){
+		return nodo->numero == numNodo;
+	}
+	return list_find(listaNodos, (void*) nodoConNombre);
+}
+
+int estaActivo(t_nodo* worker){
+	return worker->activo == 1;
+}
+
+/*void calcularDisponibilidadWorker(t_nodo* worker){
+	worker->disponibilidad = getDisponibilidadBase() + calcularPWL(worker); //Esto es la base de como trabaja el algoritmo wClock
 }*/
