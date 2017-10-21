@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
 typedef struct {
     int32_t nroNodo;
     t_bitarray* bitmap;
@@ -36,13 +37,12 @@ static t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap) {
 }
 
 static void nodo_destroy(t_nodo *self) {
-    free(self->nroNodo);
     free(self->bitmap);
     free(self);
 }
 
 typedef struct {
-	int32_t index;
+	int32_t indice;
 	//char nombre[255];
 	char* nombre;
 	int32_t padre;
@@ -50,11 +50,17 @@ typedef struct {
 
 static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
 	t_directory *new = malloc(sizeof(t_directory));
-    new->index = index;
+    new->indice = index;
     new->nombre = nombre;
     new->padre = padre;
 
     return new;
+}
+
+static void directory_destroy(t_directory *self) {
+    free(self->nombre);
+
+    free(self);
 }
 
 #endif /* FUNCIONESFS_H_ */
