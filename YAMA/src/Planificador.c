@@ -12,13 +12,15 @@ static int idUltimoJobCreado;
 static int idUltimoJobPlanificado;
 static int idUltimaTarea;
 
-void iniciarPlanificador(){
+void inicializarPlanificador(){
 	listaNodos = list_create();
 	//Habria que cargar la lista de nodos con su carga y disponibilidad
 	int idUltimoJobCreado = 0;
 	int idUltimoJobPlanificado = 0;
 	int idUltimaTarea = 0;
 	diccionarioJobs = dictionary_create();
+	t_job* job = newJob();
+	agregarJob(job);
 }
 
 void agregarJob(t_job* job){
@@ -28,6 +30,19 @@ void agregarJob(t_job* job){
 
 	dictionary_put(diccionarioJobs, keyJob, job);
 	//Actualizar tabla de estados con el job creado
+}
+
+void iniciarPlanificacion(){
+	inicializarPlanificador();
+	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(); //Funcion a desarrollar conjuntamente con FS
+	planificacionClock(nodosDisponibles); //Deberia ser WClock
+	t_nodo* nodo = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
+	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
+		realizarSiguienteInstruccion(nodo);
+	}
+	t_nodo* encargado = elegirEncargadoReduccionGlobal(nodosDisponibles);
+	realizarReduccionGlobal(encargado);
+	finalizar(); // Como debe finalizar todo?
 }
 
 /*typedef struct {
