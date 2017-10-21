@@ -14,8 +14,6 @@ YAMA_STATUS res_SOLICITUD_PROCESAMIENTO  (int socket,void*  data, t_dictionary* 
 	printf("SOLICITUD_PROCESAMIENTO recibida\n");
 	printf("Archivo: %s, enviando informacion sobre workers\n",payload->nombreArchivo);
 
-
-
 	//DUMMIE WORKERS
 	send_INFO_TRANSFORMACION(socket,9095,"127.0.0.1",38,10180,"/tmp/Master1-temp38");
 	send_INFO_TRANSFORMACION(socket,9095,"127.0.0.1",39,10180,"/tmp/Master1-temp39");

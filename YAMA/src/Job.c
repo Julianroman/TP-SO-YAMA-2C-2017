@@ -10,6 +10,7 @@
 t_job *newJob()
 {
 	t_job *job = malloc(sizeof(t_job));
+	job->id = 0;
 	job->transformacion = newTareaTransformacion();
 	job->reduccion_local = newTareaReduccionLocal();
 	job->reduccion_global = newTareaReduccionGlobal();

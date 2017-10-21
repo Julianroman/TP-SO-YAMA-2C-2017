@@ -6,8 +6,29 @@
  */
 
 #include "Planificador.h"
+#include "Job.h"
 
+static int idUltimoJobCreado;
+static int idUltimoJobPlanificado;
+static int idUltimaTarea;
 
+void iniciarPlanificador(){
+	listaNodos = list_create();
+	//Habria que cargar la lista de nodos con su carga y disponibilidad
+	int idUltimoJobCreado = 0;
+	int idUltimoJobPlanificado = 0;
+	int idUltimaTarea = 0;
+	diccionarioJobs = dictionary_create();
+}
+
+void agregarJob(t_job* job){
+	idUltimoJobCreado++;
+	job->id = idUltimoJobCreado;
+	char* keyJob = string_itoa(idUltimoJobCreado);
+
+	dictionary_put(diccionarioJobs, keyJob, job);
+	//Actualizar tabla de estados con el job creado
+}
 
 /*void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	int base;
