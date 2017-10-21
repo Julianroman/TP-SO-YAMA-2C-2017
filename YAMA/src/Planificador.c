@@ -7,14 +7,14 @@
 
 #include "Planificador.h"
 #include "Job.h"
+#include "YAMA.h"
+#include "Tarea.h"
 
-static int idUltimoJobCreado;
-static int idUltimoJobPlanificado;
-static int idUltimaTarea;
 
 void inicializarPlanificador(){
 	listaNodos = list_create();
 	//Habria que cargar la lista de nodos con su carga y disponibilidad
+	listaRespuestasMaster = list_create();
 	int idUltimoJobCreado = 0;
 	int idUltimoJobPlanificado = 0;
 	int idUltimaTarea = 0;
@@ -36,13 +36,77 @@ void iniciarPlanificacion(){
 	inicializarPlanificador();
 	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(); //Funcion a desarrollar conjuntamente con FS
 	planificacionClock(nodosDisponibles); //Deberia ser WClock
-	t_nodo* nodo = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
+	respuestaInfoMaster* respuesta = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
 	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
-		realizarSiguienteInstruccion(nodo);
+		realizarSiguienteInstruccion(respuesta);
 	}
 	t_nodo* encargado = elegirEncargadoReduccionGlobal(nodosDisponibles);
 	realizarReduccionGlobal(encargado);
 	finalizar(); // Como debe finalizar todo?
+}
+
+int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
+	int nodoTerminoReduccionLocal(t_nodo* nodo){
+		return tareaEstaFinalizada(nodo->jobActivo->reduccion_local);
+	}
+	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
+}
+
+void realizarSiguienteinstruccion(respuestaInfoMaster* respuesta){
+	if(respuesta->estadoEjecucion == EJECUCION_ERROR){
+		if(respuesta->tareaEjecutada == REDUCCION_LOCAL || respuesta->tareaEjecutada == REDUCCION_GLOBAL){
+			abortarJob(respuesta->jobEjecutado);
+		}
+		else{
+			planificarTransformacion(respuesta->nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
+		}
+	}
+	else if(respuesta->estadoEjecucion == EJECUCION_OK){
+		realizarSiguienteTarea(respuesta->nodo);
+	}
+}
+
+respuestaInfoMaster* obtenerSiguienteInfoMaster(){
+	respuestaInfoMaster* respuesta = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
+	actualizarEstados(respuesta);
+	return respuesta->nodo;
+}
+
+void actualizarEstados(respuestaInfoMaster* respuesta){
+	actualizarTablaestados(respuesta);
+	actualizarLog(respuesta);
+	actualizarEstadosNodo(respuesta);
+}
+
+void actualizarTablaEstados(respuestaInfoMaster* respuesta){
+	t_tablaEstados tablaEstados;
+	tablaEstados->job = respuesta->jobEjecutado;
+	tablaEstados->master = respuesta->master;
+	tablaEstados->nodo = respuesta->nodo;
+	//tablaEstados->bloque = Habría que sacar la info del bloque
+	tablaEstados->etapa = respuesta->tareaEjecutada;
+	//tablaEstados->archivoTemporal = idem bloque
+	tablaEstados->estado = respuesta->estadoEjecucion;
+}
+
+void actualizarEstadosNodo(respuestaInfoMaster* respuesta){
+	switch(respuesta->tareaEjecutada){
+	case "TRANSFORMACION":
+		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+			tareaMarcarFinalizada(respuesta->nodo->jobActivo->transformacion);
+		}
+	break;
+	case "REDUCCION_GLOBAL":
+		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_local);
+		}
+	break;
+	case "REDUCCION_GLOBAL":
+		if(respuesta->estadoEjecucion == "EJECUCION_OK"){
+			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_global);
+		}
+	break;
+	}
 }
 
 /*typedef struct {

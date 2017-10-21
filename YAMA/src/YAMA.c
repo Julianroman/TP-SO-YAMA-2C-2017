@@ -44,6 +44,10 @@ t_yama* leerConfiguracion(){
 	return configYAMA;
 }
 
+void iniciarListaEstados(){
+	t_list* tablaEstados = list_create();
+}
+
 int main(void) {
 	puts("Comienza el proceso YAMA");
 
@@ -52,7 +56,6 @@ int main(void) {
 	log_trace(logs, "Leyendo configuracion");
 	t_yama configYAMA = leerConfiguracion();
 	log_trace(logs, "Configuracion leida");
-
 	//cliente(ipFs, puertoFs, id);
 	init_serverYAMA(configYAMA->puertoYAMA);
 
