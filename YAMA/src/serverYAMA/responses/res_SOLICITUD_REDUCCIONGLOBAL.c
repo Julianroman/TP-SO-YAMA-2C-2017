@@ -14,10 +14,10 @@ YAMA_STATUS res_SOLICITUD_REDUCCIONGLOBAL  (int socket,void*  data, t_dictionary
 
 	//DUMMIE WORKERS
 
+	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc44","/tmp/Master1-tempredGlob44",1);
 	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc38"," ",0);
 	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc39"," ",0);
-	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc44","/tmp/Master1-tempredGlob44",1);
-	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc39"," ",0);
+	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc40"," ",0);
 	send_INFO_REDUCCIONGLOBAL(socket,9095,"127.0.0.1","/tmp/Master1-tempredLoc46"," ",0);
 	send_FIN_LISTA(socket);
 
