@@ -28,7 +28,112 @@ int32_t formateado = 0;
 t_list* listaDeNodos;
 t_list* tablaDirectorios;
 //
+void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino){
 
+	FILE* fileOrigen;
+	if (!(fileOrigen = fopen(pathOrigen, "r"))){
+		log_error(log, "El archivo no existe o no se pudo abrir");
+	}
+	else{
+		//validar si el destino es valido
+		int size_bytes;
+		fseek(fileOrigen,0,SEEK_END);
+		size_bytes = ftell(fileOrigen);
+		rewind(fileOrigen);
+
+		int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
+		int tam = 0;
+		char* map;
+		if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(fileOrigen),0)) == MAP_FAILED){
+			log_error(log,"Error al mappear archivo\n");
+		}
+		int i = 0;
+		map = strdup(map);
+		//split de \n al map y le mando cada cosa al datanode
+		char **str1 = string_split(map, "\n");
+		char* text = string_new();
+		char* textConcat = string_new();
+		int32_t size_concat = 0;
+		int bloq = 1;
+		while (str1[i] != NULL)
+		{
+
+			textConcat = string_duplicate(text);
+			string_append(&textConcat, str1[i]);
+			string_append(&textConcat, "\n");
+			size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
+
+			if(size_concat < tamanioBloques){
+				string_append(&text, str1[i]);
+				tam += size_concat;
+
+			}else{
+				size_concat = strlen(text) * sizeof(char);
+				//printf("%s\n",text);
+				//enviarADataNode(text, bloq, tam, size_concat);
+
+				char* pathConcat = malloc(sizeof(char*));
+				pathConcat = string_duplicate(pathDestino);
+				string_append(&pathConcat, "/arc");
+				string_append(&pathConcat, string_itoa(bloq));
+				string_append(&pathConcat, ".txt");
+
+				FILE* fileDestino;
+				fileDestino = fopen(pathConcat, "w");
+				if (!(fileDestino = fopen(pathConcat, "w"))){
+						log_error(log, "Error al intentar escribir el archivo");
+				}else{
+					if(fwrite(text, size_concat, 1, fileDestino) != 1){
+						log_error(log, "Error al intentar escribir el archivo");
+					}else{
+						log_trace(log, "El archivo fue copiado correctamente");
+					}
+					fclose(fileDestino);
+					free(pathConcat);
+
+					bloq ++;
+					text = string_new();
+				}
+
+			}
+			i++;
+
+		}
+		if(!string_is_empty(text)){
+			size_concat = strlen(text) * sizeof(char);
+			//printf("%s\n",text);
+			char* pathConcat = malloc(sizeof(char*));
+			pathConcat = string_duplicate(pathDestino);
+			string_append(&pathConcat, "/arc");
+			string_append(&pathConcat, string_itoa(bloq));
+			string_append(&pathConcat, ".txt");
+
+			FILE* fileDestino;
+			fileDestino = fopen(pathConcat, "w");
+			if (!(fileDestino = fopen(pathConcat, "w"))){
+					log_error(log, "Error al intentar escribir el archivo");
+			}else{
+				if(fwrite(text, size_concat, 1, fileDestino) != 1){
+					log_error(log, "Error al intentar escribir el archivo");
+				}else{
+					log_trace(log, "El archivo fue copiado correctamente");
+				}
+				fclose(fileDestino);
+				free(pathConcat);
+
+				bloq ++;
+			}
+
+
+		}
+		free(str1);
+		free(map);
+		free(text);
+	}
+	fclose(fileOrigen);
+
+
+}
 int validarArchivo(char* pathArchivo){
 	FILE* archivo;
 	archivo = fopen(pathArchivo,"r");
@@ -272,13 +377,40 @@ void inicializarNodo(int nroNodo){
 	bitarray_destroy(unBitarray);
 
 }
-int findFatherByName(char *name) {
+
+void tablaDeNodosEnArchivo(){
+	FILE* tabla;
+	tabla = fopen("root/tabla.txt","w");
+	fwrite("Indice -- Nombre -- Padre", strlen("Indice -- Nombre -- Padre"),1, tabla);
+	fwrite("\n", sizeof(char), 1, tabla);
+	int i;
+	for (i = 0; i < list_size(tablaDirectorios); i ++){
+		t_directory *unDirec = malloc(sizeof(t_directory));
+		unDirec = list_get(tablaDirectorios, i);
+		fwrite(" ", 1, 1, tabla);
+		fwrite(string_itoa(unDirec->indice), 1,1, tabla);
+		fwrite(" ", 1, 1, tabla);
+		fwrite(unDirec->nombre, strlen(unDirec->nombre),1, tabla);
+		fwrite(" ", 1, 1, tabla);
+		fwrite(string_itoa(unDirec->padre), 1,1, tabla);
+		fwrite(" ", 1, 1, tabla);
+		fwrite("\n", sizeof(char), 1, tabla);
+		directory_destroy(unDirec);
+	}
+
+
+	log_trace(log, "La tabla de directorios esta en el archivo");
+	fclose(tabla);
+
+}
+
+t_directory* findFatherByName(char *name) {
 	int isTheOne(t_directory *d) {
+		log_trace(log, d->nombre);
 		return string_equals_ignore_case(d->nombre, name);
 	}
 
-	t_directory* padre = list_find(tablaDirectorios, (void*) isTheOne);
-	return padre->index;
+	return list_find(tablaDirectorios, (void*) isTheOne);
 }
 void createDirectory(char* path){ //path de la forma: dir
 	int cantidadDirectorios;
@@ -288,25 +420,32 @@ void createDirectory(char* path){ //path de la forma: dir
 
 		if (stat(path, &st) == -1) { //Si no existe el path, lo creo
 			if(mkdir(path, 0700) == 0){
-				//TODO tabla de directorios
 				char **padres = string_split(path, "/");
-				int cant = strlen(padres) / sizeof(char*); //Length de padres
+				int cant;
+				cant = strlen(padres) / sizeof(char*); //Length de padres
 				if(cant == 1){
-					directory_create(cantidadDirectorios - 1, padres[0], 0);
+					t_directory* nuevoDir;
+					nuevoDir = directory_create(cantidadDirectorios - 1, padres[0], 0);
+					list_add(tablaDirectorios, nuevoDir);
 				}
 				else{
-					int father;
+					int32_t father;
+					log_trace(log,"Padre: %s", padres[cant-2]);
 					if(strcmp(padres[cant-2], "root") == 0){
 						father = 0;
 					}else{
-						father = findFatherByName(padres[cant-2]); //Me daria el index del padre
+						t_directory* dirPadre;
+						dirPadre = findFatherByName(padres[cant-2]);
+						father = dirPadre->indice;//Me daria el index del padre
+						directory_destroy(dirPadre);
 					}
-					log_trace(log, "El directorio %s fue agregado a la tabla. Padre: %i .", path, father);
-					directory_create(cantidadDirectorios - 1, padres[cant-1], father);
 
+					t_directory* nuevoDir;
+					nuevoDir = directory_create(cantidadDirectorios + 1, padres[cant-1], father);
 
+					list_add(tablaDirectorios, nuevoDir);
+					log_trace(log, "El directorio fue agregado a la tabla. Indice: %i - Nombre: %s - Padre: %i .",nuevoDir->indice, nuevoDir->nombre, nuevoDir->padre);
 				}
-
 
 				log_trace(log, "El directorio %s fue creado con exito.", path);
 
@@ -353,8 +492,8 @@ int main(int arg, char** argv) {
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	//El proceso no termina hasta que mueren los dos hilos
-	//pthread_join(hiloConsola, NULL);
-	//pthread_join(hiloServidor, NULL);
+	pthread_join(hiloConsola, NULL);
+	pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
@@ -366,12 +505,20 @@ int main(int arg, char** argv) {
 	//cantidadTotalBloquesLibres();
 
 	//createDirectory("root/some");
-	//createDirectory("root/some/other"); //TODO
-	//createDirectory("some/dir");
+	//createDirectory("root/some/other");
+	//createDirectory("root/ro");
+	//createDirectory("root/some/carpeta"); //TODO con este rompe en el find
+
+
+	//tablaDeNodosEnArchivo();
+	//createDirectory("some/dir")
+
 
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
 	//importarArchivo("Nodo1.bin","");
+
+	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");
 
 
 	return EXIT_SUCCESS;

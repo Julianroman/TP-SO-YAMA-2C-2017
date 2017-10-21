@@ -21,7 +21,7 @@ fila_tabla_comandos tablaDeComandos[]={{"format"  ,&format_interface},
 									   {"mv"      ,&mv_interface},
 									   {"cat"     ,&cat_interface},
 									   {"mkdir"  , &mkdir_interface}, //OK
-									   {"cpfrom"  ,&cpfrom_interface},
+									   {"cpfrom"  ,&cpfrom_interface}, //OK
 									   {"cpto"    ,&cpto_interface},
 									   {"cpblock" ,&cpblock_interface},
 									   {"md5"     ,&md5_interface},
