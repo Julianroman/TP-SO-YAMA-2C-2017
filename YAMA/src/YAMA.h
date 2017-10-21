@@ -8,16 +8,6 @@
 #ifndef YAMA_H_
 #define YAMA_H_
 
-typedef struct {
-
-	char *nombre;
-	char *ip;
-	char *puerto;
-	int carga;
-	t_list bloque;
-	int disponibilidad;
-
-} t_nodo;
 
 typedef struct {
 	t_job job;
@@ -38,4 +28,5 @@ typedef struct {
 	char* algoritmoBalanceo;
 } t_yama;
 
+t_yama* leerConfiguracion();
 #endif /* YAMA_H_ */
