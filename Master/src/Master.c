@@ -34,6 +34,9 @@ char* ipYama = "";
 t_log* logger;
 sem_t threadManager;
 
+int transformador_fd;
+int reductor_fd;
+
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
@@ -48,15 +51,18 @@ void leerConfiguracion(){
 int main(int argc, char **argv) {
 	// TODO Recibir todos los parametros
 	// Recibir parametros
-	if (argc!=2){
-		puts("Ingrese la ruta de un archivo");
+	if (argc!= 3){
+		puts("Accion incorrecta, debe ser: Master <archivo yamafs> <transformador> <reductor>");
 		return 1;
 	}
 	sem_init(&threadManager,0,0);
-	char* ruta_yamafs = argv[1];
+	char* ruta_yamafs        = argv[1];
+	char* ruta_transformador = argv[2];
+	char* ruta_reductor      = argv[3];
 
-	// Abrir archivo
-	//int transformador_fd = open(rutaTransformador,NULL);
+	// Abrir archivos
+	//int transformador_fd = open(ruta_transformador,NULL);
+	//int reductor_fd = open(ruta_reductor,NULL);
 
 
 	// Manejo de logs
@@ -103,5 +109,7 @@ int main(int argc, char **argv) {
 
 	printf("Presione INTRO para terminar...\n");
 	getchar();
+	close(transformador_fd);
+	close(reductor_fd);
 	return EXIT_SUCCESS;
 }

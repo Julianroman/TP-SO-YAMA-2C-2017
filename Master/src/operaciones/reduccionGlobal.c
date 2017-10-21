@@ -20,6 +20,7 @@
 extern t_log* logger;
 
 STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
+	log_trace(logger, "Reduccion global iniciada");
 	HEADER_T            header;
 	payload_INFO_REDUCCIONGLOBAL* payload   = data;
 	payload_INFO_REDUCCIONGLOBAL* payloadEncargado;
@@ -68,5 +69,6 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	close(socketWorker);
 	queue_destroy(colaDeInformaciones);
 
+	log_trace(logger, "Reduccion global finalizada");
 	return EXITO;
 };

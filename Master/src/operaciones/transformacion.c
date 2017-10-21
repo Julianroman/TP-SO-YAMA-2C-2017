@@ -19,6 +19,7 @@
 
 extern sem_t threadManager;
 extern t_log* logger;
+extern int transformador_fd;
 
 void* rutina_transformacion(void* args);
 typedef struct{
@@ -27,6 +28,7 @@ typedef struct{
 }DATA_TRANSFORMACION;
 
 STATUS_MASTER transformacion (int socketYAMA, void* data){
+	log_trace(logger, "Transformacion iniciada");
 	void*               payload;
 	HEADER_T            header;
 	pthread_t           tid;
@@ -61,7 +63,7 @@ STATUS_MASTER transformacion (int socketYAMA, void* data){
 	for(i = 0; i < cantidadDeOperaciones ; i++ ){
 		sem_wait(&threadManager);
 	}
-
+	log_trace(logger, "Operaciones de transformacion terminadas");
 	return EXITO;
 }
 
@@ -74,6 +76,7 @@ void* rutina_transformacion(void* args){
 
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
+	//send_ARCHIVO(socketWorker,transformador_fd);
 
 	receive(socketWorker,&header);
 	if(header == FIN_LISTA){

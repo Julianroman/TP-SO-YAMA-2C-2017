@@ -19,6 +19,7 @@
 
 extern sem_t threadManager;
 extern t_log* logger;
+extern int reductor_fd;
 
 void* rutina_reduccionLocal(void* args);
 typedef struct{
@@ -27,6 +28,7 @@ typedef struct{
 }DATA_REDUCCIONLOCAL;
 
 STATUS_MASTER reduccionLocal (int socketYAMA, void* data){
+	log_trace(logger, "Reduccion local iniciada");
 	void*               payload;
 	HEADER_T            header;
 	pthread_t           tid;
@@ -61,7 +63,7 @@ STATUS_MASTER reduccionLocal (int socketYAMA, void* data){
 	for(i = 0; i < cantidadDeOperaciones; i++ ){
 		sem_wait(&threadManager);
 	}
-
+	log_trace(logger, "Operaciones de reduccion local terminadas");
 	return EXITO;
 }
 
@@ -74,6 +76,7 @@ void* rutina_reduccionLocal(void* args){
 
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+	//send_ARCHIVO(socketWorker,reductor_fd);
 
 	receive(socketWorker,&header);
 	if(header == FIN_LISTA){

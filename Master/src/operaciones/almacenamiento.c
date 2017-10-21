@@ -19,6 +19,7 @@
 extern t_log* logger;
 
 STATUS_MASTER almacenamiento(int socketYAMA, void* data){
+	log_trace(logger, "Almacenamiento final iniciado");
 	payload_INFO_ALMACENAMIENTO* payload = data;
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_ALMACENAMIENTO(socketWorker,payload->nombreTemporal_ReduccionGlobal);
@@ -32,5 +33,6 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	}
 	close(socketWorker);
 	// TODO destruir payload
+	log_trace(logger, "Almacenamiento finalizado");
 	return EXITO;
 };
