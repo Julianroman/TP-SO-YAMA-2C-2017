@@ -20,17 +20,8 @@ void* receive(int socket,HEADER_T* cabecera){
          return NULL;
     }
     switch(header){
-        case SOLICITUD_PROCESAMIENTO:
-        payload = unpack_SOLICITUD_PROCESAMIENTO(socket);
-        break;
-        case SOLICITUD_REDUCCIONLOCAL:
-        /* Carece de Payload */
-        break;
-        case SOLICITUD_REDUCCIONGLOBAL:
-        /* Carece de Payload */
-        break;
-        case SOLICITUD_ALMACENAMIENTO:
-        /* Carece de Payload */
+        case SOLICITUD_JOB:
+        payload = unpack_SOLICITUD_JOB(socket);
         break;
         case ORDEN_TRANSFORMACION:
         payload = unpack_ORDEN_TRANSFORMACION(socket);

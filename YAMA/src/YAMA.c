@@ -8,12 +8,6 @@
  ============================================================================
  */
 
-#include <utilidades/Sockets.c>
-#include <stdio.h>
-#include <stdlib.h>
-#include <commons/log.h>
-#include <commons/config.h>
-
 #include "serverYAMA/responses/responses.h"
 #include "serverYAMA/serverYAMA.h"
 #include "Job.h"
@@ -51,7 +45,7 @@ void iniciarListaEstados(){
 int main(void) {
 	puts("Comienza el proceso YAMA");
 
-	logs = log_create("yama.log", "YAMA", false, LOG_LEVEL_TRACE);
+	logs = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
 
 	log_trace(logs, "Leyendo configuracion");
 	t_yama* configYAMA = leerConfiguracion();

@@ -8,6 +8,7 @@
 #ifndef YAMA_H_
 #define YAMA_H_
 
+#include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/config.h>

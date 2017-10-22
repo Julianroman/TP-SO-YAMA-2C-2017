@@ -10,8 +10,8 @@
 #include <sys/socket.h>
 #include "types.h"
 
-void* unpack_SOLICITUD_PROCESAMIENTO(int socket){
-    payload_SOLICITUD_PROCESAMIENTO *payload= malloc(sizeof(payload_SOLICITUD_PROCESAMIENTO));
+void* unpack_SOLICITUD_JOB(int socket){
+    payload_SOLICITUD_JOB *payload= malloc(sizeof(payload_SOLICITUD_JOB));
 
     recv(socket,&(payload->tamanio_nombreArchivo),sizeof(uint16_t),0);
     uint16_t  tamanio_nombreArchivo = payload->tamanio_nombreArchivo;

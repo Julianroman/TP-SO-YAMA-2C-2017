@@ -34,9 +34,6 @@ void init_serverYAMA(int puertoEscucha){
 	// Variable de estado que devuelven las respuestas a solicitudes
 	YAMA_STATUS status;
 
-	// Diccionario de jobs
-	t_dictionary* jobs = dictionary_create();
-
 	// Recibir conexion
 	int listener = crear_listener(puertoEscucha);
 	int backlog  = BACKLOG;
@@ -88,12 +85,12 @@ void init_serverYAMA(int puertoEscucha){
 							break;
 						}
 						else{
-							status = responder_SOLICITUD(i,header,data,jobs); // Responder solicitud
+							status = responder_SOLICITUD(i,header,data); // Responder solicitud
 							if (status == EXITO){
 								log_trace(logs, "Solicitud respondida con exito");
 							}
 							else if(status == ERROR){
-								log_trace(logs, "Hubo un error en la solicitud");
+								log_error(logs, "Hubo un error en la solicitud");
 								break;
 							}
 						}
