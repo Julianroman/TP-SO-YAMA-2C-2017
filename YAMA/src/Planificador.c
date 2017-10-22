@@ -167,9 +167,9 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 	for(i = 0; i < sizeof(&bloquesTotales);i++){
 		while(1){
 			workerActual = valor->data;
-			if(existeEn(workerActual->bloques, bloquesTotales[i]) == 0){
+			if(existeEn(workerActual->bloquesDelDatanode, bloquesTotales[i]) != 0){
 				if(workerActual->disponibilidad > 0){
-					dictionary_put(bloques_ejecutados, bloquesTotales[i], workerActual);
+					list_add(workerActual->bloquesAEjecutar, bloquesTotales[i]);
 					workerActual->disponibilidad -= 1;
 					if(valor->next){
 						valor = valor->next;
@@ -197,12 +197,12 @@ void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario 
 	printf("Clock Terminaado");
 }
 
-/*int existeEn(t_list* lista , char* dato){
+int existeEn(t_list* lista , char* dato){
 	int existeBloque(char* d){
-			 return strcmp(d, dato);
+			 return string_equals_ignore_case(d, dato);
 	}
-	return list_any_satisfy(lista, (void*) existeBloque);
-} Ver en detalle esta funcion*/
+	return list_find(lista, (void*) existeBloque);
+}
 
 void nodoConMayorDisponibilidad(){ // ordena la lista de nodos segun la disponibilidad
 	t_worker* worker = malloc(sizeof(t_worker));

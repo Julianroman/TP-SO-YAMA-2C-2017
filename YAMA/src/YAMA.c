@@ -54,7 +54,7 @@ int main(void) {
 	logs = log_create("yama.log", "YAMA", false, LOG_LEVEL_TRACE);
 
 	log_trace(logs, "Leyendo configuracion");
-	t_yama configYAMA = leerConfiguracion();
+	t_yama* configYAMA = leerConfiguracion();
 	log_trace(logs, "Configuracion leida");
 	//cliente(ipFs, puertoFs, id);
 	init_serverYAMA(configYAMA->puertoYAMA);

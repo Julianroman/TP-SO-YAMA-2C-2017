@@ -32,7 +32,8 @@ typedef struct {
 	char *ip;
 	char *puerto;
 	int carga;
-	t_list* bloques;
+	t_list* bloquesDelDatanode;
+	t_list* bloquesAEjecutar;
 	int disponibilidad;
 	int activo;
 	int cantTareasHistoricas;

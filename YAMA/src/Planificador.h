@@ -30,7 +30,7 @@ void actualizarEstados(respuestaInfoMaster* respuesta);
 void actualizarTablaEstados(respuestaInfoMaster* respuesta);
 void actualizarEstadosNodo(respuestaInfoMaster* respuesta);
 void planificacionClock(t_list* listaNodos);
-int existeEn(t_list* lista , void* dato);
+int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 t_worker* buscarNodo(t_list* listaNodos, int numNodo);
 int estaActivo(t_worker* worker);
