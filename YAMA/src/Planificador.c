@@ -237,6 +237,9 @@ int estaActivo(t_worker* worker){
 	return worker->activo == 1;
 }
 
+void agregarAListaInfoMaster(respuestaInfoMaster* infoMaster){
+	list_add(listaRespuestasMaster, infoMaster);
+}
 /*void calcularDisponibilidadWorker(t_worker* worker){
 	worker->disponibilidad = getDisponibilidadBase() + calcularPWL(worker); //Esto es la base de como trabaja el algoritmo wClock
 }*/

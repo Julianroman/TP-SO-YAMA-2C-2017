@@ -45,19 +45,27 @@ YAMA_STATUS res_SOLICITUD_INFO(int socket, void* data, HEADER_T tipoMensaje){
 	switch(tipoMensaje){
 	case INFO_TRANSFORMACION:
 		payload_INFO_TRANSFORMACION* payload_transformacion = data;
-		agregarAListaDeInstrucciones(payload_transformacion);
+		respuestaInfoMaster* infoMasterTransformacion = malloc(sizeof(respuestaInfoMaster));
+		//Agregar atributos del struct y mandarlo
+		agregarAListaInfoMaster(infoMasterTransformacion);
 		break;
 	case INFO_REDUCCIONLOCAL:
 		payload_INFO_REDUCCIONLOCAL* payload_reduccionLocal = data;
-		agregarAListaDeInstrucciones(payload_reduccionLocal);
+		respuestaInfoMaster* infoMasterReduccionLocal = malloc(sizeof(respuestaInfoMaster));
+		//Agregar atributos del struct y mandarlo
+		agregarAListaInfoMaster(infoMasterReduccionLocal);
 		break;
 	case INFO_REDUCCIONGLOBAL:
 		payload_INFO_REDUCCIONGLOBAL* payload_reduccionGlobal = data;
-		agregarAListaDeInstrucciones(payload_reduccionGlobal);
+		respuestaInfoMaster* infoMasterReduccionGlobal = malloc(sizeof(respuestaInfoMaster));
+		//Agregar atributos del struct y mandarlo
+		agregarAListaInfoMaster(infoMasterReduccionGlobal);
 		break;
 	case INFO_ALMACENAMIENTO:
 		payload_INFO_ALMACENAMIENTO* payload_almacenamiento = data;
-		agregarAListaDeInstrucciones(payload_almacenamiento);
+		respuestaInfoMaster* infoMasterAlmacenamiento = malloc(sizeof(respuestaInfoMaster));
+		//Agregar atributos del struct y mandarlo
+		agregarAListaInfoMaster(infoMasterAlmacenamiento);
 		break;
 	default:
 		break;

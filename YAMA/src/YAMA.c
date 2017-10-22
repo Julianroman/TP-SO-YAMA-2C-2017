@@ -8,7 +8,7 @@
  ============================================================================
  */
 
-#include "serverYAMA/responses/responses.h"
+#include "serverYAMA/responses.h"
 #include "serverYAMA/serverYAMA.h"
 #include "Job.h"
 #include "YAMA.h"
