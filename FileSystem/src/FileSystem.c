@@ -300,7 +300,7 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 
 	int j;
 	for (j = 0; j < cantBloques; j++) {
-		bool a = bitarray_test_bit(unNodo->bitmap, j); //TODO Rompe acá
+		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
 			cantidad ++;
 		}
@@ -308,7 +308,7 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 	return cantidad;
 }
 
-int cantidadTotalBloquesLibres(){
+int cantidadTotalBloquesLibres(){ //TODO con el segundo da 18
 	int cantidad;
 	cantidad = 0;
 	//PARA CADA ELEMENTO DE LA LISTA
@@ -374,11 +374,11 @@ void inicializarNodo(int nroNodo){
 	nuevoNodo = nodo_create(nroNodo, unBitarray);
 	almacenarBitmapEnArchivo(nuevoNodo);
 	list_add(listaDeNodos, nuevoNodo);
-	bitarray_destroy(unBitarray);
+
 
 }
 
-void tablaDeNodosEnArchivo(){
+void tablaDeDirectoriosEnArchivo(){
 	FILE* tabla;
 	tabla = fopen("root/tabla.txt","w");
 	fwrite("Indice -- Nombre -- Padre", strlen("Indice -- Nombre -- Padre"),1, tabla);
@@ -492,8 +492,8 @@ int main(int arg, char** argv) {
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	//El proceso no termina hasta que mueren los dos hilos
-	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	//pthread_join(hiloConsola, NULL);
+	//pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
@@ -504,13 +504,13 @@ int main(int arg, char** argv) {
 	//inicializarNodo(1);
 	//cantidadTotalBloquesLibres();
 
-	//createDirectory("root/some");
-	//createDirectory("root/some/other");
-	//createDirectory("root/ro");
+	createDirectory("root/some");
+	createDirectory("root/some/other");
+	createDirectory("root/ro");
 	//createDirectory("root/some/carpeta"); //TODO con este rompe en el find
 
 
-	//tablaDeNodosEnArchivo();
+	tablaDeDirectoriosEnArchivo();
 	//createDirectory("some/dir")
 
 
