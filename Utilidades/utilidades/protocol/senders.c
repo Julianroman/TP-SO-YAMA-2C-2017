@@ -15,40 +15,13 @@
 #include "packers.h"
 #include "enviar_paquete.h"
 
-void send_SOLICITUD_PROCESAMIENTO(int socket , char* nombreArchivo){
-    payload_SOLICITUD_PROCESAMIENTO payload;
+void send_SOLICITUD_JOB(int socket , char* nombreArchivo){
+    payload_SOLICITUD_JOB payload;
     payload.tamanio_nombreArchivo = (strlen(nombreArchivo)+1)*sizeof(char);
     payload.nombreArchivo = nombreArchivo; 
 
     int tamanio_paquete;
-    char* paquete = pack_SOLICITUD_PROCESAMIENTO(payload,&tamanio_paquete);
-    enviar_paquete(socket,paquete,tamanio_paquete);
-    free(paquete);
-};
-
-void send_SOLICITUD_REDUCCIONLOCAL(int socket){
-    payload_SOLICITUD_REDUCCIONLOCAL payload;
-
-    int tamanio_paquete;
-    char* paquete = pack_SOLICITUD_REDUCCIONLOCAL(payload,&tamanio_paquete);
-    enviar_paquete(socket,paquete,tamanio_paquete);
-    free(paquete);
-};
-
-void send_SOLICITUD_REDUCCIONGLOBAL(int socket){
-    payload_SOLICITUD_REDUCCIONGLOBAL payload;
-
-    int tamanio_paquete;
-    char* paquete = pack_SOLICITUD_REDUCCIONGLOBAL(payload,&tamanio_paquete);
-    enviar_paquete(socket,paquete,tamanio_paquete);
-    free(paquete);
-};
-
-void send_SOLICITUD_ALMACENAMIENTO(int socket){
-    payload_SOLICITUD_ALMACENAMIENTO payload;
-
-    int tamanio_paquete;
-    char* paquete = pack_SOLICITUD_ALMACENAMIENTO(payload,&tamanio_paquete);
+    char* paquete = pack_SOLICITUD_JOB(payload,&tamanio_paquete);
     enviar_paquete(socket,paquete,tamanio_paquete);
     free(paquete);
 };

@@ -11,10 +11,7 @@
 #include <stdlib.h>
 #include "types.h"
 
-char* pack_SOLICITUD_PROCESAMIENTO(payload_SOLICITUD_PROCESAMIENTO payload,int* tamanio_paquete);
-char* pack_SOLICITUD_REDUCCIONLOCAL(payload_SOLICITUD_REDUCCIONLOCAL payload,int* tamanio_paquete);
-char* pack_SOLICITUD_REDUCCIONGLOBAL(payload_SOLICITUD_REDUCCIONGLOBAL payload,int* tamanio_paquete);
-char* pack_SOLICITUD_ALMACENAMIENTO(payload_SOLICITUD_ALMACENAMIENTO payload,int* tamanio_paquete);
+char* pack_SOLICITUD_JOB(payload_SOLICITUD_JOB payload,int* tamanio_paquete);
 char* pack_ORDEN_TRANSFORMACION(payload_ORDEN_TRANSFORMACION payload,int* tamanio_paquete);
 char* pack_ORDEN_REDUCCIONLOCAL(payload_ORDEN_REDUCCIONLOCAL payload,int* tamanio_paquete);
 char* pack_ORDEN_REDUCCIONGLOBAL(payload_ORDEN_REDUCCIONGLOBAL payload,int* tamanio_paquete);

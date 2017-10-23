@@ -11,10 +11,7 @@
 #include <stdlib.h>
 #include "types.h"
 
-void* unpack_SOLICITUD_PROCESAMIENTO(int socket);
-void* unpack_SOLICITUD_REDUCCIONLOCAL(int socket);
-void* unpack_SOLICITUD_REDUCCIONGLOBAL(int socket);
-void* unpack_SOLICITUD_ALMACENAMIENTO(int socket);
+void* unpack_SOLICITUD_JOB(int socket);
 void* unpack_ORDEN_TRANSFORMACION(int socket);
 void* unpack_ORDEN_REDUCCIONLOCAL(int socket);
 void* unpack_ORDEN_REDUCCIONGLOBAL(int socket);

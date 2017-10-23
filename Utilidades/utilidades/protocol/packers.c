@@ -8,13 +8,13 @@
 #include <stdlib.h>
 #include "types.h"
 
-char* pack_SOLICITUD_PROCESAMIENTO(payload_SOLICITUD_PROCESAMIENTO payload,int* tamanio_paquete){
+char* pack_SOLICITUD_JOB(payload_SOLICITUD_JOB payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + (payload.tamanio_nombreArchivo);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
     int tamanio_envio;
-    HEADER_T cabecera = SOLICITUD_PROCESAMIENTO;
+    HEADER_T cabecera = SOLICITUD_JOB;
     tamanio_envio = (sizeof(HEADER_T));
     memcpy(paquete+offset,&cabecera,tamanio_envio);
     offset += tamanio_envio;
@@ -25,51 +25,6 @@ char* pack_SOLICITUD_PROCESAMIENTO(payload_SOLICITUD_PROCESAMIENTO payload,int* 
 
     tamanio_envio = (payload.tamanio_nombreArchivo);
     memcpy(paquete+offset,payload.nombreArchivo,tamanio_envio);
-    offset += tamanio_envio;
-
-    (* tamanio_paquete) = tamanio_total;
-    return paquete;
-};
-
-char* pack_SOLICITUD_REDUCCIONLOCAL(payload_SOLICITUD_REDUCCIONLOCAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T);
-    char* paquete = malloc(tamanio_total);
-
-    int offset = 0;
-    int tamanio_envio;
-    HEADER_T cabecera = SOLICITUD_REDUCCIONLOCAL;
-    tamanio_envio = (sizeof(HEADER_T));
-    memcpy(paquete+offset,&cabecera,tamanio_envio);
-    offset += tamanio_envio;
-
-    (* tamanio_paquete) = tamanio_total;
-    return paquete;
-};
-
-char* pack_SOLICITUD_REDUCCIONGLOBAL(payload_SOLICITUD_REDUCCIONGLOBAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T);
-    char* paquete = malloc(tamanio_total);
-
-    int offset = 0;
-    int tamanio_envio;
-    HEADER_T cabecera = SOLICITUD_REDUCCIONGLOBAL;
-    tamanio_envio = (sizeof(HEADER_T));
-    memcpy(paquete+offset,&cabecera,tamanio_envio);
-    offset += tamanio_envio;
-
-    (* tamanio_paquete) = tamanio_total;
-    return paquete;
-};
-
-char* pack_SOLICITUD_ALMACENAMIENTO(payload_SOLICITUD_ALMACENAMIENTO payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T);
-    char* paquete = malloc(tamanio_total);
-
-    int offset = 0;
-    int tamanio_envio;
-    HEADER_T cabecera = SOLICITUD_ALMACENAMIENTO;
-    tamanio_envio = (sizeof(HEADER_T));
-    memcpy(paquete+offset,&cabecera,tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;

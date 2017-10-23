@@ -11,10 +11,7 @@
 #include <stdlib.h>
 #include "types.h"
 
-void send_SOLICITUD_PROCESAMIENTO(int socket  , char* nombreArchivo);
-void send_SOLICITUD_REDUCCIONLOCAL(int socket );
-void send_SOLICITUD_REDUCCIONGLOBAL(int socket );
-void send_SOLICITUD_ALMACENAMIENTO(int socket );
+void send_SOLICITUD_JOB(int socket  , char* nombreArchivo);
 void send_ORDEN_TRANSFORMACION(int socket  , uint16_t bloque , uint32_t bytesocupados , char* nombreArchivoTemporal);
 void send_ORDEN_REDUCCIONLOCAL(int socket  , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal);
 void send_ORDEN_REDUCCIONGLOBAL(int socket  , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado);
