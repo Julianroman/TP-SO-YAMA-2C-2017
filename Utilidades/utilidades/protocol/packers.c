@@ -500,3 +500,33 @@ char* pack_RESPUESTA_MASTER(payload_RESPUESTA_MASTER payload,int* tamanio_paquet
     return paquete;
 };
 
+char* pack_EXITO_OPERACION(payload_EXITO_OPERACION payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = EXITO_OPERACION;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+
+char* pack_FRACASO_OPERACION(payload_FRACASO_OPERACION payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = FRACASO_OPERACION;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+

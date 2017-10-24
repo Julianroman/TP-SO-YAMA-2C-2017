@@ -14,5 +14,5 @@ extern t_log* logger;
 
 void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	log_info(logger, "Respondiendo ORDEN_ALMACENAMIENTO");
-	send_FIN_LISTA(socket_cliente);
+	send_EXITO_OPERACION(socket_cliente);
 };

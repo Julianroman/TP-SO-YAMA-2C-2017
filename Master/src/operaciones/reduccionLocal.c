@@ -16,77 +16,52 @@
 #include <semaphore.h>
 #include "operaciones.h"
 
-
-extern sem_t threadManager;
 extern t_log* logger;
-extern int reductor_fd;
+extern sem_t reductionThreads;
+//extern int reductor_fd;
+
 
 void* rutina_reduccionLocal(void* args);
-typedef struct{
-	t_log*                       logger;
-	payload_INFO_REDUCCIONLOCAL* payload;
-}DATA_REDUCCIONLOCAL;
 
-STATUS_MASTER reduccionLocal (int socketYAMA, void* data){
-	log_trace(logger, "Reduccion local iniciada");
-	void*               payload;
-	HEADER_T            header;
+
+STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data){
 	pthread_t           tid;
 	pthread_attr_t      attr;
-	DATA_REDUCCIONLOCAL data_reduccionLocal;
 
-	int cantidadDeOperaciones = 1;
 
-	// Primer hilo de transformacion
-		// Cargar datos
-		data_reduccionLocal.logger = logger;
-		data_reduccionLocal.payload = data;
+	log_trace(logger, "Reduccion local iniciada");
+
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create(&tid, &attr, rutina_reduccionLocal, &data_reduccionLocal);
-	//TODO Destruir data
+	pthread_create(&tid, &attr, rutina_reduccionLocal, data);
 
-	// Recibir mas informaciones
-	payload = receive(socketYAMA,&header);
-	while(header == INFO_REDUCCIONLOCAL){
-		cantidadDeOperaciones ++;
-		data_reduccionLocal.payload = payload;
-		pthread_attr_init(&attr);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		pthread_create(&tid, &attr, rutina_reduccionLocal, &data_reduccionLocal);
-
-		payload = receive(socketYAMA,&header);
-	}
-
-	// Esperar a que terminen todos los hilos para pasar a la siguiente etapa
-	int i;
-	for(i = 0; i < cantidadDeOperaciones; i++ ){
-		sem_wait(&threadManager);
-	}
-	log_trace(logger, "Operaciones de reduccion local terminadas");
 	return EXITO;
 }
 
 void* rutina_reduccionLocal(void* args){
 	HEADER_T header;
+	payload_INFO_REDUCCIONLOCAL* payload = args;
 
-	DATA_REDUCCIONLOCAL*         data    = args;
-	t_log*                       logger  = data->logger;
-	payload_INFO_REDUCCIONLOCAL* payload = data->payload;
-
+	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	//send_ARCHIVO(socketWorker,reductor_fd);
 
+	// Recibir resultado
 	receive(socketWorker,&header);
-	if(header == FIN_LISTA){
-		log_info(logger, "Reduccion local completada en %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
-	}else{
-		log_error(logger, "Reduccion local interrumpida en %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+	if(header == EXITO_OPERACION){
+		log_info(logger, "Redux local OK en %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	}
+	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+		log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+	}
+	else{
+		log_warning(logger,"No se reconoce la respuesta del worker");
+	}
+
 	close(socketWorker);
 	// TODO Destruir payload
-	sem_post(&threadManager);
+	sem_post(&reductionThreads);
 	pthread_exit(0);
 }
 
