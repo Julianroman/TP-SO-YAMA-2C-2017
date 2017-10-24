@@ -17,75 +17,51 @@
 #include "operaciones.h"
 
 
-extern sem_t threadManager;
+extern int transformacionesRestantes;
 extern t_log* logger;
-extern int transformador_fd;
+//extern int transformador_fd;
+extern pthread_mutex_t transformationManager;
 
 void* rutina_transformacion(void* args);
-typedef struct{
-	t_log*                       logger;
-	payload_INFO_TRANSFORMACION* payload;
-}DATA_TRANSFORMACION;
 
-STATUS_MASTER transformacion (int socketYAMA, void* data){
-	log_trace(logger, "Transformacion iniciada");
-	void*               payload;
-	HEADER_T            header;
+STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data){
 	pthread_t           tid;
 	pthread_attr_t      attr;
-	DATA_TRANSFORMACION data_transformacion;
 
-	int cantidadDeOperaciones = 1;
+	log_trace(logger, "Transformacion iniciada");
 
-	// Primer hilo de transformacion
-		// Cargar datos
-		data_transformacion.logger = logger;
-		data_transformacion.payload = data;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create(&tid, &attr, rutina_transformacion, &data_transformacion);
-	//TODO Destruir data
+	pthread_create(&tid, &attr, rutina_transformacion, data);
 
-	// Recibir mas informaciones
-	payload = receive(socketYAMA,&header);
-	while(header == INFO_TRANSFORMACION){
-		cantidadDeOperaciones ++;
-		data_transformacion.payload = payload;
-		pthread_attr_init(&attr);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		pthread_create(&tid, &attr, rutina_transformacion, &data_transformacion);
-
-		payload = receive(socketYAMA,&header);
-	}
-
-	// Esperar a que terminen todos los hilos para pasar a la siguiente etapa
-	int i;
-	for(i = 0; i < cantidadDeOperaciones ; i++ ){
-		sem_wait(&threadManager);
-	}
-	log_trace(logger, "Operaciones de transformacion terminadas");
 	return EXITO;
 }
 
 void* rutina_transformacion(void* args){
 	HEADER_T header;
+	payload_INFO_TRANSFORMACION* payload = args;
 
-	DATA_TRANSFORMACION*         data    = args;
-	t_log*                       logger  = data->logger;
-	payload_INFO_TRANSFORMACION* payload = data->payload;
-
+	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
 	//send_ARCHIVO(socketWorker,transformador_fd);
 
+
+	// Recibir resultado
 	receive(socketWorker,&header);
-	if(header == FIN_LISTA){
-		log_info(logger, "Transformacion completada en %s:%d/BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
-	}else{
-		log_error(logger, "Transformacion interrumpida en %s:%d/BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+	if(header == EXITO_OPERACION){
+		log_info(logger, "Transformacion OK %s:%d/BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+	}
+	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+		log_error(logger, "Transformacion ERR %s:%d/BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+	}
+	else{
+		log_warning(logger,"No se reconoce la respuesta del worker");
 	}
 	close(socketWorker);
 	// TODO Destruir payload
-	sem_post(&threadManager);
+	pthread_mutex_lock(&transformationManager);
+		transformacionesRestantes--;
+	pthread_mutex_unlock(&transformationManager);
 	pthread_exit(0);
 }
