@@ -14,23 +14,20 @@ extern t_log* logger;
 
 void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	log_info(logger, "Respondiendo ORDEN_REDUCCIONGLOBAL");
-	payload_ORDEN_REDUCCIONGLOBAL* payload;
-	HEADER_T cabecera;
-	void* paquete;
-
-	paquete = receive(socket_cliente,&cabecera);
+	payload_ORDEN_REDUCCIONGLOBAL* payload = data;
 
 	if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion*/ }
 
 	// Recibir todas las instrucciones
 	// Hasta que termine la lista
-	while(cabecera != FIN_LISTA){
-		if (cabecera == ORDEN_REDUCCIONGLOBAL){
-			payload = paquete;
-			log_info(logger, "Conectando a Worker en %s-->%s / ",payload->nombreTemporal_ReduccionLocal,payload->nombreTemporal_ReduccionGlobal);
+	while(header != FIN_LISTA){
+		if (header == ORDEN_REDUCCIONGLOBAL){
+			log_info(logger, "Conectando a Worker en %s:%d / ",payload->IP_Nodo,payload->PUERTO_Nodo);
+		}else{
+			log_error(logger,"Se esperaba una orden de reduccion global");
 		}
-		data = receive(socket_cliente,&cabecera);
-		if (cabecera == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */}
+		payload = receive(socket_cliente,&header);
+		if (header == FIN_COMUNICACION){ /*Si header es FIN_COMUNICACION es porque se cerro la conexion */}
 	}
-	send_FIN_LISTA(socket_cliente);
+	send_EXITO_OPERACION(socket_cliente);
 };
