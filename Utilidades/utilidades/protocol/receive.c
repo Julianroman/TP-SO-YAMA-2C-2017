@@ -68,6 +68,12 @@ void* receive(int socket,HEADER_T* cabecera){
         case PRESENTACION_DATANODE:
         payload = unpack_PRESENTACION_DATANODE(socket);
         break;
+        case JOB:
+        payload = unpack_JOB(socket);
+        break;
+        case RESPUESTA_MASTER:
+        payload = unpack_RESPUESTA_MASTER(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;

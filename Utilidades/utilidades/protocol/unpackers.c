@@ -288,3 +288,27 @@ void* unpack_PRESENTACION_DATANODE(int socket){
     return (void*)payload;
 };
 
+void* unpack_JOB(int socket){
+    payload_JOB *payload= malloc(sizeof(payload_JOB));
+
+    recv(socket,&(payload->id_master),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->cantidad_operaciones),sizeof(uint16_t),0);
+
+    return (void*)payload;
+};
+
+void* unpack_RESPUESTA_MASTER(int socket){
+    payload_RESPUESTA_MASTER *payload= malloc(sizeof(payload_RESPUESTA_MASTER));
+
+    recv(socket,&(payload->id_master),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->id_nodo),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->bloque),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->estado),sizeof(uint16_t),0);
+
+    return (void*)payload;
+};
+

@@ -242,3 +242,27 @@ void send_PRESENTACION_DATANODE(int socket , uint16_t PUERTO_dataNode , char* IP
     free(paquete);
 };
 
+void send_JOB(int socket , uint16_t id_master , uint16_t cantidad_operaciones){
+    payload_JOB payload;
+    payload.id_master = id_master; 
+    payload.cantidad_operaciones = cantidad_operaciones; 
+
+    int tamanio_paquete;
+    char* paquete = pack_JOB(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_RESPUESTA_MASTER(int socket , uint16_t id_master , uint16_t id_nodo , uint16_t bloque , uint16_t estado){
+    payload_RESPUESTA_MASTER payload;
+    payload.id_master = id_master; 
+    payload.id_nodo = id_nodo; 
+    payload.bloque = bloque; 
+    payload.estado = estado; 
+
+    int tamanio_paquete;
+    char* paquete = pack_RESPUESTA_MASTER(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+

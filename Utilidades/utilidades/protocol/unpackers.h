@@ -27,5 +27,7 @@ void* unpack_FIN_COMUNICACION(int socket);
 void* unpack_ARCHIVO(int socket);
 void* unpack_BLOQUE(int socket);
 void* unpack_PRESENTACION_DATANODE(int socket);
+void* unpack_JOB(int socket);
+void* unpack_RESPUESTA_MASTER(int socket);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

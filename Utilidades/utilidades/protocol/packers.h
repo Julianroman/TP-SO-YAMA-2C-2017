@@ -25,5 +25,7 @@ char* pack_NODO(payload_NODO payload,int* tamanio_paquete);
 char* pack_FIN_LISTA(payload_FIN_LISTA payload,int* tamanio_paquete);
 char* pack_FIN_COMUNICACION(payload_FIN_COMUNICACION payload,int* tamanio_paquete);
 char* pack_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE payload,int* tamanio_paquete);
+char* pack_JOB(payload_JOB payload,int* tamanio_paquete);
+char* pack_RESPUESTA_MASTER(payload_RESPUESTA_MASTER payload,int* tamanio_paquete);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */
