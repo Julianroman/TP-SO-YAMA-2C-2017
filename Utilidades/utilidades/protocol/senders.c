@@ -266,3 +266,21 @@ void send_RESPUESTA_MASTER(int socket , uint16_t id_master , uint16_t id_nodo , 
     free(paquete);
 };
 
+void send_EXITO_OPERACION(int socket){
+    payload_EXITO_OPERACION payload;
+
+    int tamanio_paquete;
+    char* paquete = pack_EXITO_OPERACION(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_FRACASO_OPERACION(int socket){
+    payload_FRACASO_OPERACION payload;
+
+    int tamanio_paquete;
+    char* paquete = pack_FRACASO_OPERACION(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+

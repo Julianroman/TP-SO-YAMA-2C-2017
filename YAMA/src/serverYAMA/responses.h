@@ -21,6 +21,6 @@ YAMA_STATUS responder_SOLICITUD(int socket, void*  data, HEADER_T tipoDeMensaje)
 
 // Respuestas
 YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data);
-YAMA_STATUS res_SOLICITUD_INFO(int socket,void*  data, HEADER_T tipoMensaje);
+YAMA_STATUS res_RECIBIR_INFO(int socket,void*  data);
 
 #endif /* RESPONSES_RESPONSES_H_ */

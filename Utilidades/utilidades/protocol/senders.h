@@ -29,5 +29,7 @@ void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_
 void send_PRESENTACION_DATANODE(int socket  , uint16_t PUERTO_dataNode , char* IP_dataNode);
 void send_JOB(int socket  , uint16_t id_master , uint16_t cantidad_operaciones);
 void send_RESPUESTA_MASTER(int socket  , uint16_t id_master , uint16_t id_nodo , uint16_t bloque , uint16_t estado);
+void send_EXITO_OPERACION(int socket );
+void send_FRACASO_OPERACION(int socket );
 
 #endif /* UTILIDADES_PROTOCOL_SENDER_H_ */

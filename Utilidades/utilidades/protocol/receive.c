@@ -74,6 +74,12 @@ void* receive(int socket,HEADER_T* cabecera){
         case RESPUESTA_MASTER:
         payload = unpack_RESPUESTA_MASTER(socket);
         break;
+        case EXITO_OPERACION:
+        /* Carece de Payload */
+        break;
+        case FRACASO_OPERACION:
+        /* Carece de Payload */
+        break;
     }
     (*cabecera) = header;
     return payload;

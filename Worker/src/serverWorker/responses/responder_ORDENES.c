@@ -9,6 +9,9 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <commons/log.h>
+
+extern t_log* logger;
 
 void responder_ORDENES(int socket_cliente,HEADER_T tipoDeMensaje,void* data){
 
@@ -26,7 +29,7 @@ void responder_ORDENES(int socket_cliente,HEADER_T tipoDeMensaje,void* data){
 		res_ORDEN_ALMACENAMIENTO(socket_cliente,tipoDeMensaje,data);
 		break;
 	default:
-		printf("Mensaje desconocido");
+		log_warning(logger,"Mensaje desconocido");
 	}
 };
 

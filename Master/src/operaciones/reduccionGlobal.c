@@ -27,14 +27,13 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 
 	t_queue * colaDeInformaciones = queue_create();
 
-	// Primer hilo de transformacion
+
 	if(payload -> encargado == 0){
 		queue_push(colaDeInformaciones,payload);
 	}else if(payload -> encargado == 1){
 		payloadEncargado  = payload;
 	}
 	// TODO destruir payload
-
 	// Recibir mas informaciones
 	payload = receive(socketYAMA,&header);
 	while(header == INFO_REDUCCIONGLOBAL){
@@ -61,11 +60,16 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	send_FIN_LISTA(socketWorker);
 
 	receive(socketWorker,&header);
-	if(header == FIN_LISTA){
+	if(header == EXITO_OPERACION){
 		log_info(logger, "Reduccion global completada en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
-	}else{
+	}
+	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 	}
+	else{
+		log_warning(logger,"No se reconoce la respuesta del worker");
+	}
+
 	close(socketWorker);
 	queue_destroy(colaDeInformaciones);
 
