@@ -17,10 +17,10 @@
 
 
 // Ejecutor
-YAMA_STATUS responder_SOLICITUD(int socket,HEADER_T tipoDeMensaje, void*  data);
+YAMA_STATUS responder_SOLICITUD(int socket, void*  data, HEADER_T tipoDeMensaje);
 
 // Respuestas
-YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data,);
-YAMA_STATUS res_SOLICITUD_INFO(int socket,void*  data,);
+YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data);
+YAMA_STATUS res_SOLICITUD_INFO(int socket,void*  data, HEADER_T tipoMensaje);
 
 #endif /* RESPONSES_RESPONSES_H_ */

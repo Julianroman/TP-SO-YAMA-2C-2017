@@ -73,4 +73,6 @@ void iniciarListaEstados();
 
 t_list* TablaEstados;
 t_yama* leerConfiguracion();
+
+t_log* logYAMA;
 #endif /* YAMA_H_ */

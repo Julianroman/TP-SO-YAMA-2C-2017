@@ -22,28 +22,27 @@ void inicializarPlanificador(){
 	bloques_ejecutados = dictionary_create();
 	tablaEstados = list_create();
 	t_job* job = newJob();
-	agregarJob(job);
+	agregarJob(&job);
 }
 
 void agregarJob(t_job* job){
 	idUltimoJobCreado++;
 	job->id = idUltimoJobCreado;
-	char* keyJob = string_itoa(idUltimoJobCreado);
-
+	char* keyJob = string_itoa(job->id);
 	dictionary_put(diccionarioJobs, keyJob, job);
 	//Actualizar tabla de estados con el job creado
 }
 
-void iniciarPlanificacion(){
+void iniciarPlanificacion(char* nombreArchivo){
 	inicializarPlanificador();
-	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(); //Funcion a desarrollar conjuntamente con FS
+	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo); //Funcion a desarrollar conjuntamente con FS
 	planificacionClock(nodosDisponibles); //Deberia ser WClock
 	respuestaInfoMaster* respuesta = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
-	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
+	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
 		realizarSiguienteInstruccion(respuesta);
 	}
-	t_worker* encargado = elegirEncargadoReduccionGlobal(nodosDisponibles);
-	realizarReduccionGlobal(encargado);
+	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles);
+	realizarReduccionGlobal(&encargado);
 	finalizar(); // Como debe finalizar todo?
 }
 
@@ -60,24 +59,24 @@ void realizarSiguienteinstruccion(respuestaInfoMaster* respuesta){
 			abortarJob(respuesta->jobEjecutado);
 		}
 		else{
-			planificarTransformacion(respuesta->nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
+			rePlanificarTransformacion(respuesta->nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
 		}
 	}
-	else if(respuesta->estadoEjecucion == EJECUCION_OK){
+	else { //EJECUCION_OK
 		realizarSiguienteTarea(respuesta->nodo);
 	}
 }
 
 respuestaInfoMaster* obtenerSiguienteInfoMaster(){
 	respuestaInfoMaster* respuesta = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
-	actualizarEstados(respuesta);
+	actualizarEstados(&respuesta);
 	return respuesta->nodo;
 }
 
 void actualizarEstados(respuestaInfoMaster* respuesta){
-	actualizarTablaestados(respuesta);
-	actualizarLog(respuesta);
-	actualizarEstadosNodo(respuesta);
+	actualizarTablaestados(&respuesta);
+	actualizarLog(&respuesta);
+	actualizarEstadosNodo(&respuesta);
 }
 
 void actualizarTablaEstados(respuestaInfoMaster* respuesta){

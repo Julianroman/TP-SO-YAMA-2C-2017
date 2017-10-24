@@ -14,8 +14,6 @@
 #include "YAMA.h"
 
 
-t_log* logs;
-
 t_yama* leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
@@ -42,14 +40,16 @@ void iniciarListaEstados(){
 	t_list* tablaEstados = list_create();
 }
 
+void crearLog(){
+	logYAMA = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
+}
+
 int main(void) {
 	puts("Comienza el proceso YAMA");
-
-	logs = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
-
-	log_trace(logs, "Leyendo configuracion");
+	crearLog();
+	log_trace(logYAMA, "Leyendo configuracion");
 	t_yama* configYAMA = leerConfiguracion();
-	log_trace(logs, "Configuracion leida");
+	log_trace(logYAMA, "Configuracion leida");
 	//cliente(ipFs, puertoFs, id);
 	init_serverYAMA(configYAMA->puertoYAMA);
 

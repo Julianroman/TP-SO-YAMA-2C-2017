@@ -8,7 +8,7 @@
 #include "responses.h"
 
 YAMA_STATUS responder_SOLICITUD(int socket, HEADER_T tipoDeMensaje,void* data){
-	YAMA_STATUS status;
+	YAMA_STATUS status = malloc(sizeof(YAMA_STATUS));
 	if(tipoDeMensaje == SOLICITUD_JOB){
 		status = res_SOLICITUD_JOB(socket, data);
 		break;
@@ -21,22 +21,11 @@ YAMA_STATUS responder_SOLICITUD(int socket, HEADER_T tipoDeMensaje,void* data){
 
 YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data){
 	payload_SOLICITUD_JOB* payload = data;
-	printf("SOLICITUD_JOB recibida\n");
-	printf("Archivo: %s, enviando informacion sobre workers\n",payload->nombreArchivo);
+	log_trace(logYAMA,"SOLICITUD_JOB recibida\n");
 
 	//MANDAR A PLANIFICAR
-	inciarPlanificacion();
+	inciarPlanificacion(payload->nombreArchivo);
 
-	//DUMMIE WORKERS
-	//Esto no lo hace el planificador?
-	send_INFO_TRANSFORMACION(socket,9095,"127.0.0.1",38,10180,"/tmp/Master1-temp38");
-	send_INFO_TRANSFORMACION(socket,9095,"127.0.0.1",39,10180,"/tmp/Master1-temp39");
-	send_INFO_TRANSFORMACION(socket,9095,"127.0.0.1",44,10180,"/tmp/Master1-temp44");
-	send_FIN_LISTA(socket);
-
-	// IMPORTANTE! HAY UN LEAK DE MEMORIA
-	// LA FUNCION DE RECOLECCION ESTA EN DESARROLLO
-	//Sigue en desarrollo?
 	return EXITO;
 };
 

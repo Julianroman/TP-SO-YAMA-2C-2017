@@ -5,8 +5,6 @@
  *      Author: utnso
  */
 
-
-#include "../serverYAMA/serverYAMA.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,14 +13,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-
 #include <commons/collections/dictionary.h>
 #include <commons/log.h>
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
 #include <utilidades/protocol/senders.h>
-#include "../serverYAMA/responses/responses.h"
+#include "responses.h"
+#include "serverYAMA.h"
 
 extern t_log* logs;
 
@@ -88,9 +86,11 @@ void init_serverYAMA(int puertoEscucha){
 							status = responder_SOLICITUD(i,header,data); // Responder solicitud
 							if (status == EXITO){
 								log_trace(logs, "Solicitud respondida con exito");
+								free(status);
 							}
 							else if(status == ERROR){
 								log_error(logs, "Hubo un error en la solicitud");
+								free(status);
 								break;
 							}
 						}
