@@ -12,6 +12,8 @@
 #include "consola.h"
 #include "funcionesFS.h"
 
+#define TOTALDIRECTORIOS 100
+#define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
 
 t_log* log;
 int32_t miPuerto = 5040;
@@ -26,7 +28,8 @@ int32_t estadoEstable = 0;
 int32_t formateado = 0;
 
 t_list* listaDeNodos;
-t_list* tablaDirectorios;
+//t_list* tablaDirectorios;
+t_directory* tablaDeDirectorios;
 //
 void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino){
 
@@ -378,7 +381,7 @@ void inicializarNodo(int nroNodo){
 
 }
 
-void tablaDeDirectoriosEnArchivo(){
+/*void tablaDeDirectoriosEnArchivo(){
 	FILE* tabla;
 	tabla = fopen("root/tabla.txt","w");
 	fwrite("Indice -- Nombre -- Padre", strlen("Indice -- Nombre -- Padre"),1, tabla);
@@ -411,8 +414,8 @@ t_directory* findFatherByName(char *name) {
 	}
 
 	return list_find(tablaDirectorios, (void*) isTheOne);
-}
-void createDirectory(char* path){ //path de la forma: dir
+}*/
+/*void createDirectory(char* path){ //path de la forma: dir
 	int cantidadDirectorios;
 	cantidadDirectorios = list_size(tablaDirectorios);
 	if(cantidadDirectorios < 100){
@@ -461,6 +464,76 @@ void createDirectory(char* path){ //path de la forma: dir
 	}
 
 
+}*/
+void refreshTablaDeDirectorios(){
+		int fdDirectorios = open(PATHDIRECTORIOS, "r");
+		tablaDeDirectorios = (t_directory*) mmap(0, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fdDirectorios, 0);
+
+}
+
+int findDirByname(char* name, t_directory *tabla){
+	int encontrado = 0;
+	int i;
+	for(i = 0; i < TOTALDIRECTORIOS; i++){
+		if(strcmp(tabla[i].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
+			encontrado = tabla[i].indice;
+		}
+	}
+
+	return encontrado;
+}
+
+void createDirectory(char* path){
+	refreshTablaDeDirectorios();
+
+	int indiceDisponible = -1;
+	int j;
+	for(j = 0; j < TOTALDIRECTORIOS; j++){
+		if(tablaDeDirectorios[j].nombre == NULL){ //TODO
+			indiceDisponible = j;
+		}
+	}
+	if(indiceDisponible == -1){
+		log_error(log, "La tabla de directorios esta completa");
+	}else{
+
+		struct stat st = {0};
+
+		if (stat(path, &st) == -1) { //Si no existe el path, lo creo
+			if(mkdir(path, 0700) == 0){
+				char **padres = string_split(path, "/");
+				int cant;
+				cant = strlen(padres) / sizeof(char*); //Length de padres
+				if(cant == 1){
+					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+					tablaDeDirectorios[indiceDisponible].nombre = padres[0];
+					tablaDeDirectorios[indiceDisponible].padre = 0;
+				}
+				else{
+					int32_t father;
+					log_trace(log,"Padre: %s", padres[cant-2]);
+					if(strcmp(padres[cant-2], "root") == 0){
+						father = 0;
+					}else{
+						father = findDirByname(padres[cant-2], tablaDeDirectorios);
+					}
+
+					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+					tablaDeDirectorios[indiceDisponible].nombre = padres[cant-1];
+					tablaDeDirectorios[indiceDisponible].padre = father;
+				}
+
+				log_trace(log, "El directorio %s fue creado con exito.", path);
+
+			}else{
+				log_error(log, "Error al crear directorio");
+			}
+		}
+		else{
+			log_error(log, "El directorio ya existe o no se pudo crear");
+		}
+	}
+
 }
 
 int main(int arg, char** argv) {
@@ -468,7 +541,8 @@ int main(int arg, char** argv) {
 	log_trace(log, "Comienza el proceso FileSystem");
 
 	listaDeNodos = list_create();
-	tablaDirectorios = list_create();
+	//tablaDirectorios = list_create();
+	refreshTablaDeDirectorios();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
 		log_info(log,"Iniciar ignorando/eliminando estado anterior");
@@ -505,12 +579,11 @@ int main(int arg, char** argv) {
 	//cantidadTotalBloquesLibres();
 
 	createDirectory("root/some");
-	createDirectory("root/some/other");
-	createDirectory("root/ro");
+	//createDirectory("root/some/other");
+	//createDirectory("root/ro");
 	//createDirectory("root/some/carpeta"); //TODO con este rompe en el find
 
-
-	tablaDeDirectoriosEnArchivo();
+	//tablaDeDirectoriosEnArchivo();
 	//createDirectory("some/dir")
 
 
