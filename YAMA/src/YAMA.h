@@ -11,6 +11,7 @@
 #include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
+#include <utilidades/protocol/types.h>
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
