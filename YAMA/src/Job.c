@@ -14,6 +14,7 @@ t_job *newJob()
 	job->transformacion = newTareaTransformacion();
 	job->reduccion_local = newTareaReduccionLocal();
 	job->reduccion_global = newTareaReduccionGlobal();
+	job->almacenamiento = newTareaAlmacenamiento();
 	return job;
 }
 

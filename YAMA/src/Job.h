@@ -12,9 +12,10 @@
 
 typedef struct{
 	int id;
-	t_tarea *transformacion;
-	t_tarea *reduccion_local;
-	t_tarea *reduccion_global;
+	t_tarea* transformacion;
+	t_tarea* reduccion_local;
+	t_tarea* reduccion_global;
+	t_tarea* almacenamiento;
 }t_job;
 
 t_job *newJob();

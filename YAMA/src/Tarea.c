@@ -37,6 +37,14 @@ t_tarea *newTareaReduccionGlobal()
 	return tarea;
 }
 
+t_tarea *newTareaAlmacenamiento(){
+	t_tarea* tarea = malloc(sizeof(t_tarea));
+	tarea->tipo = TAREA_ALMACENAMIENTO;
+	tarea->estado = TAREA_NO_EJECUTADA;
+
+	return tarea;
+}
+
 int tareaEsTransformacion(t_tarea *tarea)
 {
 	return tarea->tipo == TAREA_TRANSFORMACION;
@@ -51,6 +59,11 @@ int tareaEsReduccionLocal(t_tarea *tarea)
 int tareaEsReduccionGlobal(t_tarea *tarea)
 {
 	return tarea->tipo == TAREA_REDUCCION_GLOBAL;
+}
+
+int tareaEsAlmacenamiento(t_tarea *tarea)
+{
+	return tarea->tipo == TAREA_ALMACENAMIENTO;
 }
 
 void tareaMarcarEnEjecucion(t_tarea *tarea, char *nombreResultadoTemporal)

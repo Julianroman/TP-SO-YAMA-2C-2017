@@ -9,7 +9,7 @@
 #define TAREA_H_
 
 
-typedef enum {TAREA_TRANSFORMACION, TAREA_REDUCCION_LOCAL, TAREA_REDUCCION_GLOBAL} TipoTarea;
+typedef enum {TAREA_TRANSFORMACION, TAREA_REDUCCION_LOCAL, TAREA_REDUCCION_GLOBAL, TAREA_ALMACENAMIENTO} TipoTarea;
 
 typedef enum {TAREA_NO_EJECUTADA, TAREA_EN_EJECUCION, TAREA_FINALIZADA} EstadoTarea;
 
@@ -18,7 +18,7 @@ typedef struct {
 	char *nombreResultadoTemporal;
 	EstadoTarea estado;
 	TipoTarea tipo;
-	int id; //Deberia ser un uint32_t
+	uint16_t id;
 } t_tarea;
 
 t_tarea *newTareaTransformacion();

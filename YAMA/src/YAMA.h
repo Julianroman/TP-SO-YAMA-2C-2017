@@ -23,7 +23,7 @@
 // Tipo de dato de uso interno del yama
 // las respuestas deberan retornar un YAMA_STATUS
 // para poder tomar las medidas necesarias en caso de error
-typedef enum {EXITO, EN_EJECUCION, ERROR} YAMA_STATUS;
+typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
 
 typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} ETAPA_JOB;
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
@@ -37,7 +37,6 @@ typedef struct {
 	t_list* bloquesDelDatanode;
 	t_list* bloquesAEjecutar;
 	int disponibilidad;
-	int activo;
 	int cantTareasHistoricas;
 	t_job* jobActivo;
 
@@ -48,7 +47,7 @@ typedef struct {
 	int master;
 	t_worker* nodo;
 	int bloque;
-	t_tarea* etapa; // El job tiene una etapa especifica? Debería poder estar en varias a la vez
+	t_tarea* etapa;
 	char* archivoTemporal;
 	YAMA_STATUS estado;
 } t_tablaEstados;

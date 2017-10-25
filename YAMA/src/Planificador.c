@@ -10,19 +10,36 @@
 #include "YAMA.h"
 #include "Tarea.h"
 
+int ESTAINICIALIZADO = 0;
+int idUltimoJobCreado = 0;
+
+void iniciarPlanificacion(char* nombreArchivo){
+	inicializarPlanificador();
+	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo); //Funcion a desarrollar conjuntamente con FS
+	planificacionClock(nodosDisponibles); //Deberia ser WClock
+	payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
+	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
+		realizarSiguienteInstruccion(&infoMaster);
+	}
+	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles);
+	realizarReduccionGlobal(&encargado);
+	finalizar(); // Como debe finalizar todo?
+}
 
 void inicializarPlanificador(){
-	listaNodos = list_create();
-	//Habria que cargar la lista de nodos con su carga y disponibilidad
-	listaRespuestasMaster = list_create();
-	int idUltimoJobCreado = 0;
-	int idUltimoJobPlanificado = 0;
-	int idUltimaTarea = 0;
-	diccionarioJobs = dictionary_create();
-	bloques_ejecutados = dictionary_create();
-	tablaEstados = list_create();
-	t_job* job = newJob();
-	agregarJob(&job);
+	if(ESTAINICIALIZADO){
+		t_job* job = newJob();
+		agregarJob(&job);
+	}
+	else{
+		listaNodos = list_create();
+		//Habria que cargar la lista de nodos con su carga y disponibilidad
+		listaRespuestasMaster = list_create();
+		diccionarioJobs = dictionary_create();
+		bloques_ejecutados = dictionary_create();
+		tablaEstados = list_create();
+		ESTAINICIALIZADO++;
+	}
 }
 
 void agregarJob(t_job* job){
@@ -30,20 +47,6 @@ void agregarJob(t_job* job){
 	job->id = idUltimoJobCreado;
 	char* keyJob = string_itoa(job->id);
 	dictionary_put(diccionarioJobs, keyJob, job);
-	//Actualizar tabla de estados con el job creado
-}
-
-void iniciarPlanificacion(char* nombreArchivo){
-	inicializarPlanificador();
-	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo); //Funcion a desarrollar conjuntamente con FS
-	planificacionClock(nodosDisponibles); //Deberia ser WClock
-	respuestaInfoMaster* respuesta = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
-	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
-		realizarSiguienteInstruccion(respuesta);
-	}
-	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles);
-	realizarReduccionGlobal(&encargado);
-	finalizar(); // Como debe finalizar todo?
 }
 
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
@@ -53,7 +56,14 @@ int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
 }
 
-void realizarSiguienteinstruccion(respuestaInfoMaster* respuesta){
+int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
+	int nodoTerminoTransformacion(t_worker* nodo){
+		return tareaEstaFinalizada(nodo->jobActivo->transformacion);
+	}
+	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
+}
+
+void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER** respuesta){
 	if(respuesta->estadoEjecucion == EJECUCION_ERROR){
 		if(respuesta->tareaEjecutada == REDUCCION_LOCAL || respuesta->tareaEjecutada == REDUCCION_GLOBAL){
 			abortarJob(respuesta->jobEjecutado);
@@ -67,32 +77,38 @@ void realizarSiguienteinstruccion(respuestaInfoMaster* respuesta){
 	}
 }
 
-respuestaInfoMaster* obtenerSiguienteInfoMaster(){
-	respuestaInfoMaster* respuesta = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
-	actualizarEstados(&respuesta);
-	return respuesta->nodo;
+payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
+	payload_RESPUESTA_MASTER* infoMaster = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
+	actualizarEstados(&infoMaster);
+	return infoMaster;
 }
 
-void actualizarEstados(respuestaInfoMaster* respuesta){
-	actualizarTablaestados(&respuesta);
-	actualizarLog(&respuesta);
-	actualizarEstadosNodo(&respuesta);
+void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster){
+	actualizarTablaestados(&infoMaster);
+	actualizarLog(&infoMaster);
+	actualizarEstadosNodo(&infoMaster);
 }
 
-void actualizarTablaEstados(respuestaInfoMaster* respuesta){
+void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	t_tablaEstados* registroEstado = malloc(sizeof(t_tablaEstados));
-	registroEstado->job = respuesta->jobEjecutado;
-	registroEstado->master = respuesta->master;
-	registroEstado->nodo = respuesta->nodo;
-	//registroEstado->bloque = Habría que sacar la info del bloque
-	registroEstado->etapa = respuesta->tareaEjecutada;
-	//registroEstado->archivoTemporal = idem bloque
-	registroEstado->estado = respuesta->estadoEjecucion;
+	registroEstado->job = obtenerJobActivoPara(infoMaster->id_nodo);//A desarrollar
+	registroEstado->master = infoMaster->id_master;
+	registroEstado->nodo = infoMaster->id_nodo;
+	registroEstado->bloque = infoMaster->bloque;
+	registroEstado->etapa = obtenerUltimaTareaEjecutadaPara(infoMaster->id_nodo);//A desarrollar
+	registroEstado->archivoTemporal = obtenerUltimoArchivoTemporalPara(infoMaster->id_nodo); //A desarrollar
+	registroEstado->estado = infoMaster->estado;
 	list_add(tablaEstados, registroEstado);
 }
 
-void actualizarEstadosNodo(respuestaInfoMaster* respuesta){
-	if(tareaEsTransformacion(respuesta->tareaEjecutada)){
+void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
+	//A desarrollar
+}
+
+void actualizarEstadosNodo(payload_RESPUESTA_MASTER* infoMaster){
+	t_worker* worker = obtenerNodo(infoMaster->id_nodo);
+	//Pensar sobre si el worker tiene una tarea activa
+	/*if(tareaEsTransformacion(respuesta->tareaEjecutada)){
 		if(respuesta->estadoEjecucion == EJECUCION_OK){
 			tareaMarcarFinalizada(respuesta->nodo->jobActivo->transformacion);
 		}
@@ -106,7 +122,7 @@ void actualizarEstadosNodo(respuestaInfoMaster* respuesta){
 		if(respuesta->estadoEjecucion == EJECUCION_OK){
 			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_global);
 		}
-	}
+	}*/
 }
 
 /*typedef struct {
@@ -236,7 +252,7 @@ int estaActivo(t_worker* worker){
 	return worker->activo == 1;
 }
 
-void agregarAListaInfoMaster(respuestaInfoMaster* infoMaster){
+void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster){
 	list_add(listaRespuestasMaster, infoMaster);
 }
 /*void calcularDisponibilidadWorker(t_worker* worker){
