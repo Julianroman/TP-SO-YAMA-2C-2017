@@ -48,14 +48,14 @@ typedef struct {
 	int32_t padre;
 }t_directory;
 
-static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
+/*static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
 	t_directory *new = malloc(sizeof(t_directory));
     new->indice = index;
     new->nombre = nombre;
     new->padre = padre;
 
     return new;
-}
+}*/
 
 static void directory_destroy(t_directory *self) {
     free(self->nombre);
