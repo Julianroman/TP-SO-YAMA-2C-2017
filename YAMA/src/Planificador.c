@@ -51,6 +51,14 @@ void agregarJob(t_job* job){
 	dictionary_put(diccionarioJobs, keyJob, job);
 }
 
+t_job *newJob()
+{
+	t_job *job = malloc(sizeof(t_job));
+	job->id = 0;
+	job->estado = EN_EJECUCION;
+	return job;
+}
+
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
 	int nodoTerminoReduccionLocal(t_worker* nodo){
 		return tareaEstaFinalizada(nodo->jobActivo->reduccion_local);

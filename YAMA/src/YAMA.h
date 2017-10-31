@@ -17,14 +17,12 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
-#include "Job.h"
 #include "Tarea.h"
 
 // Tipo de dato de uso interno del yama
 // las respuestas deberan retornar un YAMA_STATUS
 // para poder tomar las medidas necesarias en caso de error
 typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
-
 typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} ETAPA_JOB;
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
 
@@ -61,13 +59,10 @@ typedef struct {
 	char* algoritmoBalanceo;
 } t_yama;
 
-typedef struct {
-	t_worker* nodo;
-	t_job* jobEjecutado;
-	t_tarea* tareaEjecutada;
-	ESTADO_EJECUCION estadoEjecucion;
-	int master; //Hay un struct de master?
-} respuestaInfoMaster;
+typedef struct{
+	uint16_t id;
+	YAMA_STATUS estado;
+}t_job;
 
 void iniciarListaEstados();
 

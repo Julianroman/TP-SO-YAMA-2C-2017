@@ -15,10 +15,10 @@ typedef enum {TAREA_NO_EJECUTADA, TAREA_EN_EJECUCION, TAREA_FINALIZADA} EstadoTa
 
 
 typedef struct {
+	uint16_t id;
 	char *nombreResultadoTemporal;
 	EstadoTarea estado;
 	TipoTarea tipo;
-	uint16_t id;
 } t_tarea;
 
 t_tarea *newTareaTransformacion();
