@@ -28,10 +28,15 @@ respuestaInfoMaster* obtenerSiguienteInfoMaster();
 void actualizarEstados(respuestaInfoMaster* respuesta);
 void actualizarTablaEstados(respuestaInfoMaster* respuesta);
 void actualizarEstadosNodo(respuestaInfoMaster* respuesta);
-void planificacionClock(t_list* listaNodos);
+void planificacion(t_list* listaNodos);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 t_worker* buscarNodo(t_list* listaNodos, int numNodo);
 int estaActivo(t_worker* worker);
-
+int PWL(t_worker* worker);
+int WLmax();
+int carga(t_worker* worker);
+void calcularDisponibilidad(t_worker* worker);
+int disponibilidad(t_worker* worker);
+int tareasHistoricas(t_worker* worker);
 #endif /* PLANIFICADOR_H_ */

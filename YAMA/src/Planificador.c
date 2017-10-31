@@ -12,6 +12,7 @@
 
 int ESTAINICIALIZADO = 0;
 int idUltimoJobCreado = 0;
+int base = 2;
 
 void iniciarPlanificacion(char* nombreArchivo){
 	inicializarPlanificador();
@@ -144,47 +145,64 @@ int main(void) {
 	worker1 = malloc(sizeof(t_worker));
 	worker2 = malloc(sizeof(t_worker));
 	worker3 = malloc(sizeof(t_worker));
-	worker1->disponibilidad = 1;
-	worker1->cantTareasHistoricas = 1;
-	worker1->bloques = list_create();
-	worker2->bloques = list_create();
-	worker3->bloques = list_create();
-	list_add(worker1->bloques, "1");
-	list_add(worker1->bloques, "2");
-	list_add(worker1->bloques, "0");
-	worker2->disponibilidad = 0;
-	worker2->cantTareasHistoricas = 2;
-	list_add(worker2->bloques, "0");
-	list_add(worker2->bloques, "3");
-	worker3->disponibilidad = 1;
+	worker1->id = 1;
+	worker1->cantTareasHistoricas = 2;
+	worker1->carga = 1;
+	worker1->bloquesDelDatanode = list_create();
+	worker2->bloquesDelDatanode = list_create();
+	worker3->bloquesDelDatanode = list_create();
+	worker1->bloquesAEjecutar = list_create();
+	worker2->bloquesAEjecutar = list_create();
+	worker3->bloquesAEjecutar = list_create();
+	list_add(worker1->bloquesDelDatanode, "0");
+	list_add(worker1->bloquesDelDatanode, "1");
+	list_add(worker1->bloquesDelDatanode, "3");
+	list_add(worker1->bloquesDelDatanode, "4");
+	list_add(worker1->bloquesDelDatanode, "6");
+	worker2->id = 2;
+	worker2->cantTareasHistoricas = 1;
+	worker2->carga = 1;
+	list_add(worker2->bloquesDelDatanode, "0");
+	list_add(worker2->bloquesDelDatanode, "2");
+	list_add(worker2->bloquesDelDatanode, "3");
+	list_add(worker2->bloquesDelDatanode, "5");
+	list_add(worker2->bloquesDelDatanode, "6");
+	worker3->id = 3;
 	worker3->cantTareasHistoricas = 3;
-	list_add(worker3->bloques, "1");
-	list_add(worker3->bloques, "3");
+	worker3->carga = 0;
+	list_add(worker3->bloquesDelDatanode, "1");
+	list_add(worker3->bloquesDelDatanode, "2");
+	list_add(worker3->bloquesDelDatanode, "4");
+	list_add(worker3->bloquesDelDatanode, "5");
 	list_add(listaNodos, worker1);
 	list_add(listaNodos, worker2);
 	list_add(listaNodos, worker3);
+	calcularDisponibilidad(worker1);
+	calcularDisponibilidad(worker2);
+	calcularDisponibilidad(worker3);
 	nodoConMayorDisponibilidad();
- 	planificacionClock(listaNodos);
-
+ 	planificacion(listaNodos);
+ 	planificacion(listaNodos);
 	return EXIT_SUCCESS;
 }*/
 
-void planificacionClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
-	int base = 2;
+void planificacion(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));
 	t_link_element* valor = malloc(sizeof(t_link_element));
 	int verificador = 0;
 	int i;
-	char *bloquesTotales[4] = {"0","1","2","3"};
+	char *bloquesTotales[7] = {"0","1","2","3","4","5","6"};
 	valor = listaNodos->head;
-	for(i = 0; i < sizeof(&bloquesTotales);i++){
+	int length = sizeof(bloquesTotales)/sizeof(char*);
+	for(i = 0; i < length;i++){
 		while(1){
 			workerActual = valor->data;
 			if(existeEn(workerActual->bloquesDelDatanode, bloquesTotales[i]) != 0){
 				if(workerActual->disponibilidad > 0){
 					list_add(workerActual->bloquesAEjecutar, bloquesTotales[i]);
+					workerActual->carga += 1;
 					workerActual->disponibilidad -= 1;
 					if(valor->next){
 						valor = valor->next;
@@ -233,6 +251,29 @@ void nodoConMayorDisponibilidad(){ // ordena la lista de nodos segun la disponib
 	worker = listaNodos->head->data;
 }
 
+int PWL(t_worker* worker){
+	return WLmax() + carga(worker);
+}
+
+int WLmax(){ // ordena la lista de nodos segun la disponibilidad
+	t_worker* worker = malloc(sizeof(t_worker));
+	int mayorCarga(t_worker* nodo1, t_worker* nodo2){
+			return carga(nodo1) > carga(nodo2);
+		}
+	list_sort(listaNodos,(void*)mayorCarga);
+	//para verificar que el primero este bien
+	worker = listaNodos->head->data;
+	return carga(worker);
+}
+
+int carga(t_worker* worker){
+	return worker->carga;
+}
+
+void calcularDisponibilidad(t_worker* worker){
+	worker->disponibilidad = base + PWL(worker);
+}
+
 int disponibilidad(t_worker* worker){
 	return worker->disponibilidad;
 }
@@ -255,6 +296,3 @@ int estaActivo(t_worker* worker){
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster){
 	list_add(listaRespuestasMaster, infoMaster);
 }
-/*void calcularDisponibilidadWorker(t_worker* worker){
-	worker->disponibilidad = getDisponibilidadBase() + calcularPWL(worker); //Esto es la base de como trabaja el algoritmo wClock
-}*/
