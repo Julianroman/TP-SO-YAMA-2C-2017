@@ -12,6 +12,9 @@
 #include "consola.h"
 #include "funcionesFS.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #define TOTALDIRECTORIOS 100
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
 
@@ -466,8 +469,38 @@ t_directory* findFatherByName(char *name) {
 
 }*/
 void refreshTablaDeDirectorios(){
-		int fdDirectorios = open(PATHDIRECTORIOS, "r");
+	FILE* tabla;
+	if (!(tabla = fopen(PATHDIRECTORIOS, "r"))){
+
+
+		tablaDeDirectorios = malloc(sizeof(t_directory) * TOTALDIRECTORIOS);
+		log_info(log, "El archivo de directorios no existe. Se inicializara.");
+
+		int i;
+		for (i = 0; i < TOTALDIRECTORIOS; i++) {
+			tablaDeDirectorios[i].indice = -1;
+			tablaDeDirectorios[i].nombre = "";
+			tablaDeDirectorios[i].padre = -1;
+		}
+		tabla = fopen(PATHDIRECTORIOS,"ab+");
+
+		char* map;
+		if((map = mmap(NULL, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(tabla),0)) == MAP_FAILED){
+			log_error(log,"Error al mappear archivo\n");
+		}
+		else{
+
+			memcpy(map, tablaDeDirectorios,(sizeof(t_directory) * TOTALDIRECTORIOS));
+		}
+		//fwrite(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
+	}
+	else{
+		int fdDirectorios;
+		fdDirectorios = open(PATHDIRECTORIOS, "r");
 		tablaDeDirectorios = (t_directory*) mmap(0, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fdDirectorios, 0);
+	}
+
+
 
 }
 
@@ -488,8 +521,8 @@ void createDirectory(char* path){
 
 	int indiceDisponible = -1;
 	int j;
-	for(j = 0; j < TOTALDIRECTORIOS; j++){
-		if(tablaDeDirectorios[j].nombre == NULL){ //TODO
+	for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
+		if(string_equals_ignore_case(tablaDeDirectorios[j].nombre, "") == 0){ //TODO
 			indiceDisponible = j;
 		}
 	}
