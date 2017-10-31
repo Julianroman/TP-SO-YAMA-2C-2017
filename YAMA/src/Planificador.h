@@ -19,9 +19,11 @@ t_list* tablaEstados;
 
 int idUltimoJobCreado;
 
+void iniciarPlanificacion(char* nombreArchivo);
 void inicializarPlanificador();
 void agregarJob(t_job* job);
 void iniciarPlanificacion();
+void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
 void realizarSiguienteinstruccion(respuestaInfoMaster* respuesta);
 respuestaInfoMaster* obtenerSiguienteInfoMaster();

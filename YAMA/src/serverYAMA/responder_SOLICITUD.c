@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include "responses.h"
 
-YAMA_STATUS responder_SOLICITUD(int socket, HEADER_T tipoDeMensaje,void* data){
-	YAMA_STATUS status = malloc(sizeof(YAMA_STATUS));
+YAMA_STATUS responder_SOLICITUD(int socket,void* data, HEADER_T tipoDeMensaje){
+	YAMA_STATUS status;
 	if(tipoDeMensaje == SOLICITUD_JOB){
 		status = res_SOLICITUD_JOB(socket, data);
 	}

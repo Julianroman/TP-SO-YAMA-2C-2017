@@ -5,6 +5,7 @@
  *      Author: utnso
  */
 
+#include <utilidades/protocol/types.h>
 #include "Planificador.h"
 #include "Job.h"
 #include "YAMA.h"
@@ -17,9 +18,9 @@ int base = 2;
 void iniciarPlanificacion(char* nombreArchivo){
 	inicializarPlanificador();
 	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo); //Funcion a desarrollar conjuntamente con FS
-	planificacionClock(nodosDisponibles); //Deberia ser WClock
-	payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
+	planificacionWClock(&nodosDisponibles);
 	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
+		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
 		realizarSiguienteInstruccion(&infoMaster);
 	}
 	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles);
@@ -64,21 +65,25 @@ int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
 }
 
-void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER** respuesta){
-	if(respuesta->estadoEjecucion == EJECUCION_ERROR){
-		if(respuesta->tareaEjecutada == REDUCCION_LOCAL || respuesta->tareaEjecutada == REDUCCION_GLOBAL){
-			abortarJob(respuesta->jobEjecutado);
+void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
+	t_tarea* tareaEjecutada = obtenerUltimaTareaEjecutadaPorWorker(respuesta->id_nodo); // A desarrollar
+	if(!respuesta->estado){ // Si fue error
+		actualizarEstados(&respuesta);
+		if(tareaEsReduccionLocal(&tareaEjecutada) || tareaEsReduccionGlobal(&tareaEjecutada)){
+			abortarJob(); //A desarrollar
 		}
 		else{
-			rePlanificarTransformacion(respuesta->nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
+			rePlanificarTransformacion(respuesta->id_nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
 		}
 	}
 	else { //EJECUCION_OK
-		realizarSiguienteTarea(respuesta->nodo);
+		actualizarEstados(&respuesta);
+		realizarSiguienteTarea(respuesta->id_nodo); //A desarrollar
 	}
 }
 
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
+
 	payload_RESPUESTA_MASTER* infoMaster = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
 	actualizarEstados(&infoMaster);
 	return infoMaster;
@@ -186,7 +191,7 @@ int main(void) {
 	return EXIT_SUCCESS;
 }*/
 
-void planificacion(t_list* listaNodos){//Esta seria la lista o diccionario de workers
+void planificacionWClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));
