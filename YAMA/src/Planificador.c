@@ -13,6 +13,7 @@
 
 int ESTAINICIALIZADO = 0;
 int idUltimoJobCreado = 0;
+int idUltimaTareaCreada = 0;
 int base = 2;
 
 void iniciarPlanificacion(char* nombreArchivo){
@@ -23,8 +24,8 @@ void iniciarPlanificacion(char* nombreArchivo){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
 		realizarSiguienteInstruccion(&infoMaster);
 	}
-	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles);
-	realizarReduccionGlobal(&encargado);
+	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles); //A desarrollar
+	realizarReduccionGlobal(&encargado); // A desarrollar
 	finalizar(); // Como debe finalizar todo?
 }
 
@@ -38,6 +39,7 @@ void inicializarPlanificador(){
 		//Habria que cargar la lista de nodos con su carga y disponibilidad
 		listaRespuestasMaster = list_create();
 		diccionarioJobs = dictionary_create();
+		diccionarioTareas = dictionary_create();
 		bloques_ejecutados = dictionary_create();
 		tablaEstados = list_create();
 		ESTAINICIALIZADO++;
@@ -49,6 +51,13 @@ void agregarJob(t_job* job){
 	job->id = idUltimoJobCreado;
 	char* keyJob = string_itoa(job->id);
 	dictionary_put(diccionarioJobs, keyJob, job);
+}
+
+void agregarTarea(t_tarea* tarea){
+	idUltimaTareaCreada++;
+	tarea->id = idUltimaTareaCreada;
+	char* keyTarea = string_itoa(tarea->id);
+	dictionary_put(diccionarioJobs, keyTarea, tarea);
 }
 
 t_job *newJob()

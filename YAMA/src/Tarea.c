@@ -101,3 +101,7 @@ char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea)
 {
 	return tarea->nombreResultadoTemporal;
 }
+
+void tareaSetearNombreResultadoTemporal(t_tarea* tarea, char* nombreTemporal){
+	tarea->nombreResultadoTemporal = nombreTemporal;
+}

@@ -45,7 +45,7 @@ typedef struct {
 	int master;
 	t_worker* nodo;
 	int bloque;
-	t_tarea* etapa;
+	ETAPA_JOB etapa;
 	char* archivoTemporal;
 	YAMA_STATUS estado;
 } t_tablaEstados;

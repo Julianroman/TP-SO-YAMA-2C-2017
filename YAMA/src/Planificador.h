@@ -14,6 +14,7 @@
 t_list* listaNodos;
 t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
+t_dictionary* diccionarioTareas;
 t_list* listaRespuestasMaster;
 t_list* tablaEstados;
 
