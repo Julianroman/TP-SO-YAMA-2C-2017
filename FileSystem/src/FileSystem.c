@@ -387,7 +387,7 @@ void inicializarNodo(int nroNodo){
 void refreshTablaDeDirectorios(){
 	FILE* tabla;
 	if (!(tabla = fopen(PATHDIRECTORIOS, "r"))){
-
+		fclose(tabla);
 
 		tablaDeDirectorios = malloc(sizeof(t_directory) * TOTALDIRECTORIOS);
 		log_info(log, "El archivo de directorios no existe. Se inicializara.");
@@ -395,25 +395,28 @@ void refreshTablaDeDirectorios(){
 		int i;
 		for (i = 0; i < TOTALDIRECTORIOS; i++) {
 			tablaDeDirectorios[i].indice = -1;
-			tablaDeDirectorios[i].nombre = "";
+			strcpy(tablaDeDirectorios[i].nombre, "");
 			tablaDeDirectorios[i].padre = -1;
 		}
-		tabla = fopen(PATHDIRECTORIOS,"ab+");
-
-		char* map;
-		if((map = mmap(NULL, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(tabla),0)) == MAP_FAILED){
-			log_error(log,"Error al mappear archivo\n");
+		tabla = fopen(PATHDIRECTORIOS, "wb");
+		if (tabla != NULL) {
+			fwrite(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
+			fclose(tabla);
 		}
-		else{
 
-			memcpy(map, tablaDeDirectorios,(sizeof(t_directory) * TOTALDIRECTORIOS));
-		}
+
 		//fwrite(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
 	}
 	else{
-		int fdDirectorios;
-		fdDirectorios = open(PATHDIRECTORIOS, "r");
-		tablaDeDirectorios = (t_directory*) mmap(0, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fdDirectorios, 0);
+		//int fdDirectorios;
+		//fdDirectorios = open(PATHDIRECTORIOS, "r");
+		//tablaDeDirectorios = (t_directory*) mmap(0, sizeof(t_directory) * TOTALDIRECTORIOS, PROT_READ | PROT_WRITE, MAP_SHARED, fdDirectorios, 0);
+		tablaDeDirectorios = malloc(sizeof(t_directory) * TOTALDIRECTORIOS);
+		tabla= fopen(PATHDIRECTORIOS, "rb");
+		if (tabla != NULL) {
+			fread(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
+			fclose(tabla);
+		}
 	}
 
 
@@ -438,7 +441,7 @@ void createDirectory(char* path){
 	int indiceDisponible = -1;
 	int j;
 	for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
-		if(string_equals_ignore_case(tablaDeDirectorios[j].nombre, "") == 0){ //TODO
+		if(tablaDeDirectorios[j].indice == -1){ //TODO
 			indiceDisponible = j;
 		}
 	}
@@ -455,7 +458,7 @@ void createDirectory(char* path){
 				cant = strlen(padres) / sizeof(char*); //Length de padres
 				if(cant == 1){
 					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-					tablaDeDirectorios[indiceDisponible].nombre = padres[0];
+					strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
 					tablaDeDirectorios[indiceDisponible].padre = 0;
 				}
 				else{
@@ -468,7 +471,7 @@ void createDirectory(char* path){
 					}
 
 					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-					tablaDeDirectorios[indiceDisponible].nombre = padres[cant-1];
+					strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
 					tablaDeDirectorios[indiceDisponible].padre = father;
 				}
 
@@ -482,6 +485,35 @@ void createDirectory(char* path){
 			log_error(log, "El directorio ya existe o no se pudo crear");
 		}
 	}
+
+}
+
+void deleteDirectory(char* path){
+	//TODO
+	refreshTablaDeDirectorios();
+	struct stat st = {0};
+
+	if (stat(path, &st) == -1) { //Si no existe el path, no lo elimino
+		log_error(log, "El directorio no existe");
+	}else{ //Faltaria verificar que sea ese con el padre (Pueden haber dos directorios que se llamen igual)
+		char **padres = string_split(path, "/");
+		int cant;
+		cant = strlen(padres) / sizeof(char*);
+
+		int indice = findDirByname(padres[cant-1], tablaDeDirectorios);
+
+		tablaDeDirectorios[indice].indice = -1;
+		strcpy(tablaDeDirectorios[indice].nombre, "");
+		tablaDeDirectorios[indice].padre = -1;
+
+		if(remove(path) == 0){
+			printf("El directorio %s fue eliminado.\n", path);
+		}
+		else{
+			fprintf(stderr, "No se pudo eliminar el archivo %s.\n", path);
+		}
+	}
+
 
 }
 
@@ -508,26 +540,28 @@ int main(int arg, char** argv) {
 
 	///Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
-	//pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
+	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	//Creo el hiloServidor que llama a la funcion servidor(miPuerto)
 	pthread_t hiloServidor;
-	//pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
+	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	//El proceso no termina hasta que mueren los dos hilos
-	//pthread_join(hiloConsola, NULL);
-	//pthread_join(hiloServidor, NULL);
+	pthread_join(hiloConsola, NULL);
+	pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
+	//createDirectory("root/metadata");
+	//createDirectory("root/metadata/bitmaps");
 
 	//inicializarNodo(2);
 	//inicializarNodo(1);
 	//cantidadTotalBloquesLibres();
 
-	createDirectory("root/some");
+	//createDirectory("root/some");
 	//createDirectory("root/some/other");
 	//createDirectory("root/ro");
 	//createDirectory("root/some/carpeta"); //TODO con este rompe en el find
