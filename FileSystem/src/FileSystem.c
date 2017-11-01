@@ -384,90 +384,6 @@ void inicializarNodo(int nroNodo){
 
 }
 
-/*void tablaDeDirectoriosEnArchivo(){
-	FILE* tabla;
-	tabla = fopen("root/tabla.txt","w");
-	fwrite("Indice -- Nombre -- Padre", strlen("Indice -- Nombre -- Padre"),1, tabla);
-	fwrite("\n", sizeof(char), 1, tabla);
-	int i;
-	for (i = 0; i < list_size(tablaDirectorios); i ++){
-		t_directory *unDirec = malloc(sizeof(t_directory));
-		unDirec = list_get(tablaDirectorios, i);
-		fwrite(" ", 1, 1, tabla);
-		fwrite(string_itoa(unDirec->indice), 1,1, tabla);
-		fwrite(" ", 1, 1, tabla);
-		fwrite(unDirec->nombre, strlen(unDirec->nombre),1, tabla);
-		fwrite(" ", 1, 1, tabla);
-		fwrite(string_itoa(unDirec->padre), 1,1, tabla);
-		fwrite(" ", 1, 1, tabla);
-		fwrite("\n", sizeof(char), 1, tabla);
-		directory_destroy(unDirec);
-	}
-
-
-	log_trace(log, "La tabla de directorios esta en el archivo");
-	fclose(tabla);
-
-}
-
-t_directory* findFatherByName(char *name) {
-	int isTheOne(t_directory *d) {
-		log_trace(log, d->nombre);
-		return string_equals_ignore_case(d->nombre, name);
-	}
-
-	return list_find(tablaDirectorios, (void*) isTheOne);
-}*/
-/*void createDirectory(char* path){ //path de la forma: dir
-	int cantidadDirectorios;
-	cantidadDirectorios = list_size(tablaDirectorios);
-	if(cantidadDirectorios < 100){
-		struct stat st = {0};
-
-		if (stat(path, &st) == -1) { //Si no existe el path, lo creo
-			if(mkdir(path, 0700) == 0){
-				char **padres = string_split(path, "/");
-				int cant;
-				cant = strlen(padres) / sizeof(char*); //Length de padres
-				if(cant == 1){
-					t_directory* nuevoDir;
-					nuevoDir = directory_create(cantidadDirectorios - 1, padres[0], 0);
-					list_add(tablaDirectorios, nuevoDir);
-				}
-				else{
-					int32_t father;
-					log_trace(log,"Padre: %s", padres[cant-2]);
-					if(strcmp(padres[cant-2], "root") == 0){
-						father = 0;
-					}else{
-						t_directory* dirPadre;
-						dirPadre = findFatherByName(padres[cant-2]);
-						father = dirPadre->indice;//Me daria el index del padre
-						directory_destroy(dirPadre);
-					}
-
-					t_directory* nuevoDir;
-					nuevoDir = directory_create(cantidadDirectorios + 1, padres[cant-1], father);
-
-					list_add(tablaDirectorios, nuevoDir);
-					log_trace(log, "El directorio fue agregado a la tabla. Indice: %i - Nombre: %s - Padre: %i .",nuevoDir->indice, nuevoDir->nombre, nuevoDir->padre);
-				}
-
-				log_trace(log, "El directorio %s fue creado con exito.", path);
-
-			}else{
-				log_error(log, "Error al crear directorio");
-			}
-		}
-		else{
-			log_error(log, "El directorio ya existe o no se pudo crear");
-		}
-	}else{
-		log_error(log, "Tabla de directorios completa");
-	}
-
-
-}*/
 void refreshTablaDeDirectorios(){
 	FILE* tabla;
 	if (!(tabla = fopen(PATHDIRECTORIOS, "r"))){
@@ -592,11 +508,11 @@ int main(int arg, char** argv) {
 
 	///Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
-	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
+	//pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	//Creo el hiloServidor que llama a la funcion servidor(miPuerto)
 	pthread_t hiloServidor;
-	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
+	//pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	//El proceso no termina hasta que mueren los dos hilos
 	//pthread_join(hiloConsola, NULL);

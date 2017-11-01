@@ -19,6 +19,8 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "Sockets.h"
 t_list* lista;
 t_dictionary* diccionario;
