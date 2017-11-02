@@ -81,3 +81,7 @@ char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea){
 void tareaSetearNombreResultadoTemporal(t_tarea* tarea, char* nombreTemporal){
 	tarea->nombreResultadoTemporal = nombreTemporal;
 }
+
+t_tarea* getTarea(t_worker* worker){
+	return worker->tareaActiva;
+}

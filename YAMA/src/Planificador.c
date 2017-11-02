@@ -81,20 +81,12 @@ int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
 }
 
-t_tarea* obtenerUltimaTareaEjecutadaPorWorker(int idWorker, t_list* nodosDisponibles){
-	bool getWorker() {
-		t_worker* unWorker;
-		return (unWorker->id == idWorker);
-	}
-	t_worker* otroWorker = list_find(nodosDisponibles, (void*)getWorker());
-	return otroWorker->tareaActiva;
-}
-
-/*void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta, t_list* nodosDisponibles){
-	t_tarea* tareaEjecutada = obtenerUltimaTareaEjecutadaPorWorker(respuesta->id_nodo, &nodosDisponibles); // A desarrollar
+void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta, t_list* nodosDisponibles){
+	t_worker* worker = buscarNodo(&nodosDisponibles, respuesta->id_nodo);
+	t_tarea* tareaEjecutada =  getTarea(worker);
 	if(!respuesta->estado){ // Si fue error
-		actualizarEstados(&respuesta);
-		if(tareaEsReduccionLocal(&tareaEjecutada) || tareaEsReduccionGlobal(&tareaEjecutada)){
+		actualizarEstados(respuesta);
+		if(tareaEsReduccionLocal(tareaEjecutada) || tareaEsReduccionGlobal(tareaEjecutada)){
 			abortarJob(); //A desarrollar
 		}
 		else{
@@ -102,32 +94,31 @@ t_tarea* obtenerUltimaTareaEjecutadaPorWorker(int idWorker, t_list* nodosDisponi
 		}
 	}
 	else { //EJECUCION_OK
-		actualizarEstados(&respuesta);
+		actualizarEstados(respuesta);
 		realizarSiguienteTarea(respuesta->id_nodo); //A desarrollar
 	}
-}*/
+}
 
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
-
 	payload_RESPUESTA_MASTER* infoMaster = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
-	actualizarEstados(&infoMaster);
+	actualizarEstados(infoMaster);
 	return infoMaster;
 }
 
 void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster){
-	actualizarTablaestados(&infoMaster);
-	actualizarLog(&infoMaster);
-	actualizarEstadosNodo(&infoMaster);
+	actualizarTablaestados(infoMaster);
+	actualizarLog(infoMaster);
+	actualizarEstadosNodo(infoMaster);
 }
 
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	t_tablaEstados* registroEstado = malloc(sizeof(t_tablaEstados));
-	registroEstado->job = obtenerJobActivoPara(infoMaster->id_nodo);//A desarrollar
+	registroEstado->job = getJobDeWorker(infoMaster->id_nodo);
 	registroEstado->master = infoMaster->id_master;
 	registroEstado->nodo = infoMaster->id_nodo;
 	registroEstado->bloque = infoMaster->bloque;
-	registroEstado->etapa = obtenerUltimaTareaEjecutadaPara(infoMaster->id_nodo);//A desarrollar
-	registroEstado->archivoTemporal = obtenerUltimoArchivoTemporalPara(infoMaster->id_nodo); //A desarrollar
+	registroEstado->etapa = getTarea(infoMaster->id_nodo);
+	registroEstado->archivoTemporal = tareaObtenerNombreResultadoTemporal(getTarea(infoMaster->id_nodo)); //A desarrollar
 	registroEstado->estado = infoMaster->estado;
 	list_add(tablaEstados, registroEstado);
 }
@@ -137,25 +128,17 @@ void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
 }
 
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* infoMaster){
-	t_worker* worker = obtenerNodo(infoMaster->id_nodo);
-	//Pensar sobre si el worker tiene una tarea activa
-	/*if(tareaEsTransformacion(respuesta->tareaEjecutada)){
-		if(respuesta->estadoEjecucion == EJECUCION_OK){
-			tareaMarcarFinalizada(respuesta->nodo->jobActivo->transformacion);
-		}
-	}
-	if(tareaEsReduccionLocal(respuesta->tareaEjecutada)){
-		if(respuesta->estadoEjecucion == EJECUCION_OK){
-			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_local);
-		}
-	}
-	if(tareaEsReduccionGlobal(respuesta->tareaEjecutada)){
-		if(respuesta->estadoEjecucion == EJECUCION_OK){
-			tareaMarcarFinalizada(respuesta->nodo->jobActivo->reduccion_global);
-		}
+	/*t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);//nodos disponible tiene que ser global para todo el planificador
+	t_tarea* tareaEJecutada = getTarea(worker);
+	if(infoMaster->estado){ // Si es 1 significa que fue OK la ejecucion ahí recien marco como finalizada la tarea
+		tareaMarcarFinalizada(worker->tareaActiva);
 	}*/
 }
 
+t_job* getJobDeWorker(int id){
+	/*t_worker* worker = buscarNodo(nodosDisponibles, id); //nodos disponible tiene que ser global para todo el planificador
+	return worker->jobActivo;*/
+}
 /*typedef struct {
 	char *nombre;
 	char *ip;

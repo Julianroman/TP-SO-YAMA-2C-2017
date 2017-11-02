@@ -49,4 +49,6 @@ int tareaEsReduccionGlobal(t_tarea *tarea);
 
 int tareaEsReduccionLocal(t_tarea *tarea);
 
+t_tarea* getTarea(t_worker* worker);
+
 #endif /* TAREA_H_ */
