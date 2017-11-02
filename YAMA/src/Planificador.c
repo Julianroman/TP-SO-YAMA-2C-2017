@@ -7,7 +7,6 @@
 
 #include <utilidades/protocol/types.h>
 #include "Planificador.h"
-#include "Job.h"
 #include "YAMA.h"
 #include "Tarea.h"
 
@@ -18,7 +17,7 @@ int base = 2;
 
 void iniciarPlanificacion(char* nombreArchivo){
 	inicializarPlanificador();
-	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo); //Funcion a desarrollar conjuntamente con FS
+	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
 	planificacionWClock(&nodosDisponibles);
 	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
@@ -70,16 +69,25 @@ t_job *newJob()
 
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
 	int nodoTerminoReduccionLocal(t_worker* nodo){
-		return tareaEstaFinalizada(nodo->jobActivo->reduccion_local);
+		return (tareaEsReduccionLoCal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
 	}
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
 }
 
 int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 	int nodoTerminoTransformacion(t_worker* nodo){
-		return tareaEstaFinalizada(nodo->jobActivo->transformacion);
+		return (tareaEsTransformacion(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionLocal(nodo->tareaActiva);
 	}
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
+}
+
+t_tarea* obtenerUltimaTareaEjecutadaPorWorker(int idWorker, t_list* nodosDisponibles){
+	bool getWorker(void *nbr) {
+		t_worker* unWorker = nbr;
+		return (unWorker->id == idWorker);
+	}
+	t_worker* otroWorker = list_find(nodosDisponibles, (void*)getWorker());
+	return otroWorker->tareaActiva;
 }
 
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){

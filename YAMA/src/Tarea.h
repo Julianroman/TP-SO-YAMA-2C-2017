@@ -21,11 +21,13 @@ typedef struct {
 	TipoTarea tipo;
 } t_tarea;
 
-t_tarea *newTareaTransformacion();
+t_tarea *newTarea();
 
-t_tarea *newTareaReduccionLocal();
+void tareaPasarAReduccionLocal(t_tarea *tarea);
 
-t_tarea *newTareaReduccionGlobal();
+void tareaPasarAReduccionGlobal(t_tarea *tarea);
+
+void tareaPasarAAlmacenamiento(t_tarea *tarea);
 
 char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea);
 

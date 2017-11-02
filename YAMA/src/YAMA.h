@@ -27,7 +27,6 @@ typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO}
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
 
 typedef struct {
-
 	int id;
 	char *ip;
 	char *puerto;
@@ -37,7 +36,7 @@ typedef struct {
 	int disponibilidad;
 	int cantTareasHistoricas;
 	t_job* jobActivo;
-
+	t_tarea* tareaActiva;
 } t_worker;
 
 typedef struct {
