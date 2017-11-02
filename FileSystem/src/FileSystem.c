@@ -383,20 +383,36 @@ void inicializarNodo(int nroNodo){
 
 
 }
+void printTablaDeDirectorios(){
+	int i;
+	for (i = 0; i < TOTALDIRECTORIOS; i++) {
+		if(tablaDeDirectorios[i+1].indice != -1){
+			printf("%i -- %s -- %i \n",tablaDeDirectorios[i+1].indice, tablaDeDirectorios[i+1].nombre, tablaDeDirectorios[i+1].padre);
+		}
 
-void refreshTablaDeDirectorios(){
+	}
+}
+void saveTablaDeDirectorios(){
+	FILE* tabla;
+	tabla = fopen(PATHDIRECTORIOS, "wb");
+	if (tabla != NULL) {
+		fwrite(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
+		fclose(tabla);
+	}
+	printTablaDeDirectorios();
+}
+void initTablaDeDirectorios(){
 	FILE* tabla;
 	if (!(tabla = fopen(PATHDIRECTORIOS, "r"))){
-		fclose(tabla);
 
 		tablaDeDirectorios = malloc(sizeof(t_directory) * TOTALDIRECTORIOS);
 		log_info(log, "El archivo de directorios no existe. Se inicializara.");
 
 		int i;
 		for (i = 0; i < TOTALDIRECTORIOS; i++) {
-			tablaDeDirectorios[i].indice = -1;
-			strcpy(tablaDeDirectorios[i].nombre, "");
-			tablaDeDirectorios[i].padre = -1;
+			tablaDeDirectorios[i+1].indice = -1;
+			strcpy(tablaDeDirectorios[i+1].nombre, "");
+			tablaDeDirectorios[i+1].padre = -1;
 		}
 		tabla = fopen(PATHDIRECTORIOS, "wb");
 		if (tabla != NULL) {
@@ -423,12 +439,12 @@ void refreshTablaDeDirectorios(){
 
 }
 
-int findDirByname(char* name, t_directory *tabla){
+int findDirByname(char* name){
 	int encontrado = 0;
 	int i;
 	for(i = 0; i < TOTALDIRECTORIOS; i++){
-		if(strcmp(tabla[i].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
-			encontrado = tabla[i].indice;
+		if(strcmp(tablaDeDirectorios[i+1].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
+			encontrado = tablaDeDirectorios[i+1].indice;
 		}
 	}
 
@@ -436,11 +452,10 @@ int findDirByname(char* name, t_directory *tabla){
 }
 
 void createDirectory(char* path){
-	refreshTablaDeDirectorios();
 
 	int indiceDisponible = -1;
 	int j;
-	for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
+	for(j = TOTALDIRECTORIOS ; j > 0; j--){
 		if(tablaDeDirectorios[j].indice == -1){ //TODO
 			indiceDisponible = j;
 		}
@@ -467,7 +482,7 @@ void createDirectory(char* path){
 					if(strcmp(padres[cant-2], "root") == 0){
 						father = 0;
 					}else{
-						father = findDirByname(padres[cant-2], tablaDeDirectorios);
+						father = findDirByname(padres[cant-2]);
 					}
 
 					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
@@ -485,12 +500,12 @@ void createDirectory(char* path){
 			log_error(log, "El directorio ya existe o no se pudo crear");
 		}
 	}
+	saveTablaDeDirectorios();
 
 }
 
 void deleteDirectory(char* path){
 	//TODO
-	refreshTablaDeDirectorios();
 	struct stat st = {0};
 
 	if (stat(path, &st) == -1) { //Si no existe el path, no lo elimino
@@ -500,8 +515,7 @@ void deleteDirectory(char* path){
 		int cant;
 		cant = strlen(padres) / sizeof(char*);
 
-		int indice = findDirByname(padres[cant-1], tablaDeDirectorios);
-
+		int indice = findDirByname(padres[cant-1]);
 		tablaDeDirectorios[indice].indice = -1;
 		strcpy(tablaDeDirectorios[indice].nombre, "");
 		tablaDeDirectorios[indice].padre = -1;
@@ -514,7 +528,7 @@ void deleteDirectory(char* path){
 		}
 	}
 
-
+	saveTablaDeDirectorios();
 }
 
 int main(int arg, char** argv) {
@@ -523,7 +537,7 @@ int main(int arg, char** argv) {
 
 	listaDeNodos = list_create();
 	//tablaDirectorios = list_create();
-	refreshTablaDeDirectorios();
+	initTablaDeDirectorios();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
 		log_info(log,"Iniciar ignorando/eliminando estado anterior");
@@ -538,7 +552,7 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	///Creo el hiloConsola que llama a la funcion init_consola()
+	//Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
