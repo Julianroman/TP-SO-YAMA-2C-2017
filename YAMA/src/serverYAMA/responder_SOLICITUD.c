@@ -6,8 +6,9 @@
 #include <commons/collections/dictionary.h>
 #include <stdio.h>
 #include "responses.h"
+#include "../YAMA.h"
 
-YAMA_STATUS responder_SOLICITUD(int socket,void* data, HEADER_T tipoDeMensaje){
+YAMA_STATUS responder_SOLICITUD(int socket,void* data,HEADER_T tipoDeMensaje){
 	YAMA_STATUS status;
 	if(tipoDeMensaje == SOLICITUD_JOB){
 		status = res_SOLICITUD_JOB(socket, data);
@@ -26,13 +27,11 @@ YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data){
 	inciarPlanificacion(payload->nombreArchivo);
 
 	return EXITO;
-};
+}
 
 YAMA_STATUS res_RECIBIR_INFO(int socket, void* data){
-
 	payload_RESPUESTA_MASTER* infoMaster = data;
 	agregarAListaInfoMaster(&infoMaster);
 	log_trace(logYAMA, "Informacion de master recibida");
 	return EXITO;
-
 }

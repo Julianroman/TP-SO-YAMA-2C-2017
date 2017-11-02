@@ -26,6 +26,11 @@ typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
 typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} ETAPA_JOB;
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
 
+typedef struct{
+	uint16_t id;
+	YAMA_STATUS estado;
+}t_job;
+
 typedef struct {
 	int id;
 	char *ip;
@@ -35,6 +40,7 @@ typedef struct {
 	t_list* bloquesAEjecutar;
 	int disponibilidad;
 	int cantTareasHistoricas;
+	int activo;
 	t_job* jobActivo;
 	t_tarea* tareaActiva;
 } t_worker;
@@ -57,11 +63,6 @@ typedef struct {
 	int retardoPlanificacion;
 	char* algoritmoBalanceo;
 } t_yama;
-
-typedef struct{
-	uint16_t id;
-	YAMA_STATUS estado;
-}t_job;
 
 void iniciarListaEstados();
 

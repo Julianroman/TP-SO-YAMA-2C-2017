@@ -21,7 +21,7 @@ void iniciarPlanificacion(char* nombreArchivo){
 	planificacionWClock(&nodosDisponibles);
 	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
-		realizarSiguienteInstruccion(&infoMaster);
+		realizarSiguienteInstruccion(&infoMaster, &nodosDisponibles);
 	}
 	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles); //A desarrollar
 	realizarReduccionGlobal(&encargado); // A desarrollar
@@ -69,7 +69,7 @@ t_job *newJob()
 
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
 	int nodoTerminoReduccionLocal(t_worker* nodo){
-		return (tareaEsReduccionLoCal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
+		return (tareaEsReduccionLocal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
 	}
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
 }
@@ -82,16 +82,16 @@ int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 }
 
 t_tarea* obtenerUltimaTareaEjecutadaPorWorker(int idWorker, t_list* nodosDisponibles){
-	bool getWorker(void *nbr) {
-		t_worker* unWorker = nbr;
+	bool getWorker() {
+		t_worker* unWorker;
 		return (unWorker->id == idWorker);
 	}
 	t_worker* otroWorker = list_find(nodosDisponibles, (void*)getWorker());
 	return otroWorker->tareaActiva;
 }
 
-void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
-	t_tarea* tareaEjecutada = obtenerUltimaTareaEjecutadaPorWorker(respuesta->id_nodo); // A desarrollar
+/*void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta, t_list* nodosDisponibles){
+	t_tarea* tareaEjecutada = obtenerUltimaTareaEjecutadaPorWorker(respuesta->id_nodo, &nodosDisponibles); // A desarrollar
 	if(!respuesta->estado){ // Si fue error
 		actualizarEstados(&respuesta);
 		if(tareaEsReduccionLocal(&tareaEjecutada) || tareaEsReduccionGlobal(&tareaEjecutada)){
@@ -105,7 +105,7 @@ void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
 		actualizarEstados(&respuesta);
 		realizarSiguienteTarea(respuesta->id_nodo); //A desarrollar
 	}
-}
+}*/
 
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
 
