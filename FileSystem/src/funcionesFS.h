@@ -44,7 +44,6 @@ static void nodo_destroy(t_nodo *self) {
 typedef struct {
 	int32_t indice;
 	char nombre[255];
-	//char* nombre;
 	int32_t padre;
 }t_directory;
 

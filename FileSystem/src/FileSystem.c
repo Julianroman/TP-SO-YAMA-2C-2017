@@ -17,6 +17,9 @@
 
 #define TOTALDIRECTORIOS 100
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
+#define PATHBITMAP "root/metadata/bitmaps/"
+#define DIRECTORIORAIZ = "root/";
+
 
 t_log* log;
 int32_t miPuerto = 5040;
@@ -24,8 +27,7 @@ int32_t cantBloques = 20;
 int32_t tamanioBloques = 1048576; //1MB
 int32_t bitmap[20];
 
-char* directorioRaiz = "root/";
-char* pathBitmap = "root/metadata/bitmaps/";
+
 
 int32_t estadoEstable = 0;
 int32_t formateado = 0;
@@ -278,7 +280,7 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 	//pathBitmap = malloc(1000);
 	char* name = string_itoa(unNodo->nroNodo);
 	char *pathNewBitmap = malloc(1000);
-	strcpy(pathNewBitmap, pathBitmap);
+	strcpy(pathNewBitmap, PATHBITMAP);
 	string_append(&pathNewBitmap, "Nodo");
 	string_append(&pathNewBitmap, name);
 	string_append(&pathNewBitmap, ".dat");
@@ -357,28 +359,48 @@ void printBitmap(t_bitarray* unBitarray) {
 	log_info(log,"\n");
 }
 
-t_bitarray* inicializarBitmap() { //EN REVISIÓN
-	char* data[] = {00000000000000000000};
+t_bitarray* initOrCreateBitmap(int nroNodo){
+	char* name = string_itoa(nroNodo);
+	char *pathNewBitmap = malloc(1000);
+	strcpy(pathNewBitmap, PATHBITMAP);
+	string_append(&pathNewBitmap, "nodo");
+	string_append(&pathNewBitmap, name);
+	string_append(&pathNewBitmap, ".dat");
+
 	t_bitarray* unBitarray;
-	unBitarray = bitarray_create_with_mode(data,sizeof(data), MSB_FIRST);
 
-	int j=0;
-	for(j=0; j < 24; j++){
-		bitarray_clean_bit(unBitarray, j);
+	FILE* bitmap;
+	if (!(bitmap = fopen(pathNewBitmap, "r"))){
+		log_info(log, "El bitmap del nodo %i no existe. Se inicializara.", nroNodo);
+
+		char* data[] = {00000000000000000000};
+
+		unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
+
+		bitmap = fopen(pathNewBitmap, "wb");
+		if (bitmap != NULL) {
+			fwrite(unBitarray, (sizeof(t_bitarray)), 1, bitmap);
+			fclose(bitmap);
+		}
+
 	}
-
-	log_trace(log, "El bitmap fue inicializado correctamente");
+	else{
+		unBitarray = malloc(sizeof(t_bitarray));
+		bitmap= fopen(pathNewBitmap, "rb");
+		if (bitmap != NULL) {
+			fread(bitmap, (sizeof(t_bitarray)), 1, bitmap);
+			fclose(bitmap);
+		}
+		log_info(log, "El bitmap del nodo%i fue leido con exito.", nroNodo);
+	}
 	return unBitarray;
 }
 
 void inicializarNodo(int nroNodo){
-	char* data[] = {00000000000000000000};
-	t_bitarray* unBitarray;
-	unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
+	t_bitarray* unBitarray = initOrCreateBitmap(nroNodo);
 
 	t_nodo* nuevoNodo;
 	nuevoNodo = nodo_create(nroNodo, unBitarray);
-	almacenarBitmapEnArchivo(nuevoNodo);
 	list_add(listaDeNodos, nuevoNodo);
 
 
@@ -386,8 +408,8 @@ void inicializarNodo(int nroNodo){
 void printTablaDeDirectorios(){
 	int i;
 	for (i = 0; i < TOTALDIRECTORIOS; i++) {
-		if(tablaDeDirectorios[i+1].indice != -1){
-			printf("%i -- %s -- %i \n",tablaDeDirectorios[i+1].indice, tablaDeDirectorios[i+1].nombre, tablaDeDirectorios[i+1].padre);
+		if(tablaDeDirectorios[i].indice != -1){
+			printf("\n %i -- %s -- %i \n",tablaDeDirectorios[i].indice, tablaDeDirectorios[i].nombre, tablaDeDirectorios[i].padre);
 		}
 
 	}
@@ -408,11 +430,14 @@ void initTablaDeDirectorios(){
 		tablaDeDirectorios = malloc(sizeof(t_directory) * TOTALDIRECTORIOS);
 		log_info(log, "El archivo de directorios no existe. Se inicializara.");
 
+		tablaDeDirectorios[0].indice = 0;
+		strcpy(tablaDeDirectorios[0].nombre, "root");
+		tablaDeDirectorios[0].padre = -1;
 		int i;
-		for (i = 0; i < TOTALDIRECTORIOS; i++) {
-			tablaDeDirectorios[i+1].indice = -1;
-			strcpy(tablaDeDirectorios[i+1].nombre, "");
-			tablaDeDirectorios[i+1].padre = -1;
+		for (i = 1; i < TOTALDIRECTORIOS; i++) {
+			tablaDeDirectorios[i].indice = -1;
+			strcpy(tablaDeDirectorios[i].nombre, "");
+			tablaDeDirectorios[i].padre = -1;
 		}
 		tabla = fopen(PATHDIRECTORIOS, "wb");
 		if (tabla != NULL) {
@@ -433,8 +458,9 @@ void initTablaDeDirectorios(){
 			fread(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
 			fclose(tabla);
 		}
+		log_info(log, "La tabla de directorios fue leida con exito.");
 	}
-
+	printTablaDeDirectorios();
 
 
 }
@@ -443,8 +469,8 @@ int findDirByname(char* name){
 	int encontrado = 0;
 	int i;
 	for(i = 0; i < TOTALDIRECTORIOS; i++){
-		if(strcmp(tablaDeDirectorios[i+1].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
-			encontrado = tablaDeDirectorios[i+1].indice;
+		if(strcmp(tablaDeDirectorios[i].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
+			encontrado = tablaDeDirectorios[i].indice;
 		}
 	}
 
@@ -455,7 +481,7 @@ void createDirectory(char* path){
 
 	int indiceDisponible = -1;
 	int j;
-	for(j = TOTALDIRECTORIOS ; j > 0; j--){
+	for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
 		if(tablaDeDirectorios[j].indice == -1){ //TODO
 			indiceDisponible = j;
 		}
@@ -536,7 +562,6 @@ int main(int arg, char** argv) {
 	log_trace(log, "Comienza el proceso FileSystem");
 
 	listaDeNodos = list_create();
-	//tablaDirectorios = list_create();
 	initTablaDeDirectorios();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
@@ -552,15 +577,12 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	//Creo el hiloConsola que llama a la funcion init_consola()
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
-	//Creo el hiloServidor que llama a la funcion servidor(miPuerto)
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
-	//El proceso no termina hasta que mueren los dos hilos
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloServidor, NULL);
 
@@ -571,9 +593,9 @@ int main(int arg, char** argv) {
 	//createDirectory("root/metadata");
 	//createDirectory("root/metadata/bitmaps");
 
-	//inicializarNodo(2);
-	//inicializarNodo(1);
-	//cantidadTotalBloquesLibres();
+	/*inicializarNodo(2);
+	inicializarNodo(1);
+	cantidadTotalBloquesLibres();*/
 
 	//createDirectory("root/some");
 	//createDirectory("root/some/other");
