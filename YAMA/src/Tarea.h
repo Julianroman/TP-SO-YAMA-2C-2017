@@ -8,8 +8,9 @@
 #ifndef TAREA_H_
 #define TAREA_H_
 
+#include <stdint.h>
 
-typedef enum {TAREA_TRANSFORMACION, TAREA_REDUCCION_LOCAL, TAREA_REDUCCION_GLOBAL, TAREA_ALMACENAMIENTO} TipoTarea;
+typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} TipoTarea;
 
 typedef enum {TAREA_NO_EJECUTADA, TAREA_EN_EJECUCION, TAREA_FINALIZADA} EstadoTarea;
 
@@ -31,6 +32,8 @@ void tareaPasarAAlmacenamiento(t_tarea *tarea);
 
 char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea);
 
+TipoTarea getTipoTarea(t_tarea* tarea);
+
 int tareaEstaNoEjecutada(t_tarea *tarea);
 
 int tareaEstaEnEjecucion(t_tarea *tarea);
@@ -48,7 +51,5 @@ int tareaEsTransformacion(t_tarea *tarea);
 int tareaEsReduccionGlobal(t_tarea *tarea);
 
 int tareaEsReduccionLocal(t_tarea *tarea);
-
-t_tarea* getTarea(t_worker* worker);
 
 #endif /* TAREA_H_ */

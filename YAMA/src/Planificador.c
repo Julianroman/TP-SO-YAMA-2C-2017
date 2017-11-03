@@ -15,23 +15,25 @@ int idUltimoJobCreado = 0;
 int idUltimaTareaCreada = 0;
 int base = 2;
 
+static t_list* nodosDisponibles;
+
 void iniciarPlanificacion(char* nombreArchivo){
 	inicializarPlanificador();
-	t_list* nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
-	planificacionWClock(&nodosDisponibles);
-	while(!todosLosNodosTerminaronReduccionLocal(&nodosDisponibles)){
+	nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
+	planificacionWClock(nodosDisponibles);
+	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
-		realizarSiguienteInstruccion(&infoMaster, &nodosDisponibles);
+		realizarSiguienteinstruccion(infoMaster);
 	}
-	t_worker* encargado = elegirEncargadoReduccionGlobal(&nodosDisponibles); //A desarrollar
-	realizarReduccionGlobal(&encargado); // A desarrollar
+	t_worker* encargado = elegirEncargadoReduccionGlobal(); //A desarrollar
+	realizarReduccionGlobal(encargado); // A desarrollar
 	finalizar(); // Como debe finalizar todo?
 }
 
 void inicializarPlanificador(){
 	if(ESTAINICIALIZADO){
 		t_job* job = newJob();
-		agregarJob(&job);
+		agregarJob(job);
 	}
 	else{
 		listaNodos = list_create();
@@ -81,8 +83,8 @@ int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
 }
 
-void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta, t_list* nodosDisponibles){
-	t_worker* worker = buscarNodo(&nodosDisponibles, respuesta->id_nodo);
+void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
+	t_worker* worker = buscarNodo(nodosDisponibles, respuesta->id_nodo);
 	t_tarea* tareaEjecutada =  getTarea(worker);
 	if(!respuesta->estado){ // Si fue error
 		actualizarEstados(respuesta);
@@ -117,28 +119,36 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	registroEstado->master = infoMaster->id_master;
 	registroEstado->nodo = infoMaster->id_nodo;
 	registroEstado->bloque = infoMaster->bloque;
-	registroEstado->etapa = getTarea(infoMaster->id_nodo);
-	registroEstado->archivoTemporal = tareaObtenerNombreResultadoTemporal(getTarea(infoMaster->id_nodo)); //A desarrollar
+	registroEstado->etapa = getTipoTarea(getTarea(buscarNodo(nodosDisponibles, infoMaster->id_nodo)));
+	registroEstado->archivoTemporal = tareaObtenerNombreResultadoTemporal(getTarea(infoMaster->id_nodo));
 	registroEstado->estado = infoMaster->estado;
 	list_add(tablaEstados, registroEstado);
 }
 
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
-	//A desarrollar
+	t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);
+		t_tarea* tareaEJecutada = getTarea(worker);
+		if(infoMaster->estado){
+			log_trace(logYAMA, "Tarea %s de worker %d OK", tareaEJecutada->tipo, infoMaster->id_nodo);
+		}
+		else {
+			log_error(logYAMA, "Tarea %s de worker %d ERROR", tareaEJecutada->tipo, infoMaster->id_nodo);
+		}
 }
 
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* infoMaster){
-	/*t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);//nodos disponible tiene que ser global para todo el planificador
+	t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);
 	t_tarea* tareaEJecutada = getTarea(worker);
 	if(infoMaster->estado){ // Si es 1 significa que fue OK la ejecucion ahí recien marco como finalizada la tarea
 		tareaMarcarFinalizada(worker->tareaActiva);
-	}*/
+	}
 }
 
 t_job* getJobDeWorker(int id){
-	/*t_worker* worker = buscarNodo(nodosDisponibles, id); //nodos disponible tiene que ser global para todo el planificador
-	return worker->jobActivo;*/
+	t_worker* worker = buscarNodo(nodosDisponibles, id);
+	return worker->jobActivo;
 }
+
 /*typedef struct {
 	char *nombre;
 	char *ip;
@@ -308,4 +318,8 @@ int estaActivo(t_worker* worker){
 
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster){
 	list_add(listaRespuestasMaster, infoMaster);
+}
+
+t_tarea* getTarea(t_worker* worker){
+	return worker->tareaActiva;
 }

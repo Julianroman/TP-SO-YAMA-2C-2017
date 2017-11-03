@@ -31,7 +31,7 @@ YAMA_STATUS res_SOLICITUD_JOB(int socket,void*  data){
 
 YAMA_STATUS res_RECIBIR_INFO(int socket, void* data){
 	payload_RESPUESTA_MASTER* infoMaster = data;
-	agregarAListaInfoMaster(&infoMaster);
+	agregarAListaInfoMaster(infoMaster);
 	log_trace(logYAMA, "Informacion de master recibida");
 	return EXITO;
 }

@@ -23,7 +23,6 @@
 // las respuestas deberan retornar un YAMA_STATUS
 // para poder tomar las medidas necesarias en caso de error
 typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
-typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} ETAPA_JOB;
 typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
 
 typedef struct{
@@ -50,7 +49,7 @@ typedef struct {
 	int master;
 	t_worker* nodo;
 	int bloque;
-	ETAPA_JOB etapa;
+	TipoTarea etapa;
 	char* archivoTemporal;
 	YAMA_STATUS estado;
 } t_tablaEstados;

@@ -26,8 +26,9 @@ t_list* obtenerNodosParaPlanificacion(char* nombreArchivo);
 void agregarJob(t_job* job);
 void iniciarPlanificacion();
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
-t_worker* elegirEncargadoReduccionGlobal(t_list* nodosDisponibles);
+t_worker* elegirEncargadoReduccionGlobal();
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
+int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles);
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta);
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 void realizarReduccionGlobal(t_worker* encargado);
@@ -45,5 +46,7 @@ int carga(t_worker* worker);
 void calcularDisponibilidad(t_worker* worker);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
+t_tarea* getTarea(t_worker* worker);
+t_job* getJobDeWorker(int id);
 t_job *newJob();
 #endif /* PLANIFICADOR_H_ */

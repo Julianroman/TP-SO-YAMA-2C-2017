@@ -12,41 +12,41 @@
 
 t_tarea *newTarea(){
 	t_tarea *tarea = malloc(sizeof(t_tarea));
-	tarea->tipo = TAREA_TRANSFORMACION;
+	tarea->tipo = TRANSFORMACION;
 	tarea->estado = TAREA_NO_EJECUTADA;
 
 	return tarea;
 }
 
 void tareaPasarAReduccionLocal(t_tarea *tarea){
-	tarea->tipo = TAREA_REDUCCION_LOCAL;
+	tarea->tipo = REDUCCION_LOCAL;
 	tarea->estado = TAREA_NO_EJECUTADA;
 }
 
 void tareaPasarAReduccionGlobal(t_tarea *tarea){
-	tarea->tipo = TAREA_REDUCCION_GLOBAL;
+	tarea->tipo = REDUCCION_GLOBAL;
 	tarea->estado = TAREA_NO_EJECUTADA;
 }
 
 void tareaPasarAAlmacenamiento(t_tarea *tarea){
-	tarea->tipo = TAREA_ALMACENAMIENTO;
+	tarea->tipo = ALMACENAMIENTO;
 	tarea->estado = TAREA_NO_EJECUTADA;
 }
 
 int tareaEsTransformacion(t_tarea *tarea){
-	return tarea->tipo == TAREA_TRANSFORMACION;
+	return tarea->tipo == TRANSFORMACION;
 }
 
 int tareaEsReduccionLocal(t_tarea *tarea){
-	return tarea->tipo == TAREA_REDUCCION_LOCAL;
+	return tarea->tipo == REDUCCION_LOCAL;
 }
 
 int tareaEsReduccionGlobal(t_tarea *tarea){
-	return tarea->tipo == TAREA_REDUCCION_GLOBAL;
+	return tarea->tipo == REDUCCION_GLOBAL;
 }
 
 int tareaEsAlmacenamiento(t_tarea *tarea){
-	return tarea->tipo == TAREA_ALMACENAMIENTO;
+	return tarea->tipo == ALMACENAMIENTO;
 }
 
 void tareaMarcarEnEjecucion(t_tarea *tarea, char *nombreResultadoTemporal){
@@ -78,10 +78,10 @@ char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea){
 	return tarea->nombreResultadoTemporal;
 }
 
-void tareaSetearNombreResultadoTemporal(t_tarea* tarea, char* nombreTemporal){
-	tarea->nombreResultadoTemporal = nombreTemporal;
+TipoTarea getTipoTarea(t_tarea* tarea){
+	return tarea->tipo;
 }
 
-t_tarea* getTarea(t_worker* worker){
-	return worker->tareaActiva;
+void tareaSetearNombreResultadoTemporal(t_tarea* tarea, char* nombreTemporal){
+	tarea->nombreResultadoTemporal = nombreTemporal;
 }
