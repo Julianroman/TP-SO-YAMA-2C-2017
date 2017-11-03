@@ -84,6 +84,8 @@ void escribirArchivo(char* path, char* data, int offset){
 	archivo = fopen(path,"rb+");
 	fseek(archivo, offset, SEEK_SET);
 	fwrite(data, strlen(data), 1, archivo);
+	fflush(archivo);
+	ftruncate(fileno(archivo),20971520);
 	fclose(archivo);
 	puts("Escritura Completa");
 }
