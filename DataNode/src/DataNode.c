@@ -82,9 +82,11 @@ void escribirArchivo(char* path, char* data, int offset){
 		fclose(archivo);
 	}
 	archivo = fopen(path,"rb+");
-	fseek(archivo, offset, SEEK_SET);
-	fwrite(data, strlen(data), 1, archivo);
-	fclose(archivo);
+		fseek(archivo, offset, SEEK_SET);
+		fwrite(data, strlen(data), 1, archivo);
+		fflush(archivo);
+		ftruncate(fileno(archivo),20971520);
+		fclose(archivo);
 	puts("Escritura Completa");
 }
 
