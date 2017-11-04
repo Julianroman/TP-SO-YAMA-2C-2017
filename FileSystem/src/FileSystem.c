@@ -304,12 +304,12 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 	free(pathNewBitmap);
 }
 
-int bloquesLibresEnNodo(t_nodo* unNodo){
+int bloquesLibresEnNodo(t_bitarray* unBitmap){
 	int cantidad = 0;
 
 	int j;
 	for (j = 0; j < cantBloques; j++) {
-		bool a = bitarray_test_bit(unNodo->bitmap, j);
+		bool a = bitarray_test_bit(unBitmap, j); //TODO rompe
 		if(a == 0){
 			cantidad ++;
 		}
@@ -317,16 +317,16 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 	return cantidad;
 }
 
-int cantidadTotalBloquesLibres(){ //TODO con el segundo da 18
+int cantidadTotalBloquesLibres(){
 	int cantidad;
 	cantidad = 0;
 	//PARA CADA ELEMENTO DE LA LISTA
 	int i;
 	for (i = 0; i < list_size(listaDeNodos); i ++){
-		t_nodo *unNodo = malloc(sizeof(t_nodo));
+		t_nodo *unNodo;// = malloc(sizeof(t_nodo));
 		unNodo = list_get(listaDeNodos, i);
-		cantidad += bloquesLibresEnNodo(unNodo);
-		nodo_destroy(unNodo);
+		cantidad += bloquesLibresEnNodo(unNodo->bitmap);
+		//nodo_destroy(unNodo);
 	}
 	log_trace(log,"Total bloques libres: %d", cantidad);
 	return cantidad;
@@ -341,10 +341,10 @@ void escribirBloqueLibre(t_nodo* unNodo,int bloque){
 }
 int proximoBloqueLibre(t_nodo* unNodo){
 	int j;
-	for (j = 0; j < tamanioBloques; j++) {
+	for (j = tamanioBloques-1; j >= 0; j--) {
 		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
-			log_trace(log, "El proximo bloque libre es el: %d", j);
+			log_trace(log, "El proximo bloque libre del nodo %d es el: %d",unNodo->nroNodo, j);
 			return j;
 		}
 	}
@@ -355,7 +355,7 @@ void printBitmap(t_bitarray* unBitarray) {
 	int j;
 	for (j = 0; j < tamanioBloques; j++) {
 		bool a = bitarray_test_bit(unBitarray, j);
-		log_info(log,"%i", a);
+		printf("%i", a);
 	}
 	log_info(log,"\n");
 }
@@ -374,7 +374,7 @@ t_bitarray* initOrCreateBitmap(int nroNodo){
 	if (!(bitmap = fopen(pathNewBitmap, "r"))){
 		log_info(log, "El bitmap del nodo %i no existe. Se inicializara.", nroNodo);
 
-		char* data[] = {00000000000000000000};
+		char* data[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 		unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
 
@@ -389,7 +389,7 @@ t_bitarray* initOrCreateBitmap(int nroNodo){
 		unBitarray = malloc(sizeof(t_bitarray));
 		bitmap= fopen(pathNewBitmap, "rb");
 		if (bitmap != NULL) {
-			fread(bitmap, (sizeof(t_bitarray)), 1, bitmap);
+			fread(unBitarray, (sizeof(t_bitarray)), 1, bitmap);
 			fclose(bitmap);
 		}
 		log_info(log, "El bitmap del nodo%i fue leido con exito.", nroNodo);
@@ -513,7 +513,7 @@ void createDirectory(char* path){
 			int indiceDisponible = -1;
 			int j;
 			for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
-				if(tablaDeDirectorios[j].indice == -1){ //TODO
+				if(tablaDeDirectorios[j].indice == -1){
 					indiceDisponible = j;
 				}
 			}
@@ -570,7 +570,7 @@ void deleteDirectory(char* path){
 		char* pathConcat = string_new();
 		string_append(&pathConcat, directorioRaiz);
 		string_append(&pathConcat, path);
-		//TODO
+
 		struct stat st = {0};
 
 		if (stat(pathConcat, &st) == -1) { //Si no existe el path, no lo elimino
@@ -631,21 +631,17 @@ int main(int arg, char** argv) {
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
-	//createDirectory("metadata");
-	//createDirectory("metadata/bitmaps");
+	createDirectory("metadata");
+	createDirectory("metadata/bitmaps");
 
 	/*inicializarNodo(2);
 	inicializarNodo(1);
-	cantidadTotalBloquesLibres();*/
+	inicializarNodo(10);
+	//cantidadTotalBloquesLibres();*/
+
 
 	//createDirectory("some");
 	//createDirectory("some/other");
-	//createDirectory("ro");
-	//createDirectory("some/carpeta"); //TODO con este rompe en el find
-
-	//tablaDeDirectoriosEnArchivo();
-	//createDirectory("some/dir")
-
 
 	//almacenarArchivo("Nodo1.bin","","bin");
 	//almacenarArchivo("Nodo10.txt","","txt");
