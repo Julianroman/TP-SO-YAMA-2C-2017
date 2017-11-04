@@ -18,7 +18,8 @@
 #define TOTALDIRECTORIOS 100
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
 #define PATHBITMAP "root/metadata/bitmaps/"
-#define DIRECTORIORAIZ = "root/";
+
+char* directorioRaiz = "root/";
 
 
 t_log* log;
@@ -405,11 +406,35 @@ void inicializarNodo(int nroNodo){
 
 
 }
+
+void printLs(char* path){
+	char **padres = string_split(path, "/");
+	int cant;
+	cant = strlen(padres) / sizeof(char*);
+
+	int indice = findDirByname(padres[cant - 1]);
+	if(indice == -1){
+		log_error(log, "No se encontro el directorio");
+	}
+	else{
+		int i;
+		for (i = 0; i < TOTALDIRECTORIOS; i++) {
+			if(tablaDeDirectorios[i].padre == indice){ //TODO faltan los archivos
+				printf("%s ", tablaDeDirectorios[i].nombre );
+			}
+
+		}
+		printf("\n");
+	}
+
+}
+
 void printTablaDeDirectorios(){
+	printf("\n");
 	int i;
 	for (i = 0; i < TOTALDIRECTORIOS; i++) {
 		if(tablaDeDirectorios[i].indice != -1){
-			printf("\n %i -- %s -- %i \n",tablaDeDirectorios[i].indice, tablaDeDirectorios[i].nombre, tablaDeDirectorios[i].padre);
+			printf("%i -- %s -- %i \n",tablaDeDirectorios[i].indice, tablaDeDirectorios[i].nombre, tablaDeDirectorios[i].padre);
 		}
 
 	}
@@ -466,7 +491,7 @@ void initTablaDeDirectorios(){
 }
 
 int findDirByname(char* name){
-	int encontrado = 0;
+	int encontrado = -1;
 	int i;
 	for(i = 0; i < TOTALDIRECTORIOS; i++){
 		if(strcmp(tablaDeDirectorios[i].nombre, name) == 0){ //strcmp devuelve 0 si son iguales
@@ -478,83 +503,99 @@ int findDirByname(char* name){
 }
 
 void createDirectory(char* path){
-
-	int indiceDisponible = -1;
-	int j;
-	for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
-		if(tablaDeDirectorios[j].indice == -1){ //TODO
-			indiceDisponible = j;
-		}
+	if(string_starts_with(path, "/")){
+		log_error(log, "Error al crear directorio. Se encuentra en root/");
 	}
-	if(indiceDisponible == -1){
-		log_error(log, "La tabla de directorios esta completa");
-	}else{
+	else{
+		char* pathConcat = string_new();
+			string_append(&pathConcat, directorioRaiz);
+			string_append(&pathConcat, path);
+			int indiceDisponible = -1;
+			int j;
+			for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
+				if(tablaDeDirectorios[j].indice == -1){ //TODO
+					indiceDisponible = j;
+				}
+			}
+			if(indiceDisponible == -1){
+				log_error(log, "La tabla de directorios esta completa");
+			}else{
 
-		struct stat st = {0};
+				struct stat st = {0};
 
-		if (stat(path, &st) == -1) { //Si no existe el path, lo creo
-			if(mkdir(path, 0700) == 0){
-				char **padres = string_split(path, "/");
-				int cant;
-				cant = strlen(padres) / sizeof(char*); //Length de padres
-				if(cant == 1){
-					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-					strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
-					tablaDeDirectorios[indiceDisponible].padre = 0;
+				if (stat(pathConcat, &st) == -1) { //Si no existe el path, lo creo
+					if(mkdir(pathConcat, 0700) == 0){
+						char **padres = string_split(path, "/");
+						int cant;
+						cant = strlen(padres) / sizeof(char*); //Length de padres
+						if(cant == 1){
+							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
+							tablaDeDirectorios[indiceDisponible].padre = 0;
+						}
+						else{
+							int32_t father;
+							log_trace(log,"Padre: %s", padres[cant-2]);
+							if(strcmp(padres[cant-2], "root") == 0){
+								father = 0;
+							}else{
+								father = findDirByname(padres[cant-2]);
+							}
+
+							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
+							tablaDeDirectorios[indiceDisponible].padre = father;
+						}
+
+						log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
+
+					}else{
+						log_error(log, "Error al crear directorio");
+					}
 				}
 				else{
-					int32_t father;
-					log_trace(log,"Padre: %s", padres[cant-2]);
-					if(strcmp(padres[cant-2], "root") == 0){
-						father = 0;
-					}else{
-						father = findDirByname(padres[cant-2]);
-					}
-
-					tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-					strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
-					tablaDeDirectorios[indiceDisponible].padre = father;
+					log_error(log, "El directorio ya existe o no se pudo crear");
 				}
-
-				log_trace(log, "El directorio %s fue creado con exito.", path);
-
-			}else{
-				log_error(log, "Error al crear directorio");
 			}
-		}
-		else{
-			log_error(log, "El directorio ya existe o no se pudo crear");
-		}
+			saveTablaDeDirectorios();
 	}
-	saveTablaDeDirectorios();
+
 
 }
 
 void deleteDirectory(char* path){
-	//TODO
-	struct stat st = {0};
+	if(string_starts_with(path, "/")){
+		log_error(log, "Error al crear directorio. Se encuentra en root/");
+	}else{
+		char* pathConcat = string_new();
+		string_append(&pathConcat, directorioRaiz);
+		string_append(&pathConcat, path);
+		//TODO
+		struct stat st = {0};
 
-	if (stat(path, &st) == -1) { //Si no existe el path, no lo elimino
-		log_error(log, "El directorio no existe");
-	}else{ //Faltaria verificar que sea ese con el padre (Pueden haber dos directorios que se llamen igual)
-		char **padres = string_split(path, "/");
-		int cant;
-		cant = strlen(padres) / sizeof(char*);
+		if (stat(pathConcat, &st) == -1) { //Si no existe el path, no lo elimino
+			log_error(log, "El directorio no existe");
+		}else{ //Faltaria verificar que sea ese con el padre (Pueden haber dos directorios que se llamen igual)
+			char **padres = string_split(path, "/");
+			int cant;
+			cant = strlen(padres) / sizeof(char*);
 
-		int indice = findDirByname(padres[cant-1]);
-		tablaDeDirectorios[indice].indice = -1;
-		strcpy(tablaDeDirectorios[indice].nombre, "");
-		tablaDeDirectorios[indice].padre = -1;
+			int indice = findDirByname(padres[cant-1]);
+			tablaDeDirectorios[indice].indice = -1;
+			strcpy(tablaDeDirectorios[indice].nombre, "");
+			tablaDeDirectorios[indice].padre = -1;
 
-		if(remove(path) == 0){
-			printf("El directorio %s fue eliminado.\n", path);
+			if(remove(path) == 0){
+				printf("El directorio %s fue eliminado.\n", pathConcat);
+			}
+			else{
+				fprintf(stderr, "No se pudo eliminar el archivo %s.\n", pathConcat);
+			}
 		}
-		else{
-			fprintf(stderr, "No se pudo eliminar el archivo %s.\n", path);
-		}
+
+		saveTablaDeDirectorios();
 	}
 
-	saveTablaDeDirectorios();
 }
 
 int main(int arg, char** argv) {
@@ -590,17 +631,17 @@ int main(int arg, char** argv) {
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
-	//createDirectory("root/metadata");
-	//createDirectory("root/metadata/bitmaps");
+	//createDirectory("metadata");
+	//createDirectory("metadata/bitmaps");
 
 	/*inicializarNodo(2);
 	inicializarNodo(1);
 	cantidadTotalBloquesLibres();*/
 
-	//createDirectory("root/some");
-	//createDirectory("root/some/other");
-	//createDirectory("root/ro");
-	//createDirectory("root/some/carpeta"); //TODO con este rompe en el find
+	//createDirectory("some");
+	//createDirectory("some/other");
+	//createDirectory("ro");
+	//createDirectory("some/carpeta"); //TODO con este rompe en el find
 
 	//tablaDeDirectoriosEnArchivo();
 	//createDirectory("some/dir")

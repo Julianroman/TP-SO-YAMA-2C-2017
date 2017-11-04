@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 
 void ls_interface(char** comando){
-	DIR *mydir;
+	/*DIR *mydir;
 	struct dirent *myfile;
 	struct stat mystat;
 
@@ -26,5 +26,6 @@ void ls_interface(char** comando){
 			}
 	}
 
-	closedir(mydir);
+	closedir(mydir);*/
+	printLs(comando[1]);
 };

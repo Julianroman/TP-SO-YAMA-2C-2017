@@ -32,7 +32,7 @@ void init_consola(){
 
 	while(1){
 		// Obtengo la linea desde el teclado
-		linea = readline(">>");
+		linea = readline("root/ >>");
 
 		// Si la linea no esta vacia
 	    if(linea){
