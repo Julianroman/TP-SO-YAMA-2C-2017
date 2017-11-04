@@ -195,3 +195,30 @@
 [TRACE] 17:02:14:13 DataNode/(4479:4479): Configuracion leida
 [TRACE] 17:04:07:531 DataNode/(4606:4606): Leyendo configuracion
 [TRACE] 17:04:07:533 DataNode/(4606:4606): Configuracion leida
+[TRACE] 12:24:34:407 DataNode/(4026:4026): Leyendo configuracion
+[TRACE] 12:24:34:408 DataNode/(4026:4026): Configuracion leida
+[ERROR] 12:24:34:408 DataNode/(4026:4026): El archivo inexistente se crea
+[TRACE] 12:24:58:728 DataNode/(4077:4077): Leyendo configuracion
+[TRACE] 12:24:58:728 DataNode/(4077:4077): Configuracion leida
+[TRACE] 12:25:16:291 DataNode/(4110:4110): Leyendo configuracion
+[TRACE] 12:25:16:291 DataNode/(4110:4110): Configuracion leida
+[ERROR] 12:25:16:292 DataNode/(4110:4110): El archivo inexistente se crea
+[TRACE] 12:25:44:823 DataNode/(4153:4153): Leyendo configuracion
+[TRACE] 12:26:00:454 DataNode/(4153:4153): Configuracion leida
+[TRACE] 12:33:10:994 DataNode/(4266:4266): Leyendo configuracion
+[TRACE] 12:33:10:995 DataNode/(4266:4266): Configuracion leida
+[ERROR] 12:33:10:995 DataNode/(4266:4266): El archivo inexistente se crea
+[TRACE] 12:45:54:147 DataNode/(4537:4537): Leyendo configuracion
+[TRACE] 12:45:54:155 DataNode/(4537:4537): Configuracion leida
+[ERROR] 12:45:54:155 DataNode/(4537:4537): El archivo inexistente se crea
+[TRACE] 12:47:28:934 DataNode/(4613:4613): Leyendo configuracion
+[TRACE] 12:47:28:934 DataNode/(4613:4613): Configuracion leida
+[ERROR] 12:47:28:934 DataNode/(4613:4613): El archivo inexistente se crea
+[TRACE] 12:51:27:147 DataNode/(4695:4695): Leyendo configuracion
+[TRACE] 12:51:27:147 DataNode/(4695:4695): Configuracion leida
+[TRACE] 12:51:42:902 DataNode/(4745:4745): Leyendo configuracion
+[TRACE] 12:51:42:903 DataNode/(4745:4745): Configuracion leida
+[TRACE] 12:52:03:301 DataNode/(4796:4796): Leyendo configuracion
+[TRACE] 12:52:03:301 DataNode/(4796:4796): Configuracion leida
+[TRACE] 12:52:31:676 DataNode/(4844:4844): Leyendo configuracion
+[TRACE] 12:52:31:680 DataNode/(4844:4844): Configuracion leida

@@ -14,11 +14,16 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <utilidades/protocol/receive.h>
+
+#define TAMANIOBLOQUE 1024
 //
 int puertoFs = 0;
 int id = 1;
 char* ipFs = "";
 t_log* log;
+int cantidadDeBloques;
+
+
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
@@ -27,6 +32,8 @@ void leerConfiguracion(){
 	printf("El puerto FS es: %i \n", puertoFs);
 	ipFs = config_get_string_value(archivo_configuracion, "IP_FILESYSTEM");
 	printf("La IP FS es: %s \n", ipFs);
+	cantidadDeBloques = config_get_int_value(archivo_configuracion, "CANTIDAD_BLOQUES");
+	printf("La cantidad de bloques es: %i \n", cantidadDeBloques);
 
 	config_destroy(archivo_configuracion);
 }
@@ -40,7 +47,7 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	//clienteDatanode(ipFs, puertoFs, id);
-	escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 0);
+	escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 7, 7);
 	//leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
 }
@@ -74,18 +81,24 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	}
 }
 
-void escribirArchivo(char* path, char* data, int offset){
+void escribirArchivo(char* path, char* data, int size, int nroBloque){
+	int offset;
+	//offset = TAMANIOBLOQUE * nroBloque;
+	offset = 7;
 	FILE* archivo;
 	if (!(archivo = fopen(path, "r"))){
 		log_error(log, "El archivo inexistente se crea");
 		archivo = fopen(path,"w");
+		truncate(fileno(archivo),cantidadDeBloques*TAMANIOBLOQUE);
 		fclose(archivo);
 	}
+
 	archivo = fopen(path,"rb+");
+	//int sizeFile = ftell(archivo);
 	fseek(archivo, offset, SEEK_SET);
-	fwrite(data, strlen(data), 1, archivo);
+	fwrite(data, size, 1, archivo);
 	fflush(archivo);
-	ftruncate(fileno(archivo),20971520);
+
 	fclose(archivo);
 	puts("Escritura Completa");
 }
@@ -106,3 +119,4 @@ void leerArchivo(char* path, int inicial, int offset){
 	}
 
 }
+
