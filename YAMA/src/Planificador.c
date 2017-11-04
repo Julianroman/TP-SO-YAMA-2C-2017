@@ -102,14 +102,12 @@ void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
 
 void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta){
 	t_worker* worker = buscarNodo(nodosDisponibles, respuesta->id_nodo);
-	t_tarea* tareaEjecutada =  getTarea(worker);
-	if(tareaEsTransformacion(tareaEjecutada)){
+	if(tareaEsTransformacion(worker->tareaActiva)){
 		//Mandar a hacer reduccion local
 		int* socketMaster = getSocketMasterId(respuesta->id_master);
-		char* nombreTemporal_transformacion = tareaObtenerNombreResultadoTemporal(tareaEjecutada);
-		tareaPasarAReduccionLocal(tareaEjecutada);
-		worker->tareaActiva = tareaEjecutada;
-		send_INFO_REDUCCIONLOCAL(*socketMaster, worker->puerto, worker->ip, nombreTemporal_transformacion, tareaEjecutada->nombreResultadoTemporal);
+		char* nombreTemporal_transformacion = tareaObtenerNombreResultadoTemporal(worker->tareaActiva);
+		tareaPasarAReduccionLocal(worker->tareaActiva);
+		send_INFO_REDUCCIONLOCAL(*socketMaster, worker->puerto, worker->ip, nombreTemporal_transformacion, worker->tareaActiva->nombreResultadoTemporal);
 	}
 }
 
