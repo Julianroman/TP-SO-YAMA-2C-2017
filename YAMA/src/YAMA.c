@@ -18,7 +18,7 @@ t_yama* leerConfiguracion(){
 	t_config* archivo_configuracion = config_create(path);
 	t_yama *configYAMA = malloc(sizeof(t_yama));
 	configYAMA->puertoFs = config_get_int_value(archivo_configuracion, "FS_PUERTO");
-	printf("El puerto FS es: %i \n", configYAMA->puertoFs);
+	printf("El puerto FS es: %s \n", configYAMA->puertoFs);
 	configYAMA->ipFs = config_get_string_value(archivo_configuracion, "FS_IP");
 	printf("La IP FS es: %s \n", configYAMA->ipFs);
 	configYAMA->retardoPlanificacion = config_get_int_value(archivo_configuracion, "RETARDO_PLANIFICACION");
@@ -35,12 +35,14 @@ t_yama* leerConfiguracion(){
 	return configYAMA;
 }
 
-void iniciarListaEstados(){
-	t_list* tablaEstados = list_create();
-}
-
 void crearLog(){
 	logYAMA = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
+}
+
+void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket){
+	int* socketMaster = socket;
+	char* keyMaster = string_itoa(idUltimoMasterCreado);
+	dictionary_put(diccionarioMasters, keyMaster, socketMaster);
 }
 
 int main(void) {
@@ -49,8 +51,10 @@ int main(void) {
 	log_trace(logYAMA, "Leyendo configuracion");
 	t_yama* configYAMA = leerConfiguracion();
 	log_trace(logYAMA, "Configuracion leida");
+	TablaEstados = list_create();
+	diccionarioMasters = dictionary_create();
 	//cliente(ipFs, puertoFs, id);
-	init_serverYAMA(configYAMA->puertoYAMA);
+	init_serverYAMA((int)configYAMA->puertoYAMA);
 
 	return EXIT_SUCCESS;
 }

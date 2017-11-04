@@ -42,7 +42,6 @@ void inicializarPlanificador(){
 		diccionarioJobs = dictionary_create();
 		diccionarioTareas = dictionary_create();
 		bloques_ejecutados = dictionary_create();
-		tablaEstados = list_create();
 		ESTAINICIALIZADO++;
 	}
 }
@@ -97,8 +96,27 @@ void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
 	}
 	else { //EJECUCION_OK
 		actualizarEstados(respuesta);
-		realizarSiguienteTarea(respuesta->id_nodo); //A desarrollar
+		realizarSiguienteTarea(respuesta); //A desarrollar
 	}
+}
+
+void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta){
+	t_worker* worker = buscarNodo(nodosDisponibles, respuesta->id_nodo);
+	t_tarea* tareaEjecutada =  getTarea(worker);
+	if(tareaEsTransformacion(tareaEjecutada)){
+		//Mandar a hacer reduccion local
+		int* socketMaster = getSocketMasterId(respuesta->id_master);
+		char* nombreTemporal_transformacion = tareaObtenerNombreResultadoTemporal(tareaEjecutada);
+		tareaPasarAReduccionLocal(tareaEjecutada);
+		worker->tareaActiva = tareaEjecutada;
+		send_INFO_REDUCCIONLOCAL(*socketMaster, worker->puerto, worker->ip, nombreTemporal_transformacion, tareaEjecutada->nombreResultadoTemporal);
+	}
+}
+
+int* getSocketMasterId(int id_master){
+	char* keyMaster = string_itoa(id_master);
+	int * socketMaster = dictionary_get(diccionarioMasters, keyMaster);
+	return socketMaster;
 }
 
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){

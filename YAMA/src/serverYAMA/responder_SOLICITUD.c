@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "responses.h"
 #include "../YAMA.h"
+#include "../Planificador.h"
 
 YAMA_STATUS responder_SOLICITUD(int socket,void* data,HEADER_T tipoDeMensaje){
 	YAMA_STATUS status;

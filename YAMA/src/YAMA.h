@@ -33,7 +33,7 @@ typedef struct{
 typedef struct {
 	int id;
 	char *ip;
-	char *puerto;
+	int puerto;
 	int carga;
 	t_list* bloquesDelDatanode;
 	t_list* bloquesAEjecutar;
@@ -66,7 +66,9 @@ typedef struct {
 void iniciarListaEstados();
 
 t_list* TablaEstados;
+t_dictionary* diccionarioMasters;
 t_yama* leerConfiguracion();
+void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket);
 
 t_log* logYAMA;
 #endif /* YAMA_H_ */

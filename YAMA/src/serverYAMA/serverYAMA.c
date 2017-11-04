@@ -21,6 +21,7 @@
 #include <utilidades/protocol/senders.h>
 #include "responses.h"
 #include "serverYAMA.h"
+#include "YAMA.h"
 
 extern t_log* logs;
 
@@ -31,6 +32,8 @@ void init_serverYAMA(int puertoEscucha){
 
 	// Variable de estado que devuelven las respuestas a solicitudes
 	YAMA_STATUS status;
+
+	int* idUltimoMasterCreado = 1;
 
 	// Recibir conexion
 	int listener = crear_listener(puertoEscucha);
@@ -70,11 +73,14 @@ void init_serverYAMA(int puertoEscucha){
 						nuevoCliente = accept(listener,(struct sockaddr *)&remoteaddr,&addrlen);
 						if (nuevoCliente == -1) {
 							perror("accept");
-						} else {
+						}
+						else {
 							FD_SET(nuevoCliente, &master); // Agregar al set master
 							if (nuevoCliente > fdmax) {
 								fdmax = nuevoCliente;
-							}
+								}
+							agregarADiccionarioMaster(idUltimoMasterCreado, i);
+							*idUltimoMasterCreado += 1;
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);

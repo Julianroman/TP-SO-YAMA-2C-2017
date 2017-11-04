@@ -21,6 +21,7 @@ t_tarea *newTarea(){
 void tareaPasarAReduccionLocal(t_tarea *tarea){
 	tarea->tipo = REDUCCION_LOCAL;
 	tarea->estado = TAREA_NO_EJECUTADA;
+	tarea->nombreResultadoTemporal = nombreParaReduccionLocal();
 }
 
 void tareaPasarAReduccionGlobal(t_tarea *tarea){
@@ -82,6 +83,6 @@ TipoTarea getTipoTarea(t_tarea* tarea){
 	return tarea->tipo;
 }
 
-void tareaSetearNombreResultadoTemporal(t_tarea* tarea, char* nombreTemporal){
-	tarea->nombreResultadoTemporal = nombreTemporal;
+char* nombreParaReduccionLocal(){
+	//A desarrollar
 }

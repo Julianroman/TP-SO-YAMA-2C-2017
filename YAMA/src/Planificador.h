@@ -16,7 +16,6 @@ t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
 t_dictionary* diccionarioTareas;
 t_list* listaRespuestasMaster;
-t_list* tablaEstados;
 
 int idUltimoJobCreado;
 
@@ -27,6 +26,7 @@ void agregarJob(t_job* job);
 void iniciarPlanificacion();
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 t_worker* elegirEncargadoReduccionGlobal();
+void realizarSiguienteTarea(int idWorker);
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
 int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles);
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta);

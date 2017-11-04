@@ -32,6 +32,8 @@ void tareaPasarAAlmacenamiento(t_tarea *tarea);
 
 char *tareaObtenerNombreResultadoTemporal(t_tarea *tarea);
 
+char* nombreParaReduccionLocal();
+
 TipoTarea getTipoTarea(t_tarea* tarea);
 
 int tareaEstaNoEjecutada(t_tarea *tarea);
