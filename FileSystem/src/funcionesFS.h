@@ -19,6 +19,7 @@
 #include <sys/mman.h>
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
+#include <utilidades/protocol/receive.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -160,8 +161,13 @@ void servidorFs(int puerto){
 					int id_proceso = dictionary_get(diccionario, proceso);
 					//if(vector[i] == "0"){
 					if(dictionary_get(diccionario, proceso) == 0){
-
-						int my_net_id;
+						HEADER_T* cabecera;
+						void* data;
+						data = receive(i,&cabecera);
+						payload_PRESENTACION_DATANODE * payload = data;
+						//payload tiene toda la info
+						dictionary_put(diccionario, proceso, payload->id_dataNode);
+						/*int my_net_id;
 						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
 						buffer[bytesRecibidos] = '\0';
 						int id = ntohl(my_net_id);
@@ -175,7 +181,8 @@ void servidorFs(int puerto){
 						dictionary_put(diccionario, proceso, id);
 						//printf("Recibí una conexión de %s!!\n", vector[i]);
 						id_proceso = dictionary_get(diccionario, proceso);
-						printf("Recibí una conexión de %s!!\n", tipo_proceso(id_proceso));
+						printf("Recibí una conexión de %s!!\n", tipo_proceso(id_proceso));*/
+
 						free(proceso);
 						}else{
 							int bytesRecibidos = recv(i, buffer, 1000, 0);

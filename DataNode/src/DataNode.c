@@ -46,8 +46,8 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	//clienteDatanode(ipFs, puertoFs, id);
-	escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 7, 7);
+	clienteDatanode(ipFs, puertoFs, id);
+	//escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 7, 7);
 	//leerArchivo("metadata/archivo.txt", 7, 7);
 	return EXIT_SUCCESS;
 }
@@ -66,14 +66,16 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 		exit(1);
 	}
 
-	int numeroConvertido = htonl(id_tipo_proceso);
-	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);
+	/*int numeroConvertido = htonl(id_tipo_proceso);
+	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);*/
+
+	send_PRESENTACION_DATANODE(cliente , 1 , 1 ,  1 ,  2 , 5);
 
 	void* payload;
 	int id_bloque;
 	while (1) {
 		HEADER_T* header;
-		payload = receive(cliente, header);
+		payload = receive(cliente, &header);
 		//este id deberia estan en el header
 		//id_bloque = header->id o como sea;
 		escribirArchivo("metadata/bloquesDataNode.txt", payload, id_bloque);
