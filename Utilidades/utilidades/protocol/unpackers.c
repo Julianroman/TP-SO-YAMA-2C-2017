@@ -285,7 +285,9 @@ void* unpack_PRESENTACION_DATANODE(int socket){
     recv(socket,IP_dataNode,tamanio_IP_dataNode,0);
     payload->IP_dataNode = IP_dataNode;
 
-    recv(socket,&(payload->id_pid),sizeof(uint16_t),0);
+    recv(socket,&(payload->pid),sizeof(uint16_t),0);
+
+    recv(socket,&(payload->id_dataNode),sizeof(uint16_t),0);
 
     recv(socket,&(payload->cantidad_bloques),sizeof(uint16_t),0);
 

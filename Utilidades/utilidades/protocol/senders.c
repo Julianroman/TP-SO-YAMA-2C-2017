@@ -230,12 +230,13 @@ void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_
 	free(paquete);
 
 };
-void send_PRESENTACION_DATANODE(int socket , uint16_t PUERTO_dataNode , char* IP_dataNode , uint16_t id_pid , uint16_t cantidad_bloques){
+void send_PRESENTACION_DATANODE(int socket , uint16_t PUERTO_dataNode , char* IP_dataNode , uint16_t pid , uint16_t id_dataNode , uint16_t cantidad_bloques){
     payload_PRESENTACION_DATANODE payload;
     payload.PUERTO_dataNode = PUERTO_dataNode; 
     payload.tamanio_IP_dataNode = (strlen(IP_dataNode)+1)*sizeof(char);
     payload.IP_dataNode = IP_dataNode; 
-    payload.id_pid = id_pid; 
+    payload.pid = pid; 
+    payload.id_dataNode = id_dataNode; 
     payload.cantidad_bloques = cantidad_bloques; 
 
     int tamanio_paquete;
