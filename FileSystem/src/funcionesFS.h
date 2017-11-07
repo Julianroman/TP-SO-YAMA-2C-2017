@@ -23,17 +23,27 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
+#define TOTALDIRECTORIOS 100
+#define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
+#define PATHBITMAP "root/metadata/bitmaps/"
+
+char* directorioRaiz = "root/";
+char* pathArchivos = "root/metadata/archivos/";
+
 typedef struct {
     int32_t nroNodo;
     t_bitarray* bitmap;
     int32_t socket;
+    int32_t cantidadBloques;
 } t_nodo;
 
-static t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket) {
+static t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques) {
 	t_nodo *new = malloc(sizeof(t_nodo));
     new->nroNodo = nroNodo;
     new->bitmap = bitmap;
     new->socket = socket;
+    new->cantidadBloques = cantidadBloques;
     return new;
 }
 
@@ -191,12 +201,6 @@ void servidorFs(int puerto){
 
 //TODO
 
-#define TOTALDIRECTORIOS 100
-#define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
-#define PATHBITMAP "root/metadata/bitmaps/"
-
-char* directorioRaiz = "root/";
-
 
 t_log* log;
 int32_t miPuerto = 5040;
@@ -342,10 +346,27 @@ void enviarADataNode(char* map, int bloque, int tam, int size_bytes){
 
 }
 
-
 int almacenarArchivo(char* location, char* destino, char* tipo){//Y también recibe "Los datos correspondientes"
+	//TODO validar destino
+	char **arrayDestino = string_split(destino, "/");
+	int cant;
+	cant = strlen(arrayDestino) / sizeof(char*);
+	puts(arrayDestino[cant - 2]);
+	int indice = findDirByname(arrayDestino[cant - 2]);
+	char* indicePath = string_new();
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+	puts(indicePath);
+	createDirectory(indicePath); //TODO no me esta creando la carpeta
+
+
+
+	int tamanioBytes;
+	char* tipoArchivo = string_new();
+
 	if(strcmp(tipo,"bin") == 0){
 		puts("ARCHIVO BINARIO");
+		tipoArchivo = "BINARIO";
 		FILE* file;
 		if (!(file = fopen(location, "r"))){
 			log_error(log, "El archivo no existe o no se pudo abrir");
@@ -355,6 +376,7 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 			int size_bytes;
 			fseek(file,0,SEEK_END);
 			size_bytes = ftell(file);
+			tamanioBytes = ftell(file);
 			rewind(file);
 
 			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
@@ -382,6 +404,7 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 	}
 	else if(strcmp(tipo,"txt") == 0){
 		puts("ARCHIVO DE TEXTO");
+		tipoArchivo = "TEXTO";
 		FILE* file;
 		if (!(file = fopen(location, "r"))){
 			log_error(log, "El archivo no existe o no se pudo abrir");
@@ -391,6 +414,7 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 			int size_bytes;
 			fseek(file,0,SEEK_END);
 			size_bytes = ftell(file);
+			tamanioBytes = ftell(file);
 			rewind(file);
 
 			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
@@ -439,9 +463,25 @@ int almacenarArchivo(char* location, char* destino, char* tipo){//Y también rec
 			free(map);
 			free(text);
 		}
-				fclose(file);
 
-				return 0;
+		string_append(&indicePath, "/");
+		string_append(&indicePath, arrayDestino[cant - 1]);
+
+		int archivo = fopen(indicePath, "w");
+		t_config* fileExport = config_create(indicePath);
+		//config_set_value(fileExport, "PATH", indicePath);
+		config_set_value(fileExport, "TAMANIO", string_itoa(tamanioBytes));
+		config_set_value(fileExport, "TIPO", tipoArchivo);
+
+		config_save(fileExport);
+		config_save_in_file(fileExport, indicePath);
+
+		fclose(archivo);
+		config_destroy(fileExport);
+
+		fclose(file);
+
+		return 0;
 	}
 	return 1;
 }
@@ -483,12 +523,12 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 	free(pathNewBitmap);
 }
 
-int bloquesLibresEnNodo(t_bitarray* unBitmap){
+int bloquesLibresEnNodo(t_nodo* unNodo){
 	int cantidad = 0;
 
 	int j;
-	for (j = 0; j < cantBloques; j++) {
-		bool a = bitarray_test_bit(unBitmap, j); //TODO rompe
+	for (j = 0; j < unNodo->cantidadBloques; j++) {
+		bool a = bitarray_test_bit(unNodo->bitmap, j); //TODO rompe
 		if(a == 0){
 			cantidad ++;
 		}
@@ -504,7 +544,7 @@ int cantidadTotalBloquesLibres(){
 	for (i = 0; i < list_size(listaDeNodos); i ++){
 		t_nodo *unNodo;// = malloc(sizeof(t_nodo));
 		unNodo = list_get(listaDeNodos, i);
-		cantidad += bloquesLibresEnNodo(unNodo->bitmap);
+		cantidad += bloquesLibresEnNodo(unNodo);
 		//nodo_destroy(unNodo);
 	}
 	log_trace(log,"Total bloques libres: %d", cantidad);
@@ -539,7 +579,7 @@ void printBitmap(t_bitarray* unBitarray) {
 	log_info(log,"\n");
 }
 
-t_bitarray* initOrCreateBitmap(int nroNodo){
+t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 	char* name = string_itoa(nroNodo);
 	char *pathNewBitmap = malloc(1000);
 	strcpy(pathNewBitmap, PATHBITMAP);
@@ -552,11 +592,17 @@ t_bitarray* initOrCreateBitmap(int nroNodo){
 	FILE* bitmap;
 	if (!(bitmap = fopen(pathNewBitmap, "r"))){
 		log_info(log, "El bitmap del nodo %i no existe. Se inicializara.", nroNodo);
+		int j = 0;
+		char* data[cantidadDeBloques];
+		for(j = 0; j < cantidadDeBloques; j++){
+			data[j] = 0;
+		}
 
-		char* data[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-		unBitarray = bitarray_create_with_mode(data,3, MSB_FIRST);
-
+		unBitarray = bitarray_create_with_mode(data,cantidadDeBloques/8, MSB_FIRST);
+		int i;
+		for(i = 0; i < cantidadDeBloques; i++){
+			bitarray_clean_bit(unBitarray, i);
+		}
 		bitmap = fopen(pathNewBitmap, "wb");
 		if (bitmap != NULL) {
 			fwrite(unBitarray, (sizeof(t_bitarray)), 1, bitmap);
@@ -576,11 +622,11 @@ t_bitarray* initOrCreateBitmap(int nroNodo){
 	return unBitarray;
 }
 
-void inicializarNodo(int nroNodo, int socket){
-	t_bitarray* unBitarray = initOrCreateBitmap(nroNodo);
+void inicializarNodo(int nroNodo, int socket, int cantidadBloques){
+	t_bitarray* unBitarray = initOrCreateBitmap(nroNodo, cantidadBloques);
 
 	t_nodo* nuevoNodo;
-	nuevoNodo = nodo_create(nroNodo, unBitarray, socket);
+	nuevoNodo = nodo_create(nroNodo, unBitarray, socket, cantidadBloques);
 	list_add(listaDeNodos, nuevoNodo);
 
 

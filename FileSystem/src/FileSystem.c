@@ -37,14 +37,14 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	pthread_t hiloConsola;
+	/*pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidor, miPuerto);
 
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	pthread_join(hiloServidor, NULL);*/
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
@@ -52,18 +52,20 @@ int main(int arg, char** argv) {
 
 	createDirectory("metadata");
 	createDirectory("metadata/bitmaps");
+	createDirectory("metadata/archivos");
 
+	//inicializarNodo(2,5,20);
 	/*inicializarNodo(2);
 	inicializarNodo(1);
-	inicializarNodo(10);
-	//cantidadTotalBloquesLibres();*/
+	inicializarNodo(10);*/
+	//cantidadTotalBloquesLibres();
 
 
 	//createDirectory("some");
 	//createDirectory("some/other");
 
 	//almacenarArchivo("Nodo1.bin","","bin");
-	//almacenarArchivo("Nodo10.txt","","txt");
+	almacenarArchivo("Nodo10.txt","root/caca.txt","txt");
 	//importarArchivo("Nodo1.bin","");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");
