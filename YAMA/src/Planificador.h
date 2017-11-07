@@ -10,6 +10,7 @@
 
 #include "YAMA.h"
 #include <utilidades/protocol/types.h>
+#include <utilidades/protocol/senders.h>
 
 t_list* listaNodos;
 t_dictionary* bloques_ejecutados;
@@ -21,20 +22,25 @@ int idUltimoJobCreado;
 
 void iniciarPlanificacion(char* nombreArchivo);
 void inicializarPlanificador();
+void finalizar();
 t_list* obtenerNodosParaPlanificacion(char* nombreArchivo);
 void agregarJob(t_job* job);
 void iniciarPlanificacion();
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 t_worker* elegirEncargadoReduccionGlobal();
-void realizarSiguienteTarea(int idWorker);
+void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta);
+int* getSocketMasterId(int id_master);
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
 int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles);
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta);
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 void realizarReduccionGlobal(t_worker* encargado);
+
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta);
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta);
+void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
+
 void planificacionWClock(t_list* listaNodos);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);

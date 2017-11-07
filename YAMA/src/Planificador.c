@@ -5,7 +5,6 @@
  *      Author: utnso
  */
 
-#include <utilidades/protocol/types.h>
 #include "Planificador.h"
 #include "YAMA.h"
 #include "Tarea.h"
@@ -28,6 +27,15 @@ void iniciarPlanificacion(char* nombreArchivo){
 	t_worker* encargado = elegirEncargadoReduccionGlobal(); //A desarrollar
 	realizarReduccionGlobal(encargado); // A desarrollar
 	finalizar(); // Como debe finalizar todo?
+}
+
+void finalizar(){
+	list_destroy(listaNodos);
+	list_destroy(listaRespuestasMaster);
+	dictionary_destroy(diccionarioJobs);
+	dictionary_destroy(diccionarioTareas);
+	dictionary_destroy(bloques_ejecutados);
+	printf("Planificacion terminada");
 }
 
 void inicializarPlanificador(){
@@ -113,7 +121,7 @@ void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta){
 
 int* getSocketMasterId(int id_master){
 	char* keyMaster = string_itoa(id_master);
-	int * socketMaster = dictionary_get(diccionarioMasters, keyMaster);
+	int* socketMaster = dictionary_get(diccionarioMasters, keyMaster);
 	return socketMaster;
 }
 
@@ -124,7 +132,7 @@ payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
 }
 
 void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster){
-	actualizarTablaestados(infoMaster);
+	actualizarTablaEstados(infoMaster);
 	actualizarLog(infoMaster);
 	actualizarEstadosNodo(infoMaster);
 }
@@ -138,18 +146,18 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	registroEstado->etapa = getTipoTarea(getTarea(buscarNodo(nodosDisponibles, infoMaster->id_nodo)));
 	registroEstado->archivoTemporal = tareaObtenerNombreResultadoTemporal(getTarea(infoMaster->id_nodo));
 	registroEstado->estado = infoMaster->estado;
-	list_add(tablaEstados, registroEstado);
+	list_add(TablaEstados, registroEstado);
 }
 
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
 	t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);
-		t_tarea* tareaEJecutada = getTarea(worker);
-		if(infoMaster->estado){
-			log_trace(logYAMA, "Tarea %s de worker %d OK", tareaEJecutada->tipo, infoMaster->id_nodo);
-		}
-		else {
-			log_error(logYAMA, "Tarea %s de worker %d ERROR", tareaEJecutada->tipo, infoMaster->id_nodo);
-		}
+	t_tarea* tareaEJecutada = getTarea(worker);
+	if(infoMaster->estado){
+		log_trace(logYAMA, "Tarea %s de worker %d OK", tareaEJecutada->tipo, infoMaster->id_nodo);
+	}
+	else {
+		log_error(logYAMA, "Tarea %s de worker %d ERROR", tareaEJecutada->tipo, infoMaster->id_nodo);
+	}
 }
 
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* infoMaster){

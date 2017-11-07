@@ -21,7 +21,7 @@
 #include <utilidades/protocol/senders.h>
 #include "responses.h"
 #include "serverYAMA.h"
-#include "YAMA.h"
+#include "../YAMA.h"
 
 extern t_log* logs;
 
