@@ -29,9 +29,6 @@
 
 #include "operaciones/operaciones.h"
 
-// Eliminar define en cuanto la funcion log devuelva la ip
-#define IPYAMA "127.0.0.1"
-
 int puertoYama = 0;
 char* ipYama = "";
 t_log* logger;
@@ -45,6 +42,7 @@ int masterID;
 int socketYAMA;
 
 int transformador_fd;
+char* ruta_transformador;
 int reductor_fd;
 
 
@@ -52,40 +50,59 @@ void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoYama = config_get_int_value(archivo_configuracion, "YAMA_PUERTO");
-	printf("El puerto YAMA es: %i \n", puertoYama);
-	ipYama = config_get_string_value(archivo_configuracion, "YAMA_IP");
-	printf("La IP YAMA es: %s \n", ipYama);
+	char* pivote = config_get_string_value(archivo_configuracion, "YAMA_IP");
+	ipYama = malloc(strlen(pivote)+1);
+	strcpy(ipYama, pivote);
 	config_destroy(archivo_configuracion);
 }
 
 
 int main(int argc, char **argv) {
-	printf("La IP YAMA es: %s \n", ipYama);
-	// TODO Recibir todos los parametros
 	// Recibir parametros
 	if (argc!= 4){
 		puts("Accion incorrecta, debe ser: Master <archivo yamafs> <transformador> <reductor>");
 		return 1;
 	}
-	char* ruta_yamafs          = argv[1];
-	//char* ruta_transformador = argv[2];
-	//char* ruta_reductor      = argv[3];
+	// Necesito un recreo
+	printf("\e[1;1H\e[2J");
+	puts("\n                   ██╗   ██╗ █████╗ ███╗   ███╗ █████╗ \n                   ╚██╗ ██╔╝██╔══██╗████╗ ████║██╔══██╗\n                    ╚████╔╝ ███████║██╔████╔██║███████║\n                     ╚██╔╝  ██╔══██║██║╚██╔╝██║██╔══██║\n                      ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║\n                      ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝\n");
+	puts("┬ ┬┌─┐┌┬┐  ┌─┐┌┐┌┌─┐┌┬┐┬ ┬┌─┐┬─┐  ┌┬┐┬─┐  ┌─┐┌┬┐┌┬┐┬┌┐┌┬┌─┐┌┬┐┬─┐┌─┐┌┬┐┌─┐┬─┐\n└┬┘├┤  │   ├─┤││││ │ │ ├─┤├┤ ├┬┘  │││├┬┘  ├─┤ ││││││││││└─┐ │ ├┬┘├─┤ │ │ │├┬┘\n ┴ └─┘ ┴   ┴ ┴┘└┘└─┘ ┴ ┴ ┴└─┘┴└─  ┴ ┴┴└─  ┴ ┴─┴┘┴ ┴┴┘└┘┴└─┘ ┴ ┴└─┴ ┴ ┴ └─┘┴└─");
+	// Inicializar logs
+	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
+	log_trace(logger, "Comienza proceso Master");
+
+	char* ruta_yamafs        = argv[1];
+	char* ruta_transformador = argv[2];
+	char* ruta_reductor      = argv[3];
 
 	// Abrir archivos
-	//int transformador_fd = open(ruta_transformador,NULL);
-	//int reductor_fd = open(ruta_reductor,NULL);
+	transformador_fd = open(ruta_transformador, O_RDONLY);
+	if(transformador_fd == -1){
+		log_error(logger, "No se pudo leer el script transformador.\n");
+		return EXIT_FAILURE;
+	}
+
+	reductor_fd = open(ruta_reductor, O_RDONLY);
+	if(reductor_fd == -1){
+		log_error(logger, "No se pudo leer el script reductor.\n");
+		return EXIT_FAILURE;
+	}
 
 	sem_init(&reductionThreads, 0, 0);
 
-	// Manejo de logs
-	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
-	log_trace(logger, "Comienza proceso Master");
+
+	// Leer configuracion
 	leerConfiguracion();
 	log_trace(logger, "Configuracion leida");
 
 	// Conectarse al YAMA
-	socketYAMA = crear_conexion(IPYAMA,puertoYama);
-	log_trace(logger, "Conectado al YAMA en socket %d",socketYAMA);
+	socketYAMA = crear_conexion(ipYama,puertoYama);
+	if(socketYAMA != -1){
+		log_trace(logger, "Conectado al administrador en %s:%d / socket:%d",ipYama,puertoYama,socketYAMA);
+	}else{
+		log_error(logger, "No se pudo conectar al administrador.\n");
+		return EXIT_FAILURE;
+	}
 
 	// Enviar solicitud de procesamiento
 	send_SOLICITUD_JOB(socketYAMA,ruta_yamafs);
@@ -120,14 +137,16 @@ int main(int argc, char **argv) {
 		almacenamiento (socketYAMA, data);
 	}
 
-
-	data = receive(socketYAMA,&header);
 	// TODO Mostrar estadisticas
+	printf("\x1b[33mEstadisticas de ejecucion\n\x1b[0m");
 
-	printf("Presione INTRO para terminar...\n");
+	printf("\x1b[33mPresione INTRO para terminar...\n \x1b[0m");
 	getchar();
+
+	// Cerranding ...
 	close(transformador_fd);
 	close(reductor_fd);
+	free(ipYama);
 	return EXIT_SUCCESS;
 }
 

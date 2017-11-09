@@ -14,15 +14,17 @@ extern t_log* logger;
 
 void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 	log_info(logger, "Respondiendo ORDEN_REDUCCIONLOCAL");
-	//payload_ORDEN_REDUCCIONLOCAL* payload;
+	payload_ORDEN_REDUCCIONLOCAL* payload;
 	HEADER_T cabecera;
 
-	/*payload = receive(socket_cliente,&cabecera);
+	payload = receive(socket_cliente,&cabecera);
 	if(cabecera != ARCHIVO){
 		log_error(logger,"Se esperaba un archivo");
 	}else{
-		log_info(logger,"Archivo recibido");
-	}*/
+		log_info(logger,"Reductor recibido");
+	}
 	send_EXITO_OPERACION(socket_cliente);
+
+
 };
 
