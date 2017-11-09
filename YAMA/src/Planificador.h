@@ -51,7 +51,6 @@ int carga(t_worker* worker);
 void calcularDisponibilidad(t_worker* worker);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
-t_tarea* getTarea(t_worker* worker);
-t_job* getJobDeWorker(int id);
+t_job* getJobDeNodo(int id);
 t_job *newJob();
 #endif /* PLANIFICADOR_H_ */

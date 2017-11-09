@@ -143,38 +143,55 @@ void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster){
 
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	t_tablaEstados* registroEstado = malloc(sizeof(t_tablaEstados));
-	registroEstado->job = getJobDeWorker(infoMaster->id_nodo);
+	registroEstado->job = getJobDeNodo(infoMaster->id_nodo);
 	registroEstado->master = infoMaster->id_master;
 	registroEstado->nodo = infoMaster->id_nodo;
 	registroEstado->bloque = infoMaster->bloque;
-	registroEstado->etapa = getTipoTarea(getTarea(buscarNodo(nodosDisponibles, infoMaster->id_nodo)));
-	registroEstado->archivoTemporal = tareaObtenerNombreResultadoTemporal(getTarea(infoMaster->id_nodo));
+	registroEstado->tarea = getTarea(infoMaster);
+	registroEstado->archivoTemporal = getArchivoTemporal(infoMaster);
 	registroEstado->estado = infoMaster->estado;
 	list_add(TablaEstados, registroEstado);
 }
 
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
-	t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);
-	t_tarea* tareaEJecutada = getTarea(worker);
 	if(infoMaster->estado){
-		log_trace(logYAMA, "Tarea %s de worker %d OK", tareaEJecutada->tipo, infoMaster->id_nodo);
+		log_trace(logYAMA, "Tarea en bloque %d de worker %d OK", infoMaster->bloque, infoMaster->id_nodo);
 	}
 	else {
-		log_error(logYAMA, "Tarea %s de worker %d ERROR", tareaEJecutada->tipo, infoMaster->id_nodo);
+		log_error(logYAMA, "Tarea %s de worker %d ERROR", infoMaster->bloque, infoMaster->id_nodo);
 	}
 }
 
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* infoMaster){
-	t_worker* worker = buscarNodo(nodosDisponibles, infoMaster->id_nodo);
-	t_tarea* tareaEJecutada = getTarea(worker);
 	if(infoMaster->estado){ // Si es 1 significa que fue OK la ejecucion ahí recien marco como finalizada la tarea
-		tareaMarcarFinalizada(worker->tareaActiva);
+		//Sirver de algo actualizar el nodo ? Donde los tengo ? Solo deberia actualizar las tareas historicas
 	}
 }
 
-t_job* getJobDeWorker(int id){
-	t_worker* worker = buscarNodo(nodosDisponibles, id);
-	return worker->jobActivo;
+t_job* getJobDeNodo(int idNodo){
+	int registroConNodoId(t_tablaEstados* registroEstado){
+		return registroEstado->nodo->id == idNodo;
+	}
+	t_tablaEstados* registroEstado = list_find(TablaEstados, registroConNodoId);
+	return registroEstado->job;
+}
+
+int getTarea(payload_RESPUESTA_MASTER* infoMaster){
+	int registroEspecifico(t_tablaEstados* registroEstado){
+			return registroEstado->nodo->id == infoMaster->id_nodo && registroEstado->bloque == infoMaster->bloque
+					&& registroEstado->estado == infoMaster->estado && registroEstado->master == infoMaster->id_master;
+		}
+	t_tablaEstados* registroEstado = list_find(TablaEstados, registroEspecifico);
+	return registroEstado->tarea;
+}
+
+char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster){
+	int registroEspecifico(t_tablaEstados* registroEstado){
+				return registroEstado->nodo->id == infoMaster->id_nodo && registroEstado->bloque == infoMaster->bloque
+						&& registroEstado->estado == infoMaster->estado && registroEstado->master == infoMaster->id_master;
+			}
+	t_tablaEstados* registroEstado = list_find(TablaEstados, registroEspecifico);
+	return registroEstado->archivoTemporal;
 }
 
 /*typedef struct {
@@ -353,6 +370,3 @@ void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster){
 	list_add(listaRespuestasMaster, infoMaster);
 }
 
-t_tarea* getTarea(t_worker* worker){
-	return worker->tareaActiva;
-}
