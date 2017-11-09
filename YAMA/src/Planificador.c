@@ -20,10 +20,34 @@ void iniciarPlanificacion(char* nombreArchivo){
 	int idJob = inicializarPlanificador();
 	nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
 	planificacionWClock(nodosDisponibles);
+	int cantidadNodos = list_size(nodosDisponibles);
+	int idNodo = 1;
 	while(!todosLosNodosTerminaronReduccionLocal(idJob)){
-		//Revisar semaforos productor consumidor
-		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
-		realizarSiguienteinstruccion(infoMaster);
+		while(cantidadNodos > 0){
+			//Revisar semaforos productor consumidor
+			payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster();
+			if(todasLasTransformacionesDelNodoTerminaron(idNodo)){ //A desarrollar
+				relizarReduccionLocal(idNodo); // A desarrollar
+				cantidadNodos--;
+				// Si el nodo es el ultimo de la lista paso al primero, sino paso al siguiente
+				if(idNodo == cantidadNodos){
+						idNodo = 1;
+					}
+					else {
+						idNodo++;
+					}
+			}
+			// Si todos los bloques del nodo no terminaron transformacion paso al siguiente nodo, obtengo otra respuesta y pregunto de nuevo
+			else {
+				if(idNodo == cantidadNodos){
+						idNodo = 1;
+					}
+					else {
+						idNodo++;
+					}
+			}
+		}
+		// ver como verificar que todos terminaron reduccion local
 	}
 	t_worker* encargado = elegirEncargadoReduccionGlobal(); //A desarrollar
 	realizarReduccionGlobal(encargado); // A desarrollar
@@ -58,8 +82,6 @@ int inicializarPlanificador(){ //Devuelve el id del job creado
 }
 
 int agregarJob(t_job* job){
-	idUltimoJobCreado++;
-	job->id = idUltimoJobCreado;
 	char* keyJob = string_itoa(job->id);
 	dictionary_put(diccionarioJobs, keyJob, job);
 	return job->id;
@@ -68,7 +90,8 @@ int agregarJob(t_job* job){
 t_job *newJob()
 {
 	t_job *job = malloc(sizeof(t_job));
-	job->id = 0;
+	idUltimoJobCreado++;
+	job->id = idUltimoJobCreado;
 	job->estado = EN_EJECUCION;
 	job->etapa = TRANSFORMACION;
 	return job;
@@ -79,19 +102,19 @@ int todosLosNodosTerminaronReduccionLocal(int idJob){
 		return registroEstado->job->id == idJob && registroEstado->tarea == REDUCCION_LOCAL;
 	}
 	t_list* nodosEnReduccionLocal = list_filter(TablaEstados, (void*)nodoConIDYReduccionLocal());
-	return list_all_satisfy(nodosEnReduccionLocal, (void*) nodoTerminoExitosamente);
+	return list_all_satisfy(nodosEnReduccionLocal, (void*) registroTerminoExitosamente);
 }
 
-int nodoTerminoExitosamente(t_tablaEstados* registroEstado){
+int registroTerminoExitosamente(t_tablaEstados* registroEstado){
 	return registroEstado->estado == EXITO;
 }
 
-int todosLosNodosTerminaronTransformacion(int idJob){
+int nodoTerminoTransformacion(int idJob){
 	int nodoConIDYTransformacion(t_tablaEstados* registroEstado){
 		return registroEstado->job->id == idJob && registroEstado->tarea == TRANSFORMACION;
 	}
-	t_list* nodosEnTransformacion = list_filter(TablaEstados, (void*)nodoConIDYTransformacion());
-	return list_all_satisfy(nodosEnTransformacion, (void*) nodoTerminoExitosamente);
+	t_list* bloquesEnTransformacion = list_filter(TablaEstados, (void*)nodoConIDYTransformacion());
+	return list_all_satisfy(bloquesEnTransformacion, (void*) registroTerminoExitosamente);
 }
 
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){

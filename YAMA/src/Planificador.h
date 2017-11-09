@@ -29,6 +29,7 @@ void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 t_worker* elegirEncargadoReduccionGlobal();
 void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta);
 int* getSocketMasterId(int id_master);
+int nodoTerminoExitosamente(t_tablaEstados* registroEstado);
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
 int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles);
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta);
