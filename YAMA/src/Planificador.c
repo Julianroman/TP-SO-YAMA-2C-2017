@@ -5,6 +5,7 @@
  *      Author: utnso
  */
 
+#include <unistd.h>
 #include "Planificador.h"
 #include "YAMA.h"
 #include "Tarea.h"
@@ -17,9 +18,10 @@ int base = 2;
 static t_list* nodosDisponibles;
 
 void iniciarPlanificacion(char* nombreArchivo){
+	usleep(configYAMA->retardoPlanificacion);
 	inicializarPlanificador();
 	nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
-	planificacionWClock(nodosDisponibles);
+	planificacionWClock(nodosDisponibles, configYAMA->algoritmoBalanceo);
 	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
 		realizarSiguienteinstruccion(infoMaster);
@@ -233,7 +235,7 @@ int main(void) {
 	return EXIT_SUCCESS;
 }*/
 
-void planificacionWClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
+void planificacionWClock(t_list* listaNodos, char* algoritmoBalanceo){//Esta seria la lista o diccionario de workers
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));

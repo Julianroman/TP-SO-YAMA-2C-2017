@@ -41,7 +41,7 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta);
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
 
-void planificacionWClock(t_list* listaNodos);
+void planificacionWClock(t_list* listaNodos, char* algoritmoBalanceo);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 t_worker* buscarNodo(t_list* listaNodos, int numNodo);

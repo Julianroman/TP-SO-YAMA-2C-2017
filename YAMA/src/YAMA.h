@@ -59,7 +59,7 @@ typedef struct {
 	char* ipFs;
 	char* puertoYAMA;
 	char* ipYAMA;
-	int retardoPlanificacion;
+	int retardoPlanificacion; // En mili segundos
 	char* algoritmoBalanceo;
 } t_yama;
 
@@ -70,5 +70,6 @@ t_dictionary* diccionarioMasters;
 t_yama* leerConfiguracion();
 void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket);
 
+t_yama* configYAMA;
 t_log* logYAMA;
 #endif /* YAMA_H_ */
