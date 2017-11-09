@@ -18,7 +18,7 @@
 
 extern t_log* logger;
 extern sem_t reductionThreads;
-//extern int reductor_fd;
+extern int reductor_fd;
 
 
 void* rutina_reduccionLocal(void* args);
@@ -45,12 +45,12 @@ void* rutina_reduccionLocal(void* args){
 	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
-	//send_ARCHIVO(socketWorker,reductor_fd);
+	send_ARCHIVO(socketWorker,reductor_fd);
 
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_info(logger, "Redux local OK en %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		log_info(logger, "Redux local OK %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);

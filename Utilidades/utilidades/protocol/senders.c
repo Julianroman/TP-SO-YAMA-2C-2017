@@ -186,11 +186,11 @@ void send_FIN_COMUNICACION(int socket){
     free(paquete);
 };
 
-void send_ARCHIVO(uint64_t socket , int archivo_fd){
-	//
+void send_ARCHIVO(int socket , int archivo_fd){
+
 	struct stat buffer;
 	int status = fstat(archivo_fd,&buffer);
-	if(!status){
+	if(status != 0){
 		puts("No se pudieron reconocer las estadisticas del ejecutable");
 	}
 	HEADER_T header = ARCHIVO;
