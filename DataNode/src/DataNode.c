@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <commons/config.h>
 #include <utilidades/protocol/receive.h>
 
@@ -78,30 +80,25 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 		payload = receive(cliente, &header);
 		//este id deberia estan en el header
 		//id_bloque = header->id o como sea;
-		escribirArchivo("metadata/bloquesDataNode.txt", payload, id_bloque);
+		escribirArchivo("metadata/bloquesDataNode.dat", payload, 10 ,id_bloque);
 		printf("%s dice: %s\n", tipo_proceso(0), payload);
 	}
 }
 
 void escribirArchivo(char* path, char* data, int size, int nroBloque){
-	int offset;
-	//offset = TAMANIOBLOQUE * nroBloque;
-	offset = 7;
-	FILE* archivo;
+	int offset = TAMANIOBLOQUE * nroBloque;
+	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "El archivo inexistente se crea");
 		archivo = fopen(path,"w");
-		truncate(fileno(archivo),cantidadDeBloques*TAMANIOBLOQUE);
+		fseek(archivo, offset, SEEK_SET);
+		int a = ftruncate(fileno(archivo),20971520);
 		fclose(archivo);
 	}
-
-	archivo = fopen(path,"rb+");
-	//int sizeFile = ftell(archivo);
-	fseek(archivo, offset, SEEK_SET);
-	fwrite(data, size, 1, archivo);
-	fflush(archivo);
-
-	fclose(archivo);
+	void* archivommap;
+	archivo = open(path, O_RDWR);
+	archivommap = mmap((caddr_t)0, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, archivo, (off_t) 0);
+	strcpy(archivommap + offset, data);
+	close(archivo);
 	puts("Escritura Completa");
 }
 
