@@ -17,17 +17,17 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 #include <commons/string.h>
-#include "Tarea.h"
 
 // Tipo de dato de uso interno del yama
 // las respuestas deberan retornar un YAMA_STATUS
 // para poder tomar las medidas necesarias en caso de error
 typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
-typedef enum {EJECUCION_OK, EJECUCION_ERROR} ESTADO_EJECUCION;
+typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} Tarea;
 
 typedef struct{
 	uint16_t id;
 	YAMA_STATUS estado;
+	Tarea etapa;
 }t_job;
 
 typedef struct {
@@ -41,7 +41,6 @@ typedef struct {
 	int cantTareasHistoricas;
 	int activo;
 	t_job* jobActivo;
-	t_tarea* tareaActiva;
 } t_worker;
 
 typedef struct {
@@ -49,7 +48,7 @@ typedef struct {
 	int master;
 	t_worker* nodo;
 	int bloque;
-	TipoTarea etapa;
+	Tarea tarea;
 	char* archivoTemporal;
 	YAMA_STATUS estado;
 } t_tablaEstados;
@@ -65,7 +64,7 @@ typedef struct {
 
 void iniciarListaEstados();
 
-t_list* TablaEstados;
+static t_list* TablaEstados;
 t_dictionary* diccionarioMasters;
 t_yama* leerConfiguracion();
 void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket);

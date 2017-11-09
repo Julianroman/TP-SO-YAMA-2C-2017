@@ -15,7 +15,6 @@
 t_list* listaNodos;
 t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
-t_dictionary* diccionarioTareas;
 t_list* listaRespuestasMaster;
 
 int idUltimoJobCreado;
@@ -41,7 +40,7 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta);
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
 
-void planificacionWClock(t_list* listaNodos, char* algoritmoBalanceo);
+void planificacionWClock(t_list* listaNodos);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 t_worker* buscarNodo(t_list* listaNodos, int numNodo);

@@ -8,21 +8,20 @@
 #include <unistd.h>
 #include "Planificador.h"
 #include "YAMA.h"
-#include "Tarea.h"
 
 int ESTAINICIALIZADO = 0;
 int idUltimoJobCreado = 0;
-int idUltimaTareaCreada = 0;
 int base = 2;
 
 static t_list* nodosDisponibles;
 
 void iniciarPlanificacion(char* nombreArchivo){
 	usleep(configYAMA->retardoPlanificacion);
-	inicializarPlanificador();
+	int idJob = inicializarPlanificador();
 	nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
-	planificacionWClock(nodosDisponibles, configYAMA->algoritmoBalanceo);
-	while(!todosLosNodosTerminaronReduccionLocal(nodosDisponibles)){
+	planificacionWClock(nodosDisponibles);
+	while(!todosLosNodosTerminaronReduccionLocal(idJob)){
+		//Revisar semaforos productor consumidor
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster(); //Master me encola todas las respuestas que tuvo de los workers - Devuelve el worker que necesita siguiente instruccion
 		realizarSiguienteinstruccion(infoMaster);
 	}
@@ -35,39 +34,35 @@ void finalizar(){
 	list_destroy(listaNodos);
 	list_destroy(listaRespuestasMaster);
 	dictionary_destroy(diccionarioJobs);
-	dictionary_destroy(diccionarioTareas);
 	dictionary_destroy(bloques_ejecutados);
 	printf("Planificacion terminada");
 }
 
-void inicializarPlanificador(){
+int inicializarPlanificador(){ //Devuelve el id del job nuevo
 	if(ESTAINICIALIZADO){
 		t_job* job = newJob();
-		agregarJob(job);
+		int idJob = agregarJob(job);
+		return idJob;
 	}
 	else{
 		listaNodos = list_create();
 		//Habria que cargar la lista de nodos con su carga y disponibilidad
 		listaRespuestasMaster = list_create();
 		diccionarioJobs = dictionary_create();
-		diccionarioTareas = dictionary_create();
 		bloques_ejecutados = dictionary_create();
+		t_job* job = newJob();
+		int idJob = agregarJob(job);
 		ESTAINICIALIZADO++;
+		return idJob;
 	}
 }
 
-void agregarJob(t_job* job){
+int agregarJob(t_job* job){
 	idUltimoJobCreado++;
 	job->id = idUltimoJobCreado;
 	char* keyJob = string_itoa(job->id);
 	dictionary_put(diccionarioJobs, keyJob, job);
-}
-
-void agregarTarea(t_tarea* tarea){
-	idUltimaTareaCreada++;
-	tarea->id = idUltimaTareaCreada;
-	char* keyTarea = string_itoa(tarea->id);
-	dictionary_put(diccionarioJobs, keyTarea, tarea);
+	return job->id;
 }
 
 t_job *newJob()
@@ -75,15 +70,17 @@ t_job *newJob()
 	t_job *job = malloc(sizeof(t_job));
 	job->id = 0;
 	job->estado = EN_EJECUCION;
+	job->etapa = TRANSFORMACION;
 	return job;
 }
 
 int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
-	int nodoTerminoReduccionLocal(t_worker* nodo){
-		return (tareaEsReduccionLocal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
-	}
 	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
 }
+
+int nodoTerminoReduccionLocal(t_worker* nodo){
+		return (tareaEsReduccionLocal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
+	}
 
 int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
 	int nodoTerminoTransformacion(t_worker* nodo){
@@ -101,7 +98,7 @@ void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
 			abortarJob(); //A desarrollar
 		}
 		else{
-			rePlanificarTransformacion(respuesta->id_nodo); // Si el error se da en la tarea de trasnformacion como se vuelve a planificar?
+			rePlanificarTransformacion(respuesta->id_nodo); // Debe mandar a hacer transformacion en donde está la copia de ese bloque
 		}
 	}
 	else { //EJECUCION_OK
@@ -235,7 +232,7 @@ int main(void) {
 	return EXIT_SUCCESS;
 }*/
 
-void planificacionWClock(t_list* listaNodos, char* algoritmoBalanceo){//Esta seria la lista o diccionario de workers
+void planificacionWClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));
@@ -320,7 +317,12 @@ int carga(t_worker* worker){
 }
 
 void calcularDisponibilidad(t_worker* worker){
-	worker->disponibilidad = base + PWL(worker);
+	if(configYAMA->algoritmoBalanceo == "WCLOCK"){
+		worker->disponibilidad = base + PWL(worker);
+	}
+	else{
+		worker->disponibilidad = base;
+	}
 }
 
 int disponibilidad(t_worker* worker){
