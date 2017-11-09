@@ -15,7 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
-
+extern t_log *log;
+extern t_list *listaDeNodos;
 
 int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
@@ -63,9 +64,11 @@ int main(int arg, char** argv) {
 
 	//createDirectory("some");
 	//createDirectory("some/other");
-
+	inicializarNodo(1,5,20);
+	inicializarNodo(2,5,40);
+	inicializarNodo(3,5,60);
 	//almacenarArchivo("Nodo1.bin","","bin");
-	almacenarArchivo("Nodo10.txt","root/caca.txt","txt");
+	almacenarArchivo("Nodo10.txt","root/arch.txt","txt");
 	//importarArchivo("Nodo1.bin","");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");
