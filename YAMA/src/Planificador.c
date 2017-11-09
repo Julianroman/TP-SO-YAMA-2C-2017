@@ -38,7 +38,7 @@ void finalizar(){
 	printf("Planificacion terminada");
 }
 
-int inicializarPlanificador(){ //Devuelve el id del job nuevo
+int inicializarPlanificador(){ //Devuelve el id del job creado
 	if(ESTAINICIALIZADO){
 		t_job* job = newJob();
 		int idJob = agregarJob(job);
@@ -74,19 +74,24 @@ t_job *newJob()
 	return job;
 }
 
-int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles){
-	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoReduccionLocal);
+int todosLosNodosTerminaronReduccionLocal(int idJob){
+	int nodoConIDYReduccionLocal(t_tablaEstados* registroEstado){
+		return registroEstado->job->id == idJob && registroEstado->tarea == REDUCCION_LOCAL;
+	}
+	t_list* nodosEnReduccionLocal = list_filter(TablaEstados, (void*)nodoConIDYReduccionLocal());
+	return list_all_satisfy(nodosEnReduccionLocal, (void*) nodoTerminoExitosamente);
 }
 
-int nodoTerminoReduccionLocal(t_worker* nodo){
-		return (tareaEsReduccionLocal(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionGlobal(nodo->tareaActiva);
-	}
+int nodoTerminoExitosamente(t_tablaEstados* registroEstado){
+	return registroEstado->estado == EXITO;
+}
 
-int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles){
-	int nodoTerminoTransformacion(t_worker* nodo){
-		return (tareaEsTransformacion(nodo->tareaActiva) && tareaEstaFinalizada(nodo->tareaActiva)) || tareaEsReduccionLocal(nodo->tareaActiva);
+int todosLosNodosTerminaronTransformacion(int idJob){
+	int nodoConIDYTransformacion(t_tablaEstados* registroEstado){
+		return registroEstado->job->id == idJob && registroEstado->tarea == TRANSFORMACION;
 	}
-	return list_all_satisfy(nodosDisponibles, (void*) nodoTerminoTransformacion);
+	t_list* nodosEnTransformacion = list_filter(TablaEstados, (void*)nodoConIDYTransformacion());
+	return list_all_satisfy(nodosEnTransformacion, (void*) nodoTerminoExitosamente);
 }
 
 void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta){
