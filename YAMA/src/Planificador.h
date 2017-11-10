@@ -19,39 +19,47 @@ t_list* listaRespuestasMaster;
 
 int idUltimoJobCreado;
 
+
+// FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo);
-void inicializarPlanificador();
+int inicializarPlanificador();
 void finalizar();
 t_list* obtenerNodosParaPlanificacion(char* nombreArchivo);
-void agregarJob(t_job* job);
-void iniciarPlanificacion();
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 t_worker* elegirEncargadoReduccionGlobal();
-void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta);
-int* getSocketMasterId(int id_master);
-int nodoTerminoExitosamente(t_tablaEstados* registroEstado);
-int todosLosNodosTerminaronReduccionLocal(t_list* nodosDisponibles);
-int todosLosNodosTerminaronTransformacion(t_list* nodosDisponibles);
-void realizarSiguienteinstruccion(payload_RESPUESTA_MASTER* respuesta);
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 void realizarReduccionGlobal(t_worker* encargado);
+t_job *newJob();
+int agregarJob(t_job* job);
+Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
+char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 
+// FUNCIONES DE NODO
+int* getSocketMasterId(int id_master);
+int registroTerminoExitosamente(t_tablaEstados* registroEstado);
+int todosLosNodosTerminaronReduccionLocal(int idJob);
+int nodoTerminoTransformacion(int idJob);
+void nodoPasarAReduccionLocal(int id);
+t_worker* getNodo(int id);
+int estaActivo(t_worker* worker);
+t_job* getJobDeNodo(int id);
+
+// ACTUALIZACIONES
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta);
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta);
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
 
+//FUNCIONES DE PLANIFICACION
 void planificacionWClock(t_list* listaNodos);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
-t_worker* buscarNodo(t_list* listaNodos, int numNodo);
-int estaActivo(t_worker* worker);
 int PWL(t_worker* worker);
 int WLmax();
 int carga(t_worker* worker);
 void calcularDisponibilidad(t_worker* worker);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
-t_job* getJobDeNodo(int id);
-t_job *newJob();
+
+
 #endif /* PLANIFICADOR_H_ */

@@ -25,7 +25,7 @@ typedef enum {ERROR, EXITO, EN_EJECUCION} YAMA_STATUS;
 typedef enum {TRANSFORMACION, REDUCCION_LOCAL, REDUCCION_GLOBAL, ALMACENAMIENTO} Tarea;
 
 typedef struct{
-	uint16_t id;
+	int id;
 	YAMA_STATUS estado;
 	Tarea etapa;
 }t_job;
@@ -41,6 +41,7 @@ typedef struct {
 	int cantTareasHistoricas;
 	int activo;
 	t_job* jobActivo;
+	Tarea etapaActiva;
 } t_worker;
 
 typedef struct {
