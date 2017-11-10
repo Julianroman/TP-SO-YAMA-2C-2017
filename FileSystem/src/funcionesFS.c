@@ -331,10 +331,7 @@ static t_bloque_libre *traerBloquesLibres() {
 	return retVal;
 }
 
-int enviarADataNode(char *map, int bloque, int tam, int size_bytes){
-
-
-	printf("Enviado a data node: bloque %i -- bytes %i \n", bloque, size_bytes);
+int enviarADataNode(t_pagina *unaPagina){
 
 	// Busco 2 nodos con bloques libres
 	t_bloque_libre *bloquesLibres = traerBloquesLibres();
@@ -345,6 +342,7 @@ int enviarADataNode(char *map, int bloque, int tam, int size_bytes){
 	// Envio la copia
 	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
 
+	//TODO Enviar contenido a cada data node
 
 	// Libero la estructura
 	free(bloquesLibres);
@@ -354,143 +352,65 @@ int enviarADataNode(char *map, int bloque, int tam, int size_bytes){
 
 }
 
-int almacenarArchivo(char* location, char* destino, char* tipo){//Y también recibe "Los datos correspondientes"
-	//TODO validar destino
-	char **arrayDestino = string_split(destino, "/");
-	int cant;
-	cant = strlen(arrayDestino) / sizeof(char*);
-	puts(arrayDestino[cant - 2]);
-	int indice = findDirByname(arrayDestino[cant - 2]);
-	char* indicePath = string_new();
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
-	puts(indicePath);
-	createDirectory(indicePath); //TODO no me esta creando la carpeta
 
+static t_list *cortar_modo_texto(FILE *in){
+	return NULL;
+}
 
+static t_list *cortar_modo_binario(FILE *in){
+	t_list *retVal = list_create();
+	int n;
+	char *buffer = malloc(tamanioBloques);
 
-	int tamanioBytes;
-	char* tipoArchivo = string_new();
+	while ( (n=fread(buffer,1,tamanioBloques,in)) > 0 ) {
+		t_pagina *nodo = malloc(sizeof(t_pagina));
+		nodo->tamanio = n;
+		nodo->contenido = malloc(n);
+		memcpy(nodo->contenido,buffer,n);
+		list_add(retVal, nodo);
+	}
+	free(buffer);
+	return retVal;
+}
 
-	if(strcmp(tipo,"bin") == 0){
-		puts("ARCHIVO BINARIO");
-		tipoArchivo = "BINARIO";
-		FILE* file;
-		if (!(file = fopen(location, "r"))){
-			log_error(log, "El archivo no existe o no se pudo abrir");
+int almacenarArchivo(char* location, char* destino, char* tipo){
+
+	// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
+	// Refleja el archivo leido
+	// En el caso de binario, todos los bloques miden lo mismo posiblemente salvo el ultimo
+	// En el caso de texto, cada bloque ide 1M o menos
+
+	FILE *in;
+
+	t_list *lista_de_paginas;
+
+	if ( strcmp(tipo,"txt") == 0 ) {
+		if ( (in = fopen(location, "r") ) == NULL ) {
+			printf("No se encontro el archivo");
+			return 1;
 		}
-		else{
-			//validar si el destino es valido
-			int size_bytes;
-			fseek(file,0,SEEK_END);
-			size_bytes = ftell(file);
-			tamanioBytes = ftell(file);
-			rewind(file);
 
-			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
-			int tam = 0;
-			char* map;
-			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(file),0)) == MAP_FAILED){
-				log_error(log,"Error al mappear archivo\n");
-			}
-			int i;
-			for(i = 0; i < cant_bloques; i++){
-				if(size_bytes > tamanioBloques){
-					enviarADataNode(map, i, tam, tamanioBloques);
-					tam += tamanioBloques;
-					size_bytes -= tamanioBloques;
-				}else{
-					size_bytes++;
-					enviarADataNode(map, i, tam, size_bytes);
-				}
-			}
-		}
-		fclose(file);
-		return 0;
-
+		lista_de_paginas = cortar_modo_texto(in);
 
 	}
-	else if(strcmp(tipo,"txt") == 0){
-		puts("ARCHIVO DE TEXTO");
-		tipoArchivo = "TEXTO";
-		FILE* file;
-		if (!(file = fopen(location, "r"))){
-			log_error(log, "El archivo no existe o no se pudo abrir");
+	else{
+		if ( (in = fopen(location, "rb") ) == NULL ) {
+			printf("No se encontro el archivo");
+			return 1;
 		}
-		else{
-			//validar si el destino es valido
-			int size_bytes;
-			fseek(file,0,SEEK_END);
-			size_bytes = ftell(file);
-			tamanioBytes = ftell(file);
-			rewind(file);
-
-			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
-			int tam = 0;
-			char* map;
-			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(file),0)) == MAP_FAILED){
-				log_error(log,"Error al mappear archivo\n");
-			}
-			int i = 0;
-			map = strdup(map);
-			//split de \n al map y le mando cada cosa al datanode
-			char **str1 = string_split(map, "\n");
-			char* text = string_new();
-			char* textConcat = string_new();
-			int32_t size_concat = 0;
-			int bloq = 1;
-			while (str1[i] != NULL)
-			{
-
-				textConcat = string_duplicate(text);
-				string_append(&textConcat, str1[i]);
-				string_append(&textConcat, "\n");
-				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
-
-				if(size_concat < tamanioBloques){
-					string_append(&text, str1[i]);
-					tam += size_concat;
-
-				}else{
-					size_concat = strlen(text) * sizeof(char);
-					//printf("%s\n",text);
-					enviarADataNode(text, bloq, tam, size_concat);
-					bloq ++;
-					text = string_new();
-				}
-				i++;
-
-			}
-			if(!string_is_empty(text)){
-				size_concat = strlen(text) * sizeof(char);
-				//printf("%s\n",text);
-				enviarADataNode(text, bloq, tam, size_concat);
-				bloq ++;
-			}
-			free(str1);
-			free(map);
-			free(text);
-		}
-
-		string_append(&indicePath, "/");
-		string_append(&indicePath, arrayDestino[cant - 1]);
-
-		int archivo = fopen(indicePath, "w");
-		t_config* fileExport = config_create(indicePath);
-		//config_set_value(fileExport, "PATH", indicePath);
-		config_set_value(fileExport, "TAMANIO", string_itoa(tamanioBytes));
-		config_set_value(fileExport, "TIPO", tipoArchivo);
-
-		config_save(fileExport);
-		config_save_in_file(fileExport, indicePath);
-
-		fclose(archivo);
-		config_destroy(fileExport);
-
-		fclose(file);
-
-		return 0;
+		lista_de_paginas = cortar_modo_binario(in);
 	}
+
+	int i;
+	// Itero entre las paginas de la lista y se las mando a dataNode
+	for ( i=0; i<list_size(lista_de_paginas); i++){
+		t_pagina *pagina = list_get(lista_de_paginas, i);
+		enviarADataNode(pagina);
+		free(pagina->contenido);
+		free(pagina);
+
+	}
+
 	return 1;
 }
 
@@ -537,7 +457,10 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 		if(a == 0){
 			cantidad ++;
 		}
+
 	}
+	if (cantidad%10 != 0 )
+		return 5;
 	return cantidad;
 }
 
@@ -614,7 +537,7 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 			data[j] = '\0';
 		}
 
-		unBitarray = bitarray_create_with_mode(data,iCeil(cantidadDeBloques), MSB_FIRST);
+		unBitarray = bitarray_create_with_mode(data,iCeil(cantidadDeBloques), LSB_FIRST);
 		int i;
 		for(i = 0; i < cantidadDeBloques; i++){
 			bitarray_clean_bit(unBitarray, i);

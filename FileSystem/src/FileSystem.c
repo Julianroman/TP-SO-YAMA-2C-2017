@@ -68,7 +68,7 @@ int main(int arg, char** argv) {
 	inicializarNodo(2,5,40);
 	inicializarNodo(3,5,60);
 	//almacenarArchivo("Nodo1.bin","","bin");
-	almacenarArchivo("Nodo10.txt","root/arch.txt","txt");
+	almacenarArchivo("Nodo1.bin","root/arch.txt","bin");
 	//importarArchivo("Nodo1.bin","");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");

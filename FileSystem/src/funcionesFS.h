@@ -48,6 +48,13 @@ typedef struct {
 	int32_t padre;
 }t_directory;
 
+
+// Estructura de pagina
+typedef struct {
+	char *contenido;
+	size_t tamanio;
+} t_pagina;
+
 /*static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
 	t_directory *new = malloc(sizeof(t_directory));
     new->indice = index;
@@ -66,7 +73,7 @@ void servidorFs(int puerto);
 void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino);
 
 
-int enviarADataNode(char* map, int bloque, int tam, int size_bytes);
+int enviarADataNode(t_pagina *unaPagina);
 
 int almacenarArchivo(char* location, char* destino, char* tipo);
 
