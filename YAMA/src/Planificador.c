@@ -272,6 +272,10 @@ int main(void) {
 }*/
 
 void planificacionWClock(t_list* listaNodos, int idJob){//Esta seria la lista o diccionario de workers
+
+	list_iterate(nodosDisponibles, (void*)calcularDisponibilidad);
+	nodoConMayorDisponibilidad();
+
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));
