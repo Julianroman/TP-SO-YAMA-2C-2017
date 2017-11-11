@@ -353,8 +353,67 @@ int enviarADataNode(t_pagina *unaPagina){
 }
 
 
-static t_list *cortar_modo_texto(FILE *in){
-	return NULL;
+static t_list *cortar_modo_texto(FILE *in){ //TODO pasar a fread
+	t_list *retVal = list_create();
+
+		if (!(in)){
+			log_error(log, "El archivo no existe o no se pudo abrir");
+		}
+		else{
+			//validar si el destino es valido
+			int size_bytes;
+			fseek(in,0,SEEK_END);
+			size_bytes = ftell(in);
+			rewind(in);
+
+			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
+			int tam = 0;
+			char* map;
+			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
+				log_error(log,"Error al mappear archivo\n");
+			}
+			int i = 0;
+			map = strdup(map);
+			//split de \n al map y le mando cada cosa al datanode
+			char **str1 = string_split(map, "\n");
+			char* text = string_new();
+			char* textConcat = string_new();
+			int32_t size_concat = 0;
+			int bloq = 1;
+			while (str1[i] != NULL)
+			{
+				textConcat = string_duplicate(text);
+				string_append(&textConcat, str1[i]);
+				string_append(&textConcat, "\n");
+				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
+
+				if(size_concat < tamanioBloques){
+					string_append(&text, str1[i]);
+					tam += size_concat;
+
+				}else{
+					size_concat = strlen(text) * sizeof(char);
+					//printf("%s\n",text);
+					//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
+					bloq ++;
+					text = string_new();
+				}
+				i++;
+			}
+			if(!string_is_empty(text)){
+				size_concat = strlen(text) * sizeof(char);
+				//printf("%s\n",text);
+				//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
+				bloq ++;
+			}
+			free(str1);
+			free(map);
+			free(text);
+		}
+		fclose(in);
+
+
+	return retVal;
 }
 
 static t_list *cortar_modo_binario(FILE *in){
@@ -373,7 +432,26 @@ static t_list *cortar_modo_binario(FILE *in){
 	return retVal;
 }
 
-int almacenarArchivo(char* location, char* destino, char* tipo){
+int almacenarArchivo(char *location, char *destino, char *tipo){
+	// Para crear la tabla de archivos
+	// Separo el path del destino con las /
+	char **arrayDestino = string_split(destino, "/");
+	int cant;
+	cant = strlen(arrayDestino) / sizeof(char*);
+	puts(arrayDestino[cant - 2]);
+	// Busco el indice de la carpeta de destino
+	int indice = findDirByname(arrayDestino[cant - 2]);
+	// Concateno el path con el indice y el path de los archivos
+	char* indicePath = string_new();
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+	puts(indicePath);
+	// Creo el directorio del path (Si no existe)
+	createDirectory(indicePath); //TODO no me esta creando la carpeta
+	// Concateno el path con el nombre del archivo
+	string_append(&indicePath, "/");
+	string_append(&indicePath, arrayDestino[cant - 1]);
+
 
 	// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
 	// Refleja el archivo leido
@@ -410,6 +488,20 @@ int almacenarArchivo(char* location, char* destino, char* tipo){
 		free(pagina);
 
 	}
+
+	int archivo = fopen(indicePath, "w");
+	t_config* fileExport = config_create(indicePath);
+	if(strcmp(tipo, "txt"))
+		config_set_value(fileExport, "TIPO", "TEXTO");
+	else
+		config_set_value(fileExport, "TIPO", "BINARIO");
+
+	config_save(fileExport);
+	config_save_in_file(fileExport, indicePath);
+
+	fclose(archivo);
+	config_destroy(fileExport);
+
 
 	return 1;
 }
@@ -459,8 +551,7 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 		}
 
 	}
-	if (cantidad%10 != 0 )
-		return 5;
+
 	return cantidad;
 }
 
@@ -492,8 +583,6 @@ int proximoBloqueLibre(t_nodo* unNodo){
 	for (j = 0; j < unNodo->cantidadBloques; j++) {
 		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
-			if (j!=0)
-				printf("!=0\n");
 			log_trace(log, "El proximo bloque libre del nodo %d es el: %d",unNodo->nroNodo, j);
 			return j;
 		}
