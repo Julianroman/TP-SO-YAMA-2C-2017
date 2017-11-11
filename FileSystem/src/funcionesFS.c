@@ -621,12 +621,16 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 	if (!(bitmap = fopen(pathNewBitmap, "r"))){
 		log_info(log, "El bitmap del nodo %i no existe. Se inicializara.", nroNodo);
 		int j = 0;
-		char* data[cantidadDeBloques];
+		char data[cantidadDeBloques];
 		for(j = 0; j < cantidadDeBloques; j++){
 			data[j] = '\0';
 		}
 
+
 		unBitarray = bitarray_create_with_mode(data,iCeil(cantidadDeBloques), LSB_FIRST);
+		char * puntero = malloc(sizeof(char)*cantidadDeBloques);
+		memcpy(puntero, unBitarray->bitarray, sizeof(char)*cantidadDeBloques);
+		unBitarray->bitarray = puntero;
 		int i;
 		for(i = 0; i < cantidadDeBloques; i++){
 			bitarray_clean_bit(unBitarray, i);
