@@ -109,10 +109,10 @@ int todosLosNodosTerminaronReduccionLocal(int idJob){
 	return list_all_satisfy(nodosEnReduccionLocal, (void*)registroTerminoExitosamente);
 }
 
-int nodoTerminoTransformacion(int idJob){
+int nodoTerminoTransformacion(int idNodo){
 
 	int nodoConIDYTransformacion(t_tablaEstados* registroEstado){
-		return registroEstado->job->id == idJob && registroEstado->tarea == TRANSFORMACION;
+		return registroEstado->nodo->id == idNodo && registroEstado->tarea == TRANSFORMACION;
 	}
 
 	t_list* bloquesEnTransformacion = list_filter(TablaEstados, (void*)nodoConIDYTransformacion);
@@ -161,7 +161,13 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	registroEstado->bloque = infoMaster->bloque;
 	registroEstado->tarea = getTarea(infoMaster);
 	registroEstado->archivoTemporal = getArchivoTemporal(infoMaster);
-	registroEstado->estado = infoMaster->estado;
+	if(infoMaster->estado){
+		registroEstado->estado = EXITO;
+	}
+	else {
+		registroEstado->estado = ERROR;
+	}
+
 	list_add(TablaEstados, registroEstado);
 }
 

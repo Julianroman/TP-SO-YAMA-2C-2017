@@ -89,14 +89,7 @@ void init_serverYAMA(int puertoEscucha){
 							break;
 						}
 						else{
-							status = responder_SOLICITUD(i, data, header); // Responder solicitud
-							if (status == EXITO){
-								log_trace(logs, "Solicitud respondida con exito");
-							}
-							else if(status == ERROR){
-								log_error(logs, "Hubo un error en la solicitud");
-								break;
-							}
+							responder_SOLICITUD(i, data, header); // Responder solicitud
 						}
 					}
 				}
