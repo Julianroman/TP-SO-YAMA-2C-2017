@@ -21,7 +21,7 @@ void iniciarPlanificacion(char* nombreArchivo){
 	usleep(configYAMA->retardoPlanificacion);
 	int idJob = inicializarPlanificador();
 	nodosDisponibles = obtenerNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
-	planificacionWClock(nodosDisponibles);
+	planificacionWClock(nodosDisponibles, idJob);
 
 	while(!todosLosNodosTerminaronReduccionLocal(idJob)){
 
@@ -35,6 +35,8 @@ void iniciarPlanificacion(char* nombreArchivo){
 				realizarReduccionLocal(infoMaster->id_nodo);
 			}
 			else{
+				t_worker* nodo = getNodo(infoMaster->id_nodo);
+				nodo->cantTareasHistoricas += 1;
 				log_trace(logYAMA, "El nodo %d finalizo transformacion en el bloque %d", infoMaster->id_nodo, infoMaster->bloque);
 			}
 		}
@@ -119,17 +121,6 @@ int nodoTerminoTransformacion(int idNodo){
 	return list_all_satisfy(bloquesEnTransformacion, (void*)registroTerminoExitosamente);
 }
 
-/*void realizarSiguienteTarea(payload_RESPUESTA_MASTER* respuesta){
-	t_worker* worker = buscarNodo(nodosDisponibles, respuesta->id_nodo);
-	if(tareaEsTransformacion(worker->tareaActiva)){
-		//Mandar a hacer reduccion local
-		int* socketMaster = getSocketMasterId(respuesta->id_master);
-		char* nombreTemporal_transformacion = tareaObtenerNombreResultadoTemporal(worker->tareaActiva);
-		tareaPasarAReduccionLocal(worker->tareaActiva);
-		send_INFO_REDUCCIONLOCAL(*socketMaster, worker->puerto, worker->ip, nombreTemporal_transformacion, worker->tareaActiva->nombreResultadoTemporal);
-	}
-}*/
-
 char* getNombreArchivoTemporal(int jobId, int bloque, int etapa, int nodo){
 	char* nombre = string_from_format("Job%d-Nodo%d-Bloque%d-Etapa%d",jobId,nodo,bloque,etapa);
 	return nombre;
@@ -173,10 +164,10 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){
 	if(infoMaster->estado){
-		log_trace(logYAMA, "Tarea en bloque %d de worker %d OK", infoMaster->bloque, infoMaster->id_nodo);
+		log_trace(logYAMA, "Tarea en bloque %d de nodo %d OK", infoMaster->bloque, infoMaster->id_nodo);
 	}
 	else {
-		log_error(logYAMA, "Tarea %d de worker %d ERROR", infoMaster->bloque, infoMaster->id_nodo);
+		log_error(logYAMA, "Tarea %d de nodo %d ERROR", infoMaster->bloque, infoMaster->id_nodo);
 	}
 }
 
@@ -280,7 +271,7 @@ int main(void) {
 	return EXIT_SUCCESS;
 }*/
 
-void planificacionWClock(t_list* listaNodos){//Esta seria la lista o diccionario de workers
+void planificacionWClock(t_list* listaNodos, int idJob){//Esta seria la lista o diccionario de workers
 	t_worker* workerMin = malloc(sizeof(t_worker));
 	workerMin = listaNodos->head->data;
 	t_worker* workerActual = malloc(sizeof(t_worker));
@@ -321,7 +312,29 @@ void planificacionWClock(t_list* listaNodos){//Esta seria la lista o diccionario
 				valor = listaNodos->head;
 		}
 	}
-	printf("Clock Terminaado");
+	realizarTransformacionNodos(idJob);
+	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
+}
+
+int getSocketMaster(int idJob){
+	char* job = string_itoa(idJob);
+	int* socket = dictionary_get(diccionarioMasters, job);
+	return *socket;
+}
+
+void realizarTransformacionNodos(idJob){
+	int socketMaster = getSocketMaster(idJob);
+	int i,j;
+	for(i=0; i<list_size(nodosDisponibles);i++){
+		t_worker* nodo = list_get(nodosDisponibles, i);
+		nodo->etapaActiva = TRANSFORMACION;
+		for(j=0; j<list_size(nodo->bloquesAEjecutar);j++){
+			char* bloqueChar = list_get(nodo->bloquesAEjecutar,j);
+			uint16_t bloque = bloqueChar[0] - '0'; // Esto convierte el '1' a 1
+			char* archivoTemporal = getNombreArchivoTemporal(idJob, bloque, TRANSFORMACION, nodo->id);
+			send_INFO_TRANSFORMACION(socketMaster, nodo->puerto, nodo->ip, bloque, 1048576, archivoTemporal);
+		}
+	}
 }
 
 int existeEn(t_list* lista , char* dato){

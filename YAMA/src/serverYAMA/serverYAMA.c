@@ -24,16 +24,18 @@
 #include "../YAMA.h"
 
 extern t_log* logs;
+static int idUltimoMasterCreado = 1;
 
 #define BACKLOG       5
 
+void agregarADiccionarioMaster(int idUltimoMasterCreado, int socket){
+	int* socketMaster = socket;
+	char* keyMaster = string_itoa(idUltimoMasterCreado);
+	dictionary_put(diccionarioMasters, keyMaster, socketMaster);
+	idUltimoMasterCreado += 1;
+}
 
 void init_serverYAMA(int puertoEscucha){
-
-	// Variable de estado que devuelven las respuestas a solicitudes
-	YAMA_STATUS status;
-
-	int* idUltimoMasterCreado = 1;
 
 	// Recibir conexion
 	int listener = crear_listener(puertoEscucha);
@@ -80,7 +82,6 @@ void init_serverYAMA(int puertoEscucha){
 								fdmax = nuevoCliente;
 								}
 							agregarADiccionarioMaster(idUltimoMasterCreado, i);
-							*idUltimoMasterCreado += 1;
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);

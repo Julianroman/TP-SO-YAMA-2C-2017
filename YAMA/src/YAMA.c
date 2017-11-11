@@ -39,12 +39,6 @@ void crearLog(){
 	logYAMA = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
 }
 
-void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket){
-	int* socketMaster = socket;
-	char* keyMaster = string_itoa(idUltimoMasterCreado);
-	dictionary_put(diccionarioMasters, keyMaster, socketMaster);
-}
-
 int main(void) {
 	puts("Comienza el proceso YAMA");
 	crearLog();
