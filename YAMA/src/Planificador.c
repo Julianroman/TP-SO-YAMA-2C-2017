@@ -326,15 +326,22 @@ int getSocketMaster(int idJob){
 	return *socket;
 }
 
+int charToInt(char* c){
+	return atoi(c);
+}
+
 void realizarTransformacionNodos(idJob){
 	int socketMaster = getSocketMaster(idJob);
 	int i,j;
 	for(i=0; i<list_size(nodosDisponibles);i++){
 		t_worker* nodo = list_get(nodosDisponibles, i);
 		nodo->etapaActiva = TRANSFORMACION;
+		//Aca paso la lista de chars a ints
+		nodo->bloquesAEjecutar = list_map(nodo->bloquesAEjecutar, (void*) charToInt);
 		for(j=0; j<list_size(nodo->bloquesAEjecutar);j++){
-			char* bloqueChar = list_get(nodo->bloquesAEjecutar,j);
-			uint16_t bloque = bloqueChar[0] - '0'; // Esto convierte el '1' a 1
+			int bloque = list_get(nodo->bloquesAEjecutar,j);
+			//char* bloqueChar = list_get(nodo->bloquesAEjecutar,j);
+			//uint16_t bloque = bloqueChar[0] - '0'; // Esto convierte el '1' a 1
 			char* archivoTemporal = getNombreArchivoTemporal(idJob, bloque, TRANSFORMACION, nodo->id);
 			send_INFO_TRANSFORMACION(socketMaster, nodo->puerto, nodo->ip, bloque, 1048576, archivoTemporal);
 		}
