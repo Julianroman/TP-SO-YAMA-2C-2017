@@ -1,7 +1,6 @@
 #include "funcionesFS.h"
 
 t_log *log; // Log file
-int32_t miPuerto = 5040; // Puerto de conexion
 
 int32_t tamanioBloques = 1048576; // tamaño bloques 1MB
 
@@ -10,7 +9,7 @@ t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
 
 static char *directorioRaiz = "root/";
-static char *pathArchivos = "root/metadata/archivos/";
+static char *pathArchivos = "metadata/archivos/";
 
 
 
@@ -34,12 +33,12 @@ void directory_destroy(t_directory *self) {
     free(self);
 }
 
-/*void servidorFs(int puerto){
+void servidorFs(int puerto){
 
 	fd_set master, masterAux; // conjunto maestro de descriptores de fichero y uno auxiliar para el select()
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&masterAux);
-	diccionario= dictionary_create();
+	t_dictionary* diccionario= dictionary_create();
 
 	// obtener socket a la escucha
 	int servidor = socket(AF_INET, SOCK_STREAM, 0);
@@ -126,14 +125,14 @@ void directory_destroy(t_directory *self) {
 						payload_PRESENTACION_DATANODE * payload = data;
 						//payload tiene toda la info
 						dictionary_put(diccionario, proceso, payload->id_dataNode);
-						/*int my_net_id;
+						int my_net_id;
 						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
 						buffer[bytesRecibidos] = '\0';
 						int id = ntohl(my_net_id);
 
 						if(id == 1){ //Si es dataNode
-							//TODO inicializarNodo. Falta nro nodo
-							inicializarNodo(2, i);
+							// TODO inicializarNodo
+							inicializarNodo(payload->pid, id, payload->cantidad_bloques);
 						}
 
 						//vector[i] = tipo_proceso(id);
@@ -162,7 +161,7 @@ void directory_destroy(t_directory *self) {
 			}
 		}
 		free(buffer);
-}*/
+}
 
 void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino){
 
@@ -271,11 +270,6 @@ void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino){
 
 }
 
-typedef struct {
-	t_nodo *nodo;
-	int bloque;
-} t_bloque_libre;
-
 // Trae 2 bloques para original y copia
 // La idea es lograr que la tabla de nodos este lo mas balanceada posible
 // O sea, traer siempre los bloques con mayor cantidad de bloques libres
@@ -326,6 +320,7 @@ static t_bloque_libre *traerBloquesLibres() {
 	retVal[1].nodo = list_get(listaDeNodos,nSegundoMayor);
 	retVal[1].bloque = proximoBloqueLibre(retVal[1].nodo);
 	//Modifico el bitmap del nodo
+	// TODO: verificar que no sea -1
 	escribirBloqueLibre(retVal[1].nodo, retVal[1].bloque);
 
 	return retVal;
@@ -395,6 +390,13 @@ static t_list *cortar_modo_texto(FILE *in){ //TODO pasar a fread
 					size_concat = strlen(text) * sizeof(char);
 					//printf("%s\n",text);
 					//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
+					t_pagina *nodo = malloc(sizeof(t_pagina));
+					nodo->tamanio = size_concat;
+					nodo->contenido = malloc(size_concat);
+					memcpy(nodo->contenido,text,size_concat);
+					list_add(retVal, nodo);
+
+
 					bloq ++;
 					text = string_new();
 				}
@@ -404,6 +406,12 @@ static t_list *cortar_modo_texto(FILE *in){ //TODO pasar a fread
 				size_concat = strlen(text) * sizeof(char);
 				//printf("%s\n",text);
 				//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
+				t_pagina *nodo = malloc(sizeof(t_pagina));
+				nodo->tamanio = size_concat;
+				nodo->contenido = malloc(size_concat);
+				memcpy(nodo->contenido,text,size_concat);
+				list_add(retVal, nodo);
+
 				bloq ++;
 			}
 			free(str1);
@@ -447,16 +455,29 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 	string_append(&indicePath, string_itoa(indice));
 	puts(indicePath);
 	// Creo el directorio del path (Si no existe)
-	createDirectory(indicePath); //TODO no me esta creando la carpeta
+	createDirectory(indicePath);
 	// Concateno el path con el nombre del archivo
 	string_append(&indicePath, "/");
 	string_append(&indicePath, arrayDestino[cant - 1]);
 
+	// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
+	// Seria la tabla de archivos
+	char *pathArchivoConfig = string_new();
+	string_append(&pathArchivoConfig, directorioRaiz);
+	string_append(&pathArchivoConfig, indicePath);
+
+	int archivo = fopen(pathArchivoConfig, "w");
+	t_config *fileExport = config_create(pathArchivoConfig);
+	config_set_value(fileExport, "", destino);
+	if(strcmp(tipo, "txt") == 0)
+		config_set_value(fileExport, "TIPO", "TEXTO");
+	else
+		config_set_value(fileExport, "TIPO", "BINARIO");
 
 	// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
 	// Refleja el archivo leido
-	// En el caso de binario, todos los bloques miden lo mismo posiblemente salvo el ultimo
-	// En el caso de texto, cada bloque ide 1M o menos
+	// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
+	// En el caso de texto, cada bloque mide 1MB o menos
 
 	FILE *in;
 
@@ -483,18 +504,18 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 	// Itero entre las paginas de la lista y se las mando a dataNode
 	for ( i=0; i<list_size(lista_de_paginas); i++){
 		t_pagina *pagina = list_get(lista_de_paginas, i);
+		char* bloqueNro = string_new();
+		string_append(&bloqueNro, "BLOQUE");
+		string_append(&bloqueNro, string_itoa(i));
+		string_append(&bloqueNro, "BYTES");
+		config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
 		enviarADataNode(pagina);
 		free(pagina->contenido);
 		free(pagina);
+		//free(bloqueNro);
 
 	}
 
-	int archivo = fopen(indicePath, "w");
-	t_config* fileExport = config_create(indicePath);
-	if(strcmp(tipo, "txt"))
-		config_set_value(fileExport, "TIPO", "TEXTO");
-	else
-		config_set_value(fileExport, "TIPO", "BINARIO");
 
 	config_save(fileExport);
 	config_save_in_file(fileExport, indicePath);

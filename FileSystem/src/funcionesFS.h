@@ -8,7 +8,7 @@
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
-//#include <utilidades/Sockets.c>
+#include <utilidades/Sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 
 #define TOTALDIRECTORIOS 100
@@ -64,6 +65,11 @@ typedef struct {
     return new;
 }*/
 
+typedef struct {
+	t_nodo *nodo;
+	int bloque;
+} t_bloque_libre;
+
 void directory_destroy(t_directory *self);
 
 
@@ -72,6 +78,7 @@ void servidorFs(int puerto);
 
 void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino);
 
+static t_bloque_libre *traerBloquesLibres();
 
 int enviarADataNode(t_pagina *unaPagina);
 
