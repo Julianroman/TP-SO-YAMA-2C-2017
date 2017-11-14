@@ -132,7 +132,7 @@ void servidorFs(int puerto){
 
 						if(id == 1){ //Si es dataNode
 							// TODO inicializarNodo
-							inicializarNodo(payload->pid, id, payload->cantidad_bloques);
+							inicializarNodo(payload->pid, i, payload->cantidad_bloques);
 						}
 
 						//vector[i] = tipo_proceso(id);
