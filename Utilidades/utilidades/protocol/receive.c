@@ -80,6 +80,9 @@ void* receive(int socket,HEADER_T* cabecera){
         case FRACASO_OPERACION:
         /* Carece de Payload */
         break;
+        case SCRIPT:
+        payload = unpack_SCRIPT(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;

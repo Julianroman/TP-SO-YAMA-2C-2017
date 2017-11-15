@@ -187,7 +187,7 @@ void send_FIN_COMUNICACION(int socket){
 };
 
 void send_ARCHIVO(int socket , int archivo_fd){
-
+	//
 	struct stat buffer;
 	int status = fstat(archivo_fd,&buffer);
 	if(status != 0){
@@ -283,6 +283,17 @@ void send_FRACASO_OPERACION(int socket){
 
     int tamanio_paquete;
     char* paquete = pack_FRACASO_OPERACION(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_SCRIPT(int socket , char* contenido){
+    payload_SCRIPT payload;
+    payload.tamanio_contenido = (strlen(contenido)+1)*sizeof(char);
+    payload.contenido = contenido; 
+
+    int tamanio_paquete;
+    char* paquete = pack_SCRIPT(payload,&tamanio_paquete);
     enviar_paquete(socket,paquete,tamanio_paquete);
     free(paquete);
 };

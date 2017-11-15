@@ -542,3 +542,26 @@ char* pack_FRACASO_OPERACION(payload_FRACASO_OPERACION payload,int* tamanio_paqu
     return paquete;
 };
 
+char* pack_SCRIPT(payload_SCRIPT payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + (payload.tamanio_contenido);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = SCRIPT;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint16_t);
+    memcpy(paquete+offset,&(payload.tamanio_contenido),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_contenido);
+    memcpy(paquete+offset,payload.contenido,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+

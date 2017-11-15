@@ -318,3 +318,16 @@ void* unpack_RESPUESTA_MASTER(int socket){
     return (void*)payload;
 };
 
+void* unpack_SCRIPT(int socket){
+    payload_SCRIPT *payload= malloc(sizeof(payload_SCRIPT));
+
+    recv(socket,&(payload->tamanio_contenido),sizeof(uint16_t),0);
+    uint16_t  tamanio_contenido = payload->tamanio_contenido;
+
+    char* contenido = malloc(tamanio_contenido);
+    recv(socket,contenido,tamanio_contenido,0);
+    payload->contenido = contenido;
+
+    return (void*)payload;
+};
+
