@@ -18,6 +18,7 @@
 #include "operaciones.h"
 
 extern t_log* logger;
+extern char* scriptReductor;
 
 STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	log_trace(logger, "Reduccion global iniciada");
@@ -58,6 +59,8 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		// TODO destruir payload
 	}
 	send_FIN_LISTA(socketWorker);
+
+	send_SCRIPT(socketWorker,scriptReductor);
 
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){

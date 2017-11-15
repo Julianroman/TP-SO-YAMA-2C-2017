@@ -18,9 +18,9 @@
 
 
 extern int transformacionesRestantes;
-extern int transformador_fd;
 extern t_log* logger;
 extern pthread_mutex_t transformationManager;
+extern char* scriptTransformador;
 
 void* rutina_transformacion(void* args);
 
@@ -41,16 +41,13 @@ STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data)
 
 void* rutina_transformacion(void* args){
 
-
 	HEADER_T header;
 	payload_INFO_TRANSFORMACION* payload = args;
 
 	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
-
-	send_ARCHIVO(socketWorker,transformador_fd);
-
+	send_SCRIPT(socketWorker,scriptTransformador);
 
 	// Recibir resultado
 	receive(socketWorker,&header);

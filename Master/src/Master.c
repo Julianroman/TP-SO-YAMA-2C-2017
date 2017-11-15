@@ -41,9 +41,8 @@ int transformacionesRestantes;
 int masterID;
 int socketYAMA;
 
-int transformador_fd;
-char* ruta_transformador;
-int reductor_fd;
+char* scriptTransformador;
+char* scriptReductor;
 
 
 void leerConfiguracion(){
@@ -56,6 +55,25 @@ void leerConfiguracion(){
 	config_destroy(archivo_configuracion);
 }
 
+char* scriptToChar(char* path){
+	char *file_contents;
+	long input_file_size;
+	FILE *input_file = fopen(path, "rb");
+	fseek(input_file, 0, SEEK_END);
+	input_file_size = ftell(input_file);
+	rewind(input_file);
+	file_contents = malloc(input_file_size * (sizeof(char)));
+	fread(file_contents, sizeof(char), input_file_size, input_file);
+	fclose(input_file);
+	return file_contents;
+}
+
+void tituloFancy(){
+	printf("\e[1;1H\e[2J");
+		puts("\n                   ██╗   ██╗ █████╗ ███╗   ███╗ █████╗ \n                   ╚██╗ ██╔╝██╔══██╗████╗ ████║██╔══██╗\n                    ╚████╔╝ ███████║██╔████╔██║███████║\n                     ╚██╔╝  ██╔══██║██║╚██╔╝██║██╔══██║\n                      ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║\n                      ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝\n");
+		puts("┬ ┬┌─┐┌┬┐  ┌─┐┌┐┌┌─┐┌┬┐┬ ┬┌─┐┬─┐  ┌┬┐┬─┐  ┌─┐┌┬┐┌┬┐┬┌┐┌┬┌─┐┌┬┐┬─┐┌─┐┌┬┐┌─┐┬─┐\n└┬┘├┤  │   ├─┤││││ │ │ ├─┤├┤ ├┬┘  │││├┬┘  ├─┤ ││││││││││└─┐ │ ├┬┘├─┤ │ │ │├┬┘\n ┴ └─┘ ┴   ┴ ┴┘└┘└─┘ ┴ ┴ ┴└─┘┴└─  ┴ ┴┴└─  ┴ ┴─┴┘┴ ┴┴┘└┘┴└─┘ ┴ ┴└─┴ ┴ ┴ └─┘┴└─");
+}
+
 
 int main(int argc, char **argv) {
 	// Recibir parametros
@@ -63,30 +81,22 @@ int main(int argc, char **argv) {
 		puts("Accion incorrecta, debe ser: Master <archivo yamafs> <transformador> <reductor>");
 		return 1;
 	}
-	// Necesito un recreo
-	printf("\e[1;1H\e[2J");
-	puts("\n                   ██╗   ██╗ █████╗ ███╗   ███╗ █████╗ \n                   ╚██╗ ██╔╝██╔══██╗████╗ ████║██╔══██╗\n                    ╚████╔╝ ███████║██╔████╔██║███████║\n                     ╚██╔╝  ██╔══██║██║╚██╔╝██║██╔══██║\n                      ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║\n                      ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝\n");
-	puts("┬ ┬┌─┐┌┬┐  ┌─┐┌┐┌┌─┐┌┬┐┬ ┬┌─┐┬─┐  ┌┬┐┬─┐  ┌─┐┌┬┐┌┬┐┬┌┐┌┬┌─┐┌┬┐┬─┐┌─┐┌┬┐┌─┐┬─┐\n└┬┘├┤  │   ├─┤││││ │ │ ├─┤├┤ ├┬┘  │││├┬┘  ├─┤ ││││││││││└─┐ │ ├┬┘├─┤ │ │ │├┬┘\n ┴ └─┘ ┴   ┴ ┴┘└┘└─┘ ┴ ┴ ┴└─┘┴└─  ┴ ┴┴└─  ┴ ┴─┴┘┴ ┴┴┘└┘┴└─┘ ┴ ┴└─┴ ┴ ┴ └─┘┴└─");
-	// Inicializar logs
-	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
-	log_trace(logger, "Comienza proceso Master");
 
+	// Imprimir titulo
+	tituloFancy();
+
+	// Abrir archivos
 	char* ruta_yamafs        = argv[1];
 	char* ruta_transformador = argv[2];
 	char* ruta_reductor      = argv[3];
 
-	// Abrir archivos
-	transformador_fd = open(ruta_transformador, O_RDONLY);
-	if(transformador_fd == -1){
-		log_error(logger, "No se pudo leer el script transformador.\n");
-		return EXIT_FAILURE;
-	}
+	scriptTransformador = scriptToChar(ruta_transformador);
+	scriptReductor = scriptToChar(ruta_reductor);
 
-	reductor_fd = open(ruta_reductor, O_RDONLY);
-	if(reductor_fd == -1){
-		log_error(logger, "No se pudo leer el script reductor.\n");
-		return EXIT_FAILURE;
-	}
+
+	// Inicializar logs
+	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
+	log_trace(logger, "Comienza proceso Master");
 
 	sem_init(&reductionThreads, 0, 0);
 
@@ -144,9 +154,8 @@ int main(int argc, char **argv) {
 	getchar();
 
 	// Cerranding ...
-	close(transformador_fd);
-	close(reductor_fd);
 	free(ipYama);
 	return EXIT_SUCCESS;
 }
+
 
