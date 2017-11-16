@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
 
 extern t_log* logger;
 
@@ -55,7 +56,9 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
     // Borro el script
     remove(path);
-
+    srand((unsigned)time(NULL));
+    int random = rand() % 3;
+    sleep(random);
 	send_EXITO_OPERACION(socket_cliente);
 	exit(EXIT_SUCCESS);
 
