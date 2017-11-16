@@ -17,20 +17,30 @@
 #include "operaciones.h"
 
 
-extern int transformacionesRestantes;
+extern double tiempoTransformacion;
 extern t_log* logger;
-extern pthread_mutex_t transformationManager;
 extern char* scriptTransformador;
+extern int transformacionesRealizadas;
+extern int fallosTransformacion;
+extern int transformacionesEnProceso;
+extern int paralelasEnProceso;
+extern int maxTransformacionesEnProceso;
+extern int maxParalelasEnProceso;
 
 void* rutina_transformacion(void* args);
 
 STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data){
-
-
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
 	log_trace(logger, "Transformacion iniciada");
+	transformacionesRealizadas ++;
+
+	// Verificacion para estadisticas
+	transformacionesEnProceso ++;
+	if(transformacionesEnProceso > maxTransformacionesEnProceso) maxTransformacionesEnProceso = transformacionesEnProceso;
+	paralelasEnProceso++;
+	if(paralelasEnProceso > maxParalelasEnProceso) maxParalelasEnProceso = paralelasEnProceso;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -40,13 +50,20 @@ STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data)
 }
 
 void* rutina_transformacion(void* args){
-
+	time_t inicioEtapa,finEtapa;
 	HEADER_T header;
 	payload_INFO_TRANSFORMACION* payload = args;
+
+
+
+	// Iniciar timer
+	time (&inicioEtapa);
 
 	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
+
+	// Enviar script
 	send_SCRIPT(socketWorker,scriptTransformador);
 
 	// Recibir resultado
@@ -55,6 +72,7 @@ void* rutina_transformacion(void* args){
 		log_info(logger, "Transformacion OK %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+		fallosTransformacion ++;
 		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 	}
 	else{
@@ -62,8 +80,14 @@ void* rutina_transformacion(void* args){
 	}
 	close(socketWorker);
 	// TODO Destruir payload
-	pthread_mutex_lock(&transformationManager);
-		transformacionesRestantes--;
-	pthread_mutex_unlock(&transformationManager);
+
+	// Parar timer y actualizar
+	time (&finEtapa);
+	tiempoTransformacion += difftime(finEtapa,inicioEtapa);
+
+	// Verificacion para estadisticas
+	transformacionesEnProceso --;
+	paralelasEnProceso--;
+
 	pthread_exit(0);
 }

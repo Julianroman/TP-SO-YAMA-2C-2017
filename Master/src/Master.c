@@ -28,52 +28,39 @@
 #include <utilidades/protocol/types.h>
 
 #include "operaciones/operaciones.h"
+#include "funcionesMaster.h"
 
 int puertoYama = 0;
 char* ipYama = "";
 t_log* logger;
-sem_t reductionThreads;
-pthread_mutex_t transformationManager = PTHREAD_MUTEX_INITIALIZER;
 
 int operaciones;
-int reduccionesLocalesRestantes;
-int transformacionesRestantes;
+int reduxLocalesRestantes;
 int masterID;
-int socketYAMA;
 
 char* scriptTransformador;
 char* scriptReductor;
 
+int transformacionesEnProceso;
+int reduxLocalesEnProceso;
+int paralelasEnProceso;
 
-void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg";
-	t_config* archivo_configuracion = config_create(path);
-	puertoYama = config_get_int_value(archivo_configuracion, "YAMA_PUERTO");
-	char* pivote = config_get_string_value(archivo_configuracion, "YAMA_IP");
-	ipYama = malloc(strlen(pivote)+1);
-	strcpy(ipYama, pivote);
-	config_destroy(archivo_configuracion);
-}
+int maxTransformacionesEnProceso = 0;
+int maxReduxLocalesEnProceso = 0;
+int maxParalelasEnProceso = 0;
 
-char* scriptToChar(char* path){
-	char *file_contents;
-	long input_file_size;
-	FILE *input_file = fopen(path, "rb");
-	fseek(input_file, 0, SEEK_END);
-	input_file_size = ftell(input_file);
-	rewind(input_file);
-	file_contents = malloc(input_file_size * (sizeof(char)));
-	fread(file_contents, sizeof(char), input_file_size, input_file);
-	fclose(input_file);
-	return file_contents;
-}
+int transformacionesRealizadas;
+int reduxLocalesRealizadas;
 
-void tituloFancy(){
-	printf("\e[1;1H\e[2J");
-		puts("\n                   ██╗   ██╗ █████╗ ███╗   ███╗ █████╗ \n                   ╚██╗ ██╔╝██╔══██╗████╗ ████║██╔══██╗\n                    ╚████╔╝ ███████║██╔████╔██║███████║\n                     ╚██╔╝  ██╔══██║██║╚██╔╝██║██╔══██║\n                      ██║   ██║  ██║██║ ╚═╝ ██║██║  ██║\n                      ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝\n");
-		puts("┬ ┬┌─┐┌┬┐  ┌─┐┌┐┌┌─┐┌┬┐┬ ┬┌─┐┬─┐  ┌┬┐┬─┐  ┌─┐┌┬┐┌┬┐┬┌┐┌┬┌─┐┌┬┐┬─┐┌─┐┌┬┐┌─┐┬─┐\n└┬┘├┤  │   ├─┤││││ │ │ ├─┤├┤ ├┬┘  │││├┬┘  ├─┤ ││││││││││└─┐ │ ├┬┘├─┤ │ │ │├┬┘\n ┴ └─┘ ┴   ┴ ┴┘└┘└─┘ ┴ ┴ ┴└─┘┴└─  ┴ ┴┴└─  ┴ ┴─┴┘┴ ┴┴┘└┘┴└─┘ ┴ ┴└─┴ ┴ ┴ └─┘┴└─");
-}
+int fallosTransformacion;
+int fallosReduxLocal;
+int fallosReduxGlobal;
+int fallosAlmacenamiento;
 
+double tiempoTransformacion;
+double tiempoReduxLocal;
+double tiempoReduxGlobal;
+double tiempoAlmacenamiento;
 
 int main(int argc, char **argv) {
 	// Recibir parametros
@@ -82,14 +69,18 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+
 	// Imprimir titulo
-	tituloFancy();
+	tituloMaster();
+
+	// Iniciar timer
+	time_t inicioJob,finJob;
+	time (&inicioJob);
+
 
 	// Abrir archivos
-	char* ruta_yamafs        = argv[1];
 	char* ruta_transformador = argv[2];
 	char* ruta_reductor      = argv[3];
-
 	scriptTransformador = scriptToChar(ruta_transformador);
 	scriptReductor = scriptToChar(ruta_reductor);
 
@@ -98,15 +89,14 @@ int main(int argc, char **argv) {
 	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
 	log_trace(logger, "Comienza proceso Master");
 
-	sem_init(&reductionThreads, 0, 0);
-
 
 	// Leer configuracion
-	leerConfiguracion();
+	//char* path = ;
+	leerConfiguracion("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg", &ipYama,&puertoYama);
 	log_trace(logger, "Configuracion leida");
 
 	// Conectarse al YAMA
-	socketYAMA = crear_conexion(ipYama,puertoYama);
+	int socketYAMA = crear_conexion(ipYama,puertoYama);
 	if(socketYAMA != -1){
 		log_trace(logger, "Conectado al administrador en %s:%d / socket:%d",ipYama,puertoYama,socketYAMA);
 	}else{
@@ -115,45 +105,63 @@ int main(int argc, char **argv) {
 	}
 
 	// Enviar solicitud de procesamiento
+	char* ruta_yamafs = argv[1];
 	send_SOLICITUD_JOB(socketYAMA,ruta_yamafs);
 
-	//Inicializar
-	inicializacion();
+	// Recibir Job
+	recibirJob(socketYAMA,&masterID);
 
-	// Escuchar Informaciones
+	// Escuchar al administrador
+	int jobTerminado = 0;
 	HEADER_T header;
 	void *data;
 
-	data = receive(socketYAMA,&header);
-	while(header != INFO_REDUCCIONGLOBAL){
-
-		if(header==INFO_TRANSFORMACION) transformacion (socketYAMA, data);
-		if(header==INFO_REDUCCIONLOCAL)	reduccionLocal (socketYAMA, data);
+	while(jobTerminado == 0){
 		data = receive(socketYAMA,&header);
+
+		switch (header) {
+			case INFO_TRANSFORMACION:
+				transformacion (socketYAMA, data);
+				break;
+			case INFO_REDUCCIONLOCAL:
+				reduccionLocal (socketYAMA, data);
+				break;
+			case INFO_REDUCCIONGLOBAL:
+				reduccionGlobal (socketYAMA, data);
+				break;
+			case INFO_ALMACENAMIENTO:
+				almacenamiento (socketYAMA, data);
+				jobTerminado = 1;
+				break;
+			default:
+				log_warning(logger, "No se reconoce la instruccion del administrador.\n");
+				break;
+		}
+
 	}
 
-	// Esperar a todos los hilos de reduccion
-	// antes de avanzar
-	int i;
-	for(i=0;i<operaciones;i++){
-		sem_wait(&reductionThreads);
-	}
+	// Parar timer de job
+	sleep(1);
+	time (&finJob);
+	// Mostrar estadisticas
+	printf("\x1b[33mEstadisticas de ejecucion\n\n");
+	printf("Duracion total                                            : %.2lf segundos\n",difftime(finJob,inicioJob));
+	printf("Duracion promedio de transformacion                       : %.2lf segundos.\n",tiempoTransformacion/(transformacionesRealizadas-fallosTransformacion));
+	printf("Duracion promedio de reduccion local                      : %.2lf segundos.\n",tiempoReduxLocal/(reduxLocalesRealizadas-fallosReduxLocal));
+	printf("Duracion de reduccion global                              : %.2lf segundos.\n",tiempoReduxGlobal);
+	printf("Duracion de almacenamiento                                : %.2lf segundos.\n",tiempoAlmacenamiento);
+	printf("Cantidad de transformaciones                              : %d transformaciones.\n",transformacionesRealizadas);
+	printf("Fallos de transformaciones                                : %d fallas.\n",fallosTransformacion);
+	printf("Cantidad de reducciones locales                           : %d reducciones.\n",reduxLocalesRealizadas);
+	printf("Fallos de reducciones locales                             : %d fallas.\n",fallosReduxLocal);
+	printf("Maxima cantidad de transformaciones\ncorriendo en paralelo                                     : %d transformaciones.\n",maxTransformacionesEnProceso);
+	printf("Maxima cantidad de reducciones locales\ncorriendo en paralelo                                     : %d reducciones.\n",maxReduxLocalesEnProceso);
+	printf("Maxima cantidad de reducciones locales y transformaciones\ncorriendo en paralelo                                     : %d operaciones.\n",maxParalelasEnProceso);
 
-	if(header == INFO_REDUCCIONGLOBAL){
-		reduccionGlobal (socketYAMA, data);
-	}
-	data = receive(socketYAMA,&header);
-	if(header == INFO_ALMACENAMIENTO){
-		almacenamiento (socketYAMA, data);
-	}
-
-	// TODO Mostrar estadisticas
-	printf("\x1b[33mEstadisticas de ejecucion\n\x1b[0m");
-
-	printf("\x1b[33mPresione INTRO para terminar...\n \x1b[0m");
+	printf("\nPresione INTRO para terminar...\n \x1b[0m");
 	getchar();
 
-	// Cerranding ...
+	// Cerrar
 	free(ipYama);
 	return EXIT_SUCCESS;
 }

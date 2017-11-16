@@ -17,8 +17,11 @@
 #include "operaciones.h"
 
 extern t_log* logger;
+extern double tiempoAlmacenamiento;
 
 STATUS_MASTER almacenamiento(int socketYAMA, void* data){
+	time_t inicioEtapa,finEtapa;
+	time (&inicioEtapa);
 	log_trace(logger, "Almacenamiento final iniciado");
 	payload_INFO_ALMACENAMIENTO* payload = data;
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
@@ -41,5 +44,7 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	close(socketWorker);
 	// TODO destruir payload
 	log_trace(logger, "Almacenamiento finalizado");
+	time (&finEtapa);
+	tiempoAlmacenamiento += difftime(finEtapa,inicioEtapa);
 	return EXITO;
 };

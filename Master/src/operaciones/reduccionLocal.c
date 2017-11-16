@@ -17,8 +17,14 @@
 #include "operaciones.h"
 
 extern t_log* logger;
-extern sem_t reductionThreads;
+extern double tiempoReduxLocal;
 extern char* scriptReductor;
+extern int reduxLocalesRealizadas;
+extern int fallosReduxLocal;
+extern int reduxLocalesEnProceso;
+extern int paralelasEnProceso;
+extern int maxReduxLocalesEnProceso;
+extern int maxParalelasEnProceso;
 
 void* rutina_reduccionLocal(void* args);
 
@@ -27,8 +33,14 @@ STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data)
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
-
 	log_trace(logger, "Reduccion local iniciada");
+	reduxLocalesRealizadas ++;
+
+	// Verificacion para estadisticas
+	reduxLocalesEnProceso ++;
+	if(reduxLocalesEnProceso > maxReduxLocalesEnProceso) maxReduxLocalesEnProceso = reduxLocalesEnProceso;
+	paralelasEnProceso++;
+	if(paralelasEnProceso > maxParalelasEnProceso) maxParalelasEnProceso = paralelasEnProceso;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -38,13 +50,18 @@ STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data)
 }
 
 void* rutina_reduccionLocal(void* args){
+	time_t inicioEtapa,finEtapa;
 	HEADER_T header;
 	payload_INFO_REDUCCIONLOCAL* payload = args;
+
+	// Iniciar timer
+	time (&inicioEtapa);
 
 	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 
+	// Enviar script
 	send_SCRIPT(socketWorker,scriptReductor);
 
 	// Recibir resultado
@@ -53,6 +70,7 @@ void* rutina_reduccionLocal(void* args){
 		log_info(logger, "Redux local OK %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+		fallosReduxLocal ++;
 		log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	}
 	else{
@@ -61,7 +79,15 @@ void* rutina_reduccionLocal(void* args){
 
 	close(socketWorker);
 	// TODO Destruir payload
-	sem_post(&reductionThreads);
+
+	// Parar timer y actualizar
+	time (&finEtapa);
+	tiempoReduxLocal += difftime(finEtapa,inicioEtapa);
+
+	// Verificacion para estadisticas
+	reduxLocalesEnProceso --;
+	paralelasEnProceso--;
+
 	pthread_exit(0);
 }
 

@@ -10,7 +10,6 @@
 
 typedef enum {EXITO,DESCONECTADO} STATUS_MASTER;
 
-STATUS_MASTER inicializacion();
 
 STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data);
 STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data);

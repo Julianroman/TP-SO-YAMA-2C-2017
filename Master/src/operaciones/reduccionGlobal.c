@@ -19,8 +19,11 @@
 
 extern t_log* logger;
 extern char* scriptReductor;
+extern double tiempoReduxGlobal;
 
 STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
+	time_t inicioEtapa,finEtapa;
+	time (&inicioEtapa);
 	log_trace(logger, "Reduccion global iniciada");
 	HEADER_T            header;
 	payload_INFO_REDUCCIONGLOBAL* payload   = data;
@@ -77,5 +80,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	queue_destroy(colaDeInformaciones);
 
 	log_trace(logger, "Reduccion global finalizada");
+	time (&finEtapa);
+	tiempoReduxGlobal += difftime(finEtapa,inicioEtapa);
 	return EXITO;
 };
