@@ -326,21 +326,50 @@ static t_bloque_libre *traerBloquesLibres() {
 	return retVal;
 }
 
-int enviarADataNode(t_pagina *unaPagina){
+int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
+	char *nombreBloque;
+	char *almacenamientoBloque;
 
 	// Busco 2 nodos con bloques libres
 	t_bloque_libre *bloquesLibres = traerBloquesLibres();
 
 	// Envio el original
+	nombreBloque = string_new();
+	almacenamientoBloque = string_new();
+
+	string_append(&nombreBloque, "BLOQUE");
+	string_append(&nombreBloque, string_itoa(nroBloque));
+	string_append(&nombreBloque, "COPIA");
+	string_append(&nombreBloque, "0");
 	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[0].nodo->nroNodo, bloquesLibres[0].bloque);
+	string_append(&almacenamientoBloque, "[Nodo");
+	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].nodo->nroNodo));
+	string_append(&almacenamientoBloque, ", ");
+	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].bloque));
+	string_append(&almacenamientoBloque, "]");
+	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
 	// Envio la copia
-	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+	nombreBloque = string_new();
+	almacenamientoBloque = string_new();
 
+	string_append(&nombreBloque, "BLOQUE");
+	string_append(&nombreBloque, string_itoa(nroBloque));
+	string_append(&nombreBloque, "COPIA");
+	string_append(&nombreBloque, "1");
+	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+	string_append(&almacenamientoBloque, "[Nodo");
+	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
+	string_append(&almacenamientoBloque, ", ");
+	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
+	string_append(&almacenamientoBloque, "]");
+	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 	//TODO Enviar contenido a cada data node
 
 	// Libero la estructura
 	free(bloquesLibres);
+	free(nombreBloque);
+	free(almacenamientoBloque);
 
 
 	return 0;
@@ -440,25 +469,40 @@ static t_list *cortar_modo_binario(FILE *in){
 	return retVal;
 }
 
-int almacenarArchivo(char *location, char *destino, char *tipo){
+int almacenarArchivo(char *location, char *name, char *tipo){
 	// Para crear la tabla de archivos
 	// Separo el path del destino con las /
-	char **arrayDestino = string_split(destino, "/");
-	int cant;
-	cant = strlen(arrayDestino) / sizeof(char*);
+	char *pathCompleto = string_new();
+	pathCompleto = string_duplicate(location);
+	if(!string_ends_with(location, "/"))
+		string_append(&pathCompleto, "/");
+
+	string_append(&pathCompleto, name);
+	string_append(&pathCompleto, ".");
+	string_append(&pathCompleto, tipo);
+
+
+
+	char **arrayDestino = string_split(pathCompleto, "/");
+	int cant = 0;
+	while(arrayDestino[cant] != NULL ){
+		cant++;
+	}
+
+	//cant = strlen(arrayDestino) / sizeof(char*); // con esto a veces rompe cant
 	puts(arrayDestino[cant - 2]);
 	// Busco el indice de la carpeta de destino
 	int indice = findDirByname(arrayDestino[cant - 2]);
 	// Concateno el path con el indice y el path de los archivos
-	char* indicePath = string_new();
+	char *indicePath = string_new();
 	string_append(&indicePath, pathArchivos);
 	string_append(&indicePath, string_itoa(indice));
 	puts(indicePath);
-	// Creo el directorio del path (Si no existe)
+	// Creo el directorio de nombre:  numero de indice (Si no existe)
 	createDirectory(indicePath);
 	// Concateno el path con el nombre del archivo
 	string_append(&indicePath, "/");
-	string_append(&indicePath, arrayDestino[cant - 1]);
+	string_append(&indicePath, name);
 
 	// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
 	// Seria la tabla de archivos
@@ -468,7 +512,7 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 
 	int archivo = fopen(pathArchivoConfig, "w");
 	t_config *fileExport = config_create(pathArchivoConfig);
-	config_set_value(fileExport, "", destino);
+	//config_set_value(fileExport, "FILE", destino);
 	if(strcmp(tipo, "txt") == 0)
 		config_set_value(fileExport, "TIPO", "TEXTO");
 	else
@@ -484,7 +528,7 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 	t_list *lista_de_paginas;
 
 	if ( strcmp(tipo,"txt") == 0 ) {
-		if ( (in = fopen(location, "r") ) == NULL ) {
+		if ( (in = fopen(pathCompleto, "r") ) == NULL ) {
 			printf("No se encontro el archivo");
 			return 1;
 		}
@@ -493,7 +537,7 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 
 	}
 	else{
-		if ( (in = fopen(location, "rb") ) == NULL ) {
+		if ( (in = fopen(pathCompleto, "rb") ) == NULL ) {
 			printf("No se encontro el archivo");
 			return 1;
 		}
@@ -509,7 +553,7 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 		string_append(&bloqueNro, string_itoa(i));
 		string_append(&bloqueNro, "BYTES");
 		config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
-		enviarADataNode(pagina);
+		enviarADataNode(pagina, fileExport, i);
 		free(pagina->contenido);
 		free(pagina);
 		//free(bloqueNro);
@@ -522,6 +566,9 @@ int almacenarArchivo(char *location, char *destino, char *tipo){
 
 	fclose(archivo);
 	config_destroy(fileExport);
+	free(pathCompleto);
+	free(indicePath);
+	free(arrayDestino);
 
 
 	return 1;
