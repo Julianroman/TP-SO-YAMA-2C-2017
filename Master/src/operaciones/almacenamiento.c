@@ -16,6 +16,7 @@
 #include <semaphore.h>
 #include "operaciones.h"
 
+extern sem_t fin_job;
 extern t_log* logger;
 extern double tiempoAlmacenamiento;
 
@@ -46,5 +47,6 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	log_trace(logger, "Almacenamiento finalizado");
 	time (&finEtapa);
 	tiempoAlmacenamiento += difftime(finEtapa,inicioEtapa);
+	sem_post(&fin_job);
 	return EXITO;
 };

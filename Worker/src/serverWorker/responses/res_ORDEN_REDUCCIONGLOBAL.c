@@ -63,10 +63,12 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
     // la funcion chmod no me estaria funcionando pero el buen system siempre provee
     char* chmodComand = string_from_format("chmod 777 %s", path);
     system(chmodComand);
+    free(chmodComand);
 
     // Ejecutar
     char* comando = string_from_format("./%s", path);
     system(comando);
+    free(comando);
 
     // Borro el script
     remove(path);

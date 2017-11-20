@@ -35,7 +35,6 @@ char* ipYama = "";
 t_log* logger;
 
 int operaciones;
-int reduxLocalesRestantes;
 int masterID;
 
 char* scriptTransformador;
@@ -62,12 +61,17 @@ double tiempoReduxLocal;
 double tiempoReduxGlobal;
 double tiempoAlmacenamiento;
 
+sem_t fin_job;
+
 int main(int argc, char **argv) {
 	// Recibir parametros
 	if (argc!= 4){
 		puts("Accion incorrecta, debe ser: Master <archivo yamafs> <transformador> <reductor>");
 		return 1;
 	}
+
+	// Inicializar semaforo de fin de job
+	sem_init(&fin_job, 0, 0);
 
 
 	// Imprimir titulo
@@ -91,8 +95,7 @@ int main(int argc, char **argv) {
 
 
 	// Leer configuracion
-	//char* path = ;
-	leerConfiguracion("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/Master/src/master-config.cfg", &ipYama,&puertoYama);
+	leerConfiguracion("master-config.cfg", &ipYama,&puertoYama);
 	log_trace(logger, "Configuracion leida");
 
 	// Conectarse al YAMA
@@ -141,6 +144,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Parar timer de job
+
 	sleep(1);
 	time (&finJob);
 	// Mostrar estadisticas
