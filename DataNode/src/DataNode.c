@@ -8,7 +8,7 @@
  ============================================================================
  */
 
-#include <utilidades/Sockets.c>
+#include <utilidades/Sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -17,15 +17,14 @@
 #include <commons/config.h>
 #include <utilidades/protocol/receive.h>
 
-#define TAMANIOBLOQUE 1024
+#define TAMANIOBLOQUE 10
+#define PATHPOSTA "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/metadata/DataNode.dat"
 //
 int puertoFs = 0;
 int id = 1;
 char* ipFs = "";
 t_log* log;
-int cantidadDeBloques;
-
-
+int cantidadDeBloques = 10;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
@@ -48,9 +47,11 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	clienteDatanode(ipFs, puertoFs, id);
-	//escribirArchivo("metadata/bloquesDataNode.txt", "polenta", 7, 7);
-	//leerArchivo("metadata/archivo.txt", 7, 7);
+	//clienteDatanode(ipFs, puertoFs, id);
+	char * data = "holaquetal";
+	//int size = sizeof(char*) * strlen(data);
+	//escribirArchivo(PATHPOSTA, data, strlen(data), 4);
+	leerArchivo(PATHPOSTA, 4, 4);
 	return EXIT_SUCCESS;
 }
 
@@ -91,7 +92,7 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	if (!(archivo = fopen(path, "r"))){
 		//log_trace(log, "Archivo inexistencia se crea.");
 		archivo = fopen(path,"w");
-		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
+		//ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
 		fclose(archivo);
 	}
 	void* map;
@@ -109,12 +110,14 @@ void leerArchivo(char* path, int size, int nroBloque){
 		//log_error(log, "Archivo inexistencia se crea.");
 	}
 	void* map;
-	void* lectura;
+	char* lectura = malloc(size);
 	archivo = open(path, O_RDONLY);
 	map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, (off_t) 0);
 	//Se guarda en lectura lo leido desde el offset
-	memcpy(&lectura, map + offset, size);
+	memcpy(lectura, map + offset, size);
+	lectura[size] = '\0';
 	close(archivo);
-	printf("El bloque %d dice: %s", nroBloque, &lectura);
+	printf("El bloque %d dice: %s \n", nroBloque, lectura);
+	free(lectura);
 }
 
