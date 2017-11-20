@@ -29,18 +29,33 @@ void iniciarPlanificacion(char* nombreArchivo){
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster();
 
 		if(infoMaster->estado){ //SI LA OPERACION FUE EXITOSA
-			if(nodoTerminoTransformacion(infoMaster->id_nodo)){
-				log_trace(logYAMA, "El nodo %d finalizo transformacion en todos sus bloques. Pasando a reduccion local", infoMaster->id_nodo);
-				realizarReduccionLocal(infoMaster->id_nodo, idJob);
+
+			if(etapaActiva(infoMaster->id_nodo) == TRANSFORMACION){
+				if(nodoTerminoTransformacion(infoMaster->id_nodo)){
+					log_trace(logYAMA, "El nodo %d finalizo transformacion en todos sus bloques. Pasando a reduccion local", infoMaster->id_nodo);
+					realizarReduccionLocal(infoMaster->id_nodo, idJob);
+				}
+				else{
+					t_worker* nodo = getNodo(infoMaster->id_nodo);
+					nodo->cantTareasHistoricas += 1;
+					log_trace(logYAMA, "El nodo %d finalizo transformacion en el bloque %d", infoMaster->id_nodo, infoMaster->bloque);
+				}
 			}
-			else{
+			else {
 				t_worker* nodo = getNodo(infoMaster->id_nodo);
 				nodo->cantTareasHistoricas += 1;
-				log_trace(logYAMA, "El nodo %d finalizo transformacion en el bloque %d", infoMaster->id_nodo, infoMaster->bloque);
+				log_trace(logYAMA, "El nodo %d finalizo Reduccion Local", infoMaster->id_nodo);
 			}
 		}
-		else {
-			replanificar(infoMaster);
+		else { // SI LA OPERACION FUE ERROR
+			if(etapaActiva(infoMaster->id_nodo) == TRANSFORMACION){
+				log_trace(logYAMA, "Replanificando transformacion para Nodo %d Bloque %d", infoMaster->id_nodo, infoMaster->bloque);
+				replanificar(infoMaster);
+			}
+			else {
+				log_error(logYAMA, "Fallo en la reduccion local - Abortando JOB");
+				// ABORTAR JOB
+			}
 		}
 	}
 	t_worker* encargado = elegirEncargadoReduccionGlobal(); //A desarrollar
@@ -109,6 +124,11 @@ void realizarReduccionLocal(int id_nodo, int idJob){
 	nodoPasarAReduccionLocal(nodo);
 }
 
+Tarea etapaActiva(id_nodo){
+	t_worker* nodo = getNodo(id_nodo);
+	return nodo->etapaActiva;
+}
+
 int registroTerminoExitosamente(t_tablaEstados* registroEstado){
 	return registroEstado->estado == EXITO;
 }
@@ -143,12 +163,6 @@ char* getNombreArchivoTemporalRedLocal(int jobId, int nodo){
 	return nombre;
 }
 
-int getSocketMasterId(int id_master){
-	char* keyMaster = string_itoa(id_master);
-	int socketMaster = dictionary_get(diccionarioMasters, keyMaster);
-	return socketMaster;
-}
-
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster(){
 	payload_RESPUESTA_MASTER* infoMaster = list_remove(listaRespuestasMaster, 0); // Lo retorna y después lo remueve de la lista, así siempre si saco el primero de la lista es una instruccion que nunca saqué
 	actualizarEstados(infoMaster);
@@ -177,6 +191,9 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	}
 
 	list_add(TablaEstados, registroEstado);
+	log_trace(logYAMA, "Job %d - Master %d - Nodo %d - Bloque %d - Tarea %s - Archivo Temporal %s - Estado %s",
+			registroEstado->job, registroEstado->master, registroEstado->nodo, registroEstado->bloque, registroEstado->tarea,
+			registroEstado->archivoTemporal, registroEstado->estado);
 }
 
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster){

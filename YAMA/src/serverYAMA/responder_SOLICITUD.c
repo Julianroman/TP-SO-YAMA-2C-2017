@@ -21,7 +21,6 @@ void responder_SOLICITUD(int socket,void* data,HEADER_T tipoDeMensaje){
 void res_SOLICITUD_JOB(int socket,void*  data){
 	payload_SOLICITUD_JOB* payload = data;
 	log_trace(logYAMA,"SOLICITUD_JOB recibida. Empezando planificacion\n");
-
 	//MANDAR A PLANIFICAR
 	iniciarPlanificacion(payload->nombreArchivo);
 }

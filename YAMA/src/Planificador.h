@@ -37,7 +37,7 @@ void realizarTransformacionNodos(int idJob);
 void realizarReduccionLocal(int id_nodo, int idJob);
 
 // FUNCIONES DE NODO
-int getSocketMasterId(int id_master);
+int getSocketMaster(int id_master);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 int todosLosNodosTerminaronReduccionLocal(int idJob);
 int nodoTerminoTransformacion(int idJob);
@@ -46,6 +46,7 @@ t_worker* getNodo(int id);
 int estaActivo(t_worker* worker);
 t_job* getJobDeNodo(int id);
 char* getNombreArchivoTemporalRedLocal(int id_job, int id_nodo);
+Tarea etapaActiva(int id_nodo);
 
 // ACTUALIZACIONES
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta);
