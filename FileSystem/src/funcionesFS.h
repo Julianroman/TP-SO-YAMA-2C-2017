@@ -28,7 +28,7 @@
 
 #define TOTALDIRECTORIOS 100
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
-#define PATHBITMAP "root/metadata/bitmaps/"
+#define PATHBITMAP "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/bitmaps/"
 
 
 
@@ -84,6 +84,8 @@ static t_bloque_libre *traerBloquesLibres();
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char *name, char *tipo);
+
+char *leerArchivo(char *pathConNombre);
 
 void formatear();
 

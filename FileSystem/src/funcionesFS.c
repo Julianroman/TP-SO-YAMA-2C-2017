@@ -8,7 +8,7 @@ int32_t tamanioBloques = 1048576; // tamaño bloques 1MB
 t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
 
-static char *directorioRaiz = "root/";
+static char *directorioRaiz = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/";
 static char *pathArchivos = "metadata/archivos/";
 
 
@@ -489,17 +489,15 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 		cant++;
 	}
 
-	//cant = strlen(arrayDestino) / sizeof(char*); // con esto a veces rompe cant
-	puts(arrayDestino[cant - 2]);
 	// Busco el indice de la carpeta de destino
 	int indice = findDirByname(arrayDestino[cant - 2]);
 	// Concateno el path con el indice y el path de los archivos
 	char *indicePath = string_new();
 	string_append(&indicePath, pathArchivos);
 	string_append(&indicePath, string_itoa(indice));
-	puts(indicePath);
 	// Creo el directorio de nombre:  numero de indice (Si no existe)
 	createDirectory(indicePath);
+
 	// Concateno el path con el nombre del archivo
 	string_append(&indicePath, "/");
 	string_append(&indicePath, name);
@@ -510,7 +508,8 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 	string_append(&pathArchivoConfig, directorioRaiz);
 	string_append(&pathArchivoConfig, indicePath);
 
-	int archivo = fopen(pathArchivoConfig, "w");
+	FILE *archivo = fopen(pathArchivoConfig, "w");
+
 	t_config *fileExport = config_create(pathArchivoConfig);
 	//config_set_value(fileExport, "FILE", destino);
 	if(strcmp(tipo, "txt") == 0)
@@ -570,8 +569,13 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 	free(indicePath);
 	free(arrayDestino);
 
+	return 0;
+}
 
-	return 1;
+char *leerArchivo(char *pathConNombre){
+	//TODO
+
+	return "";
 }
 
 void formatear(){
@@ -585,7 +589,6 @@ void formatear(){
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){
-	//pathBitmap = malloc(1000);
 	char* name = string_itoa(unNodo->nroNodo);
 	char *pathNewBitmap = malloc(1000);
 	strcpy(pathNewBitmap, PATHBITMAP);
@@ -604,7 +607,9 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 	}
 
 	log_trace(log, "El bitmap fue almacenado en: %s", pathNewBitmap);
-	fclose(archivoBitmap);
+
+	fclose(archivoBitmap); // TODO: Rompe
+
 	free(pathNewBitmap);
 }
 
