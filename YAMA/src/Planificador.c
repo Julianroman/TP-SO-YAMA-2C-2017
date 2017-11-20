@@ -53,7 +53,7 @@ void iniciarPlanificacion(char* nombreArchivo){
 				replanificar(infoMaster);
 			}
 			else {
-				// MAL RED LOCAL
+				log_error(logYAMA, "Fallo en la reduccion local - Abortando JOB");
 				// ABORTAR JOB
 			}
 		}
@@ -122,6 +122,11 @@ void realizarReduccionLocal(int id_nodo, int idJob){
 	}
 	list_iterate(nodoConTransformacionTerminada, (void*)realizarRedLocal);
 	nodoPasarAReduccionLocal(nodo);
+}
+
+Tarea etapaActiva(id_nodo){
+	t_worker* nodo = getNodo(id_nodo);
+	return nodo->etapaActiva;
 }
 
 int registroTerminoExitosamente(t_tablaEstados* registroEstado){
