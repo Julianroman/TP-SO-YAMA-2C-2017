@@ -8,7 +8,6 @@
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
-#include <utilidades/Sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

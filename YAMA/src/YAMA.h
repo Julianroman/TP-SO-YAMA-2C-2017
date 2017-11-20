@@ -8,15 +8,26 @@
 #ifndef YAMA_H_
 #define YAMA_H_
 
-#include <utilidades/Sockets.c>
 #include <stdio.h>
 #include <stdlib.h>
-#include <utilidades/protocol/types.h>
-#include <commons/config.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
+#include <commons/config.h>
 #include <commons/string.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/types.h>
 
 // Tipo de dato de uso interno del yama
 // las respuestas deberan retornar un YAMA_STATUS
