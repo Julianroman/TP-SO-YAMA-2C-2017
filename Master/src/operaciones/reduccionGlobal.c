@@ -51,7 +51,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 
 	// Conectarse al encargado
 	int socketWorker = crear_conexion(payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
-	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payload->PUERTO_Worker,payload->IP_Worker,payload->nombreTemporal_ReduccionLocal,payload->nombreTemporal_ReduccionGlobal,payload->encargado);
+	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadEncargado->PUERTO_Worker,payloadEncargado->IP_Worker,payloadEncargado->nombreTemporal_ReduccionLocal,payloadEncargado->nombreTemporal_ReduccionGlobal,payloadEncargado->encargado);
 
 	// Enviar nodos subordinados
 	int i;
