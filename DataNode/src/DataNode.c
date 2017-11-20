@@ -94,10 +94,10 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
 		fclose(archivo);
 	}
-	char* map;
+	void* map;
 	archivo = open(path, O_RDWR);
 	map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, (off_t) 0);
-	strcpy(map + offset, data);
+	memcpy(map + offset, data, size);
 	close(archivo);
 	puts("Escritura Completa");
 }
@@ -106,15 +106,15 @@ void leerArchivo(char* path, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "Archivo inexistencia se crea.");
+		//log_error(log, "Archivo inexistencia se crea.");
 	}
-	char* map;
-	char* lectura;
+	void* map;
+	void* lectura;
 	archivo = open(path, O_RDONLY);
-	map = mmap(NULL, size, PROT_READ, MAP_SHARED, archivo, (off_t) 0);
+	map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, (off_t) 0);
 	//Se guarda en lectura lo leido desde el offset
-	lectura = map + offset;
+	memcpy(&lectura, map + offset, size);
 	close(archivo);
-	printf("El bloque %d dice: %s", nroBloque, lectura);
+	printf("El bloque %d dice: %s", nroBloque, &lectura);
 }
 
