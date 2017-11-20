@@ -17,9 +17,6 @@ t_dictionary* bloques_ejecutados;
 t_dictionary* diccionarioJobs;
 t_list* listaRespuestasMaster;
 
-int idUltimoJobCreado;
-
-
 // FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo);
 void inicializarPlanificador();
