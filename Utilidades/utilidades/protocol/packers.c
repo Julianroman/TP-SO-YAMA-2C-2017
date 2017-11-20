@@ -447,7 +447,7 @@ char* pack_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE payload,int* tama
 };
 
 char* pack_JOB(payload_JOB payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t) + sizeof(uint16_t);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint16_t);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -459,10 +459,6 @@ char* pack_JOB(payload_JOB payload,int* tamanio_paquete){
 
     tamanio_envio = sizeof(uint16_t);
     memcpy(paquete+offset,&(payload.id_master),tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = sizeof(uint16_t);
-    memcpy(paquete+offset,&(payload.cantidad_operaciones),tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;
