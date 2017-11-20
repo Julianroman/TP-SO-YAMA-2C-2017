@@ -7,13 +7,25 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
-#include <utilidades/Sockets.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
+#include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
+#include <commons/config.h>
+#include <commons/string.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <commons/config.h>
 #include <utilidades/protocol/receive.h>
 
 #define TAMANIOBLOQUE 10
@@ -83,7 +95,7 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 		void* data;
 		data = receive(cliente,&cabecera);
 		payload_BLOQUE * payload = data;
-		escribirArchivo(PATHPOSTA, payload->bloque, strlen(payload->bloque), payload->id_bloque);
+		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, payload->numero_bloque);
 		//printf("Datanode %d dice: %s\n", payload->id_bloque, payload->bloque);
 	}
 }
