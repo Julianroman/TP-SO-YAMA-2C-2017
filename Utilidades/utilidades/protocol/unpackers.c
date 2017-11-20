@@ -267,9 +267,9 @@ void* unpack_BLOQUE(int socket){
 
     char* bloque = malloc(tamanio_bloque);
     recv(socket,bloque,tamanio_bloque,0);
-    payload->bloque = bloque;
+    payload->contenido = bloque;
 
-    recv(socket,&(payload->id_bloque),sizeof(uint32_t),0);
+    recv(socket,&(payload->numero_bloque),sizeof(uint32_t),0);
 
     return (void*)payload;
 };
