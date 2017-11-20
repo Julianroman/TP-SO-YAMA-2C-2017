@@ -109,9 +109,9 @@ typedef struct {
 }payload_ARCHIVO;
 
 typedef struct { 
-    uint64_t tamanio_bloque; 
-    char* bloque; 
-    uint32_t id_bloque; 
+    uint32_t tamanio_bloque; 
+    char* contenido; 
+    uint32_t numero_bloque; 
 }payload_BLOQUE;
 
 typedef struct { 
@@ -122,14 +122,13 @@ typedef struct {
 
 typedef struct { 
     uint16_t id_master; 
-    uint16_t cantidad_operaciones; 
 }payload_JOB;
 
 typedef struct { 
     uint16_t id_master; 
     uint16_t id_nodo; 
-    uint16_t bloque;
-    uint16_t estado;
+    uint16_t bloque; 
+    uint16_t estado; 
 }payload_RESPUESTA_MASTER;
 
 typedef struct { 

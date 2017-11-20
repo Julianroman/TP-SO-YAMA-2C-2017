@@ -290,8 +290,6 @@ void* unpack_JOB(int socket){
 
     recv(socket,&(payload->id_master),sizeof(uint16_t),0);
 
-    recv(socket,&(payload->cantidad_operaciones),sizeof(uint16_t),0);
-
     return (void*)payload;
 };
 

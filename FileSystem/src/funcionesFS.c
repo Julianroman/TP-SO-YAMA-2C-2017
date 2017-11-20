@@ -126,7 +126,7 @@ void servidorFs(int puerto){
 						//payload tiene toda la info
 						dictionary_put(diccionario, proceso, payload);
 						payloadCliente = dictionary_get(diccionario, proceso);
-						printf("Recibí una conexión de %s %d!!\n", "DataNode", payloadCliente->id_dataNode);
+						printf("Recibí una conexión de DataNode %d!!\n", payloadCliente->id_dataNode);
 
 						inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
 
@@ -135,13 +135,13 @@ void servidorFs(int puerto){
 							int bytesRecibidos = recv(i, buffer, 1000, 0);
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
-								printf("El %s %d se desconectó\n", "DataNode", payloadCliente->id_dataNode);
+								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
 								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else {
 								buffer[bytesRecibidos] = '\0';
-								printf("El %s %d dice: %s\n", "DataNode", payloadCliente->id_dataNode, buffer);
+								printf("El DataNode %d dice: %s\n", payloadCliente->id_dataNode, buffer);
 							}
 							free(proceso);
 						}
@@ -231,6 +231,10 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	string_append(&almacenamientoBloque, "]");
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
+	//Envio el original al primer nodo
+	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
+
+
 	// Envio la copia
 	nombreBloque = string_new();
 	almacenamientoBloque = string_new();
@@ -246,7 +250,9 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
 	string_append(&almacenamientoBloque, "]");
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
-	//TODO Enviar contenido a cada data node
+
+	//Envio la copia al segundo nodo
+	send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
 
 	// Libero la estructura
 	free(bloquesLibres);

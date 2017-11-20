@@ -230,7 +230,7 @@ void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_
 	free(paquete);
 
 };
-void send_PRESENTACION_DATANODE(int socket, uint16_t pid, uint16_t id_dataNode, uint16_t cantidad_bloques){
+void send_PRESENTACION_DATANODE(int socket , uint16_t pid , uint16_t id_dataNode , uint16_t cantidad_bloques){
     payload_PRESENTACION_DATANODE payload;
     payload.pid = pid; 
     payload.id_dataNode = id_dataNode; 
@@ -242,10 +242,9 @@ void send_PRESENTACION_DATANODE(int socket, uint16_t pid, uint16_t id_dataNode, 
     free(paquete);
 };
 
-void send_JOB(int socket , uint16_t id_master , uint16_t cantidad_operaciones){
+void send_JOB(int socket , uint16_t id_master){
     payload_JOB payload;
     payload.id_master = id_master; 
-    payload.cantidad_operaciones = cantidad_operaciones; 
 
     int tamanio_paquete;
     char* paquete = pack_JOB(payload,&tamanio_paquete);

@@ -25,9 +25,9 @@ void send_NODO(int socket  , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombre
 void send_FIN_LISTA(int socket );
 void send_FIN_COMUNICACION(int socket );
 void send_ARCHIVO(int socket , int archivo_fd);
-void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_bloque);
-void send_PRESENTACION_DATANODE(int socket, uint16_t pid, uint16_t id_dataNode, uint16_t cantidad_bloques);
-void send_JOB(int socket  , uint16_t id_master , uint16_t cantidad_operaciones);
+void send_BLOQUE(int socket, uint32_t tamanio_bloque, char* bloque, uint32_t id_bloque);
+void send_PRESENTACION_DATANODE(int socket  , uint16_t pid , uint16_t id_dataNode , uint16_t cantidad_bloques);
+void send_JOB(int socket  , uint16_t id_master);
 void send_RESPUESTA_MASTER(int socket  , uint16_t id_master , uint16_t id_nodo , uint16_t bloque , uint16_t estado);
 void send_EXITO_OPERACION(int socket );
 void send_FRACASO_OPERACION(int socket );
