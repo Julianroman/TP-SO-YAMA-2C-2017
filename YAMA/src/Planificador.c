@@ -96,7 +96,7 @@ void nodoPasarAReduccionLocal(t_worker* nodo){
 
 void realizarReduccionLocal(int id_nodo, int idJob){
 	int socketMaster = getSocketMaster(idJob);
-	t_worker nodo = getNodo(id_nodo);
+	t_worker* nodo = getNodo(id_nodo);
 	int getRegistroEstadoTransformacion(t_tablaEstados* registroEstado){
 		return registroEstado->tarea == TRANSFORMACION && registroEstado->nodo->id == nodo->id && registroEstado->estado == EXITO;
 	}
@@ -143,9 +143,9 @@ char* getNombreArchivoTemporalRedLocal(int jobId, int nodo){
 	return nombre;
 }
 
-int* getSocketMasterId(int id_master){
+int getSocketMasterId(int id_master){
 	char* keyMaster = string_itoa(id_master);
-	int* socketMaster = dictionary_get(diccionarioMasters, keyMaster);
+	int socketMaster = dictionary_get(diccionarioMasters, keyMaster);
 	return socketMaster;
 }
 
@@ -208,8 +208,8 @@ t_job* getJobDeNodo(int idNodo){
 	}
 	t_tablaEstados* registroEstado = list_find(TablaEstados, (void*)registroConNodoId);
 	return registroEstado->job;*/
-	t_worker worker = getNodo(idNodo);
-	return worker->jobActivo;
+	t_worker* nodo = getNodo(idNodo);
+	return nodo->jobActivo;
 }
 
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster){
