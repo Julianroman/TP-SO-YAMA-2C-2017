@@ -81,7 +81,7 @@ void init_serverYAMA(int puertoEscucha){
 								fdmax = nuevoCliente;
 								}
 							agregarADiccionarioMaster(idUltimoMasterCreado, i);
-							send_JOB(i, idUltimoMasterCreado, 0);
+							send_JOB(i, idUltimoMasterCreado);
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);

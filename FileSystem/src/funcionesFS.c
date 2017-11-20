@@ -126,7 +126,7 @@ void servidorFs(int puerto){
 						//payload tiene toda la info
 						dictionary_put(diccionario, proceso, payload);
 						payloadCliente = dictionary_get(diccionario, proceso);
-						printf("Recibí una conexión de %s %d!!\n", "DataNode", payloadCliente->id_dataNode);
+						printf("Recibí una conexión de DataNode %d!!\n", payloadCliente->id_dataNode);
 
 						inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
 
@@ -135,13 +135,13 @@ void servidorFs(int puerto){
 							int bytesRecibidos = recv(i, buffer, 1000, 0);
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
-								printf("El %s %d se desconectó\n", "DataNode", payloadCliente->id_dataNode);
+								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
 								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else {
 								buffer[bytesRecibidos] = '\0';
-								printf("El %s %d dice: %s\n", "DataNode", payloadCliente->id_dataNode, buffer);
+								printf("El DataNode %d dice: %s\n", payloadCliente->id_dataNode, buffer);
 							}
 							free(proceso);
 						}

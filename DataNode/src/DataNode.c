@@ -68,11 +68,7 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 		exit(1);
 	}
 
-	/*int numeroConvertido = htonl(id_tipo_proceso);
-	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);*/
-
 	//------- Mensaje de bienvenida del FileSystem ---------------
-	//char buf[256];
 	char* buffer = malloc(1000);
 	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
 	buffer[bytesRecibidos] = '\0';
@@ -81,16 +77,14 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	//------------------------------------------------------------
 
 	send_PRESENTACION_DATANODE(cliente, 1, 1, cantidadDeBloques);
-
-	void* payload;
-	int id_bloque;
+	//TODO: aca se queda escuchando para recibir bloques
 	while (1) {
-		HEADER_T* header;
-		payload = receive(cliente, &header);
-		//este id deberia estan en el header
-		//id_bloque = header->id o como sea;
-		escribirArchivo("metadata/bloquesDataNode.dat", payload, strlen(payload), id_bloque);
-		printf("%s dice: %s\n", tipo_proceso(0), payload);
+		HEADER_T* cabecera;
+		void* data;
+		data = receive(cliente,&cabecera);
+		payload_BLOQUE * payload = data;
+		escribirArchivo(PATHPOSTA, payload->bloque, strlen(payload->bloque), payload->id_bloque);
+		//printf("Datanode %d dice: %s\n", payload->id_bloque, payload->bloque);
 	}
 }
 
@@ -98,9 +92,9 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		//log_trace(log, "Archivo inexistencia se crea.");
+		log_trace(log, "Archivo inexistencia se crea.");
 		archivo = fopen(path,"w");
-		//ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
+		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
 		fclose(archivo);
 	}
 	void* map;
@@ -115,7 +109,7 @@ void leerArchivo(char* path, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		//log_error(log, "Archivo inexistencia se crea.");
+		log_error(log, "Archivo inexistencia se crea.");
 	}
 	void* map;
 	char* lectura = malloc(size);
