@@ -28,7 +28,7 @@ void iniciarPlanificacion(char* nombreArchivo){
 		//Revisar semaforos productor consumidor
 		payload_RESPUESTA_MASTER* infoMaster = obtenerSiguienteInfoMaster();
 
-		if(infoMaster->estado){ //SI LA OPERACION FUE EXITOSA
+		if(infoMaster->estado == 0){ //SI LA OPERACION FUE EXITOSA
 
 			if(etapaActiva(infoMaster->id_nodo) == TRANSFORMACION){
 				if(nodoTerminoTransformacion(infoMaster->id_nodo)){
