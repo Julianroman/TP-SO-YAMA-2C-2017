@@ -276,15 +276,6 @@ void* unpack_BLOQUE(int socket){
 void* unpack_PRESENTACION_DATANODE(int socket){
     payload_PRESENTACION_DATANODE *payload= malloc(sizeof(payload_PRESENTACION_DATANODE));
 
-    recv(socket,&(payload->PUERTO_dataNode),sizeof(uint16_t),0);
-
-    recv(socket,&(payload->tamanio_IP_dataNode),sizeof(uint16_t),0);
-    uint16_t  tamanio_IP_dataNode = payload->tamanio_IP_dataNode;
-
-    char* IP_dataNode = malloc(tamanio_IP_dataNode);
-    recv(socket,IP_dataNode,tamanio_IP_dataNode,0);
-    payload->IP_dataNode = IP_dataNode;
-
     recv(socket,&(payload->pid),sizeof(uint16_t),0);
 
     recv(socket,&(payload->id_dataNode),sizeof(uint16_t),0);

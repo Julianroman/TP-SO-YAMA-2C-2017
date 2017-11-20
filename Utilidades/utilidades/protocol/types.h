@@ -115,9 +115,6 @@ typedef struct {
 }payload_BLOQUE;
 
 typedef struct { 
-    uint16_t PUERTO_dataNode; 
-    uint16_t tamanio_IP_dataNode; 
-    char* IP_dataNode; 
     uint16_t pid; 
     uint16_t id_dataNode; 
     uint16_t cantidad_bloques; 

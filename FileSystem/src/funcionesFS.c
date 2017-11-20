@@ -116,7 +116,7 @@ void servidorFs(int puerto){
 					// gestionar datos de un cliente
 					proceso = malloc(16);
 					snprintf(proceso, 16, "%d", i);
-					int id_proceso = dictionary_get(diccionario, proceso);
+					payload_PRESENTACION_DATANODE * payloadCliente = dictionary_get(diccionario, proceso);
 					//if(vector[i] == "0"){
 					if(dictionary_get(diccionario, proceso) == 0){
 						HEADER_T* cabecera;
@@ -124,35 +124,24 @@ void servidorFs(int puerto){
 						data = receive(i,&cabecera);
 						payload_PRESENTACION_DATANODE * payload = data;
 						//payload tiene toda la info
-						dictionary_put(diccionario, proceso, payload->id_dataNode);
-						int my_net_id;
-						int bytesRecibidos = recv(i, &my_net_id, 1000, 0);
-						buffer[bytesRecibidos] = '\0';
-						int id = ntohl(my_net_id);
+						dictionary_put(diccionario, proceso, payload);
+						payloadCliente = dictionary_get(diccionario, proceso);
+						printf("Recibí una conexión de %s %d!!\n", "DataNode", payloadCliente->id_dataNode);
 
-						if(id == 1){ //Si es dataNode
-							// TODO inicializarNodo
-							inicializarNodo(payload->pid, i, payload->cantidad_bloques);
-						}
-
-						//vector[i] = tipo_proceso(id);
-						dictionary_put(diccionario, proceso, id);
-						//printf("Recibí una conexión de %s!!\n", vector[i]);
-						id_proceso = dictionary_get(diccionario, proceso);
-						printf("Recibí una conexión de %s!!\n", tipo_proceso(id_proceso));
+						inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
 
 						free(proceso);
 						}else{
 							int bytesRecibidos = recv(i, buffer, 1000, 0);
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
-								printf("El socket %s se desconectó\n", tipo_proceso(id_proceso));
+								printf("El %s %d se desconectó\n", "DataNode", payloadCliente->id_dataNode);
 								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else {
 								buffer[bytesRecibidos] = '\0';
-								printf("El socket %s dice: %s\n", tipo_proceso(id_proceso), buffer);
+								printf("El %s %d dice: %s\n", "DataNode", payloadCliente->id_dataNode, buffer);
 							}
 							free(proceso);
 						}
