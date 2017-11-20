@@ -231,6 +231,10 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	string_append(&almacenamientoBloque, "]");
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
+	//Envio el original al primer nodo
+	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
+
+
 	// Envio la copia
 	nombreBloque = string_new();
 	almacenamientoBloque = string_new();
@@ -246,7 +250,9 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
 	string_append(&almacenamientoBloque, "]");
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
-	//TODO Enviar contenido a cada data node
+
+	//Envio la copia al segundo nodo
+	send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
 
 	// Libero la estructura
 	free(bloquesLibres);
