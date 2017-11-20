@@ -37,7 +37,7 @@ void realizarTransformacionNodos(int idJob);
 void realizarReduccionLocal(int id_nodo, int idJob);
 
 // FUNCIONES DE NODO
-int getSocketMasterId(int id_master);
+int getSocketMaster(int id_master);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 int todosLosNodosTerminaronReduccionLocal(int idJob);
 int nodoTerminoTransformacion(int idJob);

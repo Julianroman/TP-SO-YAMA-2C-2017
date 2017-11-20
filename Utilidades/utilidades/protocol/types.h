@@ -131,8 +131,8 @@ typedef struct {
 typedef struct { 
     uint16_t id_master; 
     uint16_t id_nodo; 
-    uint16_t bloque; 
-    uint16_t estado; 
+    uint16_t bloque;
+    uint16_t estado;
 }payload_RESPUESTA_MASTER;
 
 typedef struct { 
