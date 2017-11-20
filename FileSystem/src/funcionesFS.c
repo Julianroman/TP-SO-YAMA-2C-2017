@@ -482,7 +482,6 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 	string_append(&pathCompleto, tipo);
 
 
-
 	char **arrayDestino = string_split(pathCompleto, "/");
 	int cant = 0;
 	while(arrayDestino[cant] != NULL ){
@@ -543,6 +542,13 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 		lista_de_paginas = cortar_modo_binario(in);
 	}
 
+	// Tamanio del archivo
+	int size_bytes;
+	fseek(in,0,SEEK_END);
+	size_bytes = ftell(in);
+	rewind(in);
+	config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
+
 	int i;
 	// Itero entre las paginas de la lista y se las mando a dataNode
 	for ( i=0; i<list_size(lista_de_paginas); i++){
@@ -569,11 +575,54 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 	free(indicePath);
 	free(arrayDestino);
 
+	fclose(in);
 	return 0;
 }
 
 char *leerArchivo(char *pathConNombre){
 	//TODO
+	// Para crear la tabla de archivos
+	// Separo el path del destino con las /
+
+	char **arrayPath = string_split(pathConNombre, "/");
+	int cant = 0;
+	while(arrayPath[cant] != NULL ){
+		cant++;
+	}
+
+	// Agarro el nombre sin la extension
+	char *name = string_new();
+	name = arrayPath[cant - 1];
+
+	if(string_contains(name, ".")){
+		name = string_substring_until(name, strlen(name) - 4);
+	}
+
+	// Busco el indice de la carpeta de destino
+	int indice = findDirByname(arrayPath[cant - 2]);
+	// Concateno el path con el indice y el path de los archivos
+	char *indicePath = string_new();
+
+	// Entro al directorio de nombre:  numero de indice (Si no existe)
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+
+	// Concateno el path con el nombre del archivo
+	string_append(&indicePath, "/");
+	string_append(&indicePath, name);
+
+	// Abro el archivo de configuracion que tiene la tabla del archivo
+	char *pathArchivoConfig = string_new();
+	string_append(&pathArchivoConfig, directorioRaiz);
+	string_append(&pathArchivoConfig, indicePath);
+
+	t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+	int tamanio;
+	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO"); // Deberia ser TAMANIO
+
+
+	config_destroy(archivo_configuracion);
 
 	return "";
 }
