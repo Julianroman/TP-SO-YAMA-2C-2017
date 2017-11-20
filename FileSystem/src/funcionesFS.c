@@ -152,113 +152,6 @@ void servidorFs(int puerto){
 		free(buffer);
 }
 
-void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino){
-
-	FILE* fileOrigen;
-	if (!(fileOrigen = fopen(pathOrigen, "r"))){
-		log_error(log, "El archivo no existe o no se pudo abrir");
-	}
-	else{
-		//validar si el destino es valido
-		int size_bytes;
-		fseek(fileOrigen,0,SEEK_END);
-		size_bytes = ftell(fileOrigen);
-		rewind(fileOrigen);
-
-		int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
-		int tam = 0;
-		char* map;
-		if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(fileOrigen),0)) == MAP_FAILED){
-			log_error(log,"Error al mappear archivo\n");
-		}
-		int i = 0;
-		map = strdup(map);
-		//split de \n al map y le mando cada cosa al datanode
-		char **str1 = string_split(map, "\n");
-		char* text = string_new();
-		char* textConcat = string_new();
-		int32_t size_concat = 0;
-		int bloq = 1;
-		while (str1[i] != NULL)
-		{
-
-			textConcat = string_duplicate(text);
-			string_append(&textConcat, str1[i]);
-			string_append(&textConcat, "\n");
-			size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
-
-			if(size_concat < tamanioBloques){
-				string_append(&text, str1[i]);
-				tam += size_concat;
-
-			}else{
-				size_concat = strlen(text) * sizeof(char);
-				//printf("%s\n",text);
-				//enviarADataNode(text, bloq, tam, size_concat);
-
-				char* pathConcat = malloc(sizeof(char*));
-				pathConcat = string_duplicate(pathDestino);
-				string_append(&pathConcat, "/arc");
-				string_append(&pathConcat, string_itoa(bloq));
-				string_append(&pathConcat, ".txt");
-
-				FILE* fileDestino;
-				fileDestino = fopen(pathConcat, "w");
-				if (!(fileDestino = fopen(pathConcat, "w"))){
-						log_error(log, "Error al intentar escribir el archivo");
-				}else{
-					if(fwrite(text, size_concat, 1, fileDestino) != 1){
-						log_error(log, "Error al intentar escribir el archivo");
-					}else{
-						log_trace(log, "El archivo fue copiado correctamente");
-					}
-					fclose(fileDestino);
-					free(pathConcat);
-
-					bloq ++;
-					text = string_new();
-				}
-
-			}
-			i++;
-
-		}
-		if(!string_is_empty(text)){
-			size_concat = strlen(text) * sizeof(char);
-			//printf("%s\n",text);
-			char* pathConcat = malloc(sizeof(char*));
-			pathConcat = string_duplicate(pathDestino);
-			string_append(&pathConcat, "/arc");
-			string_append(&pathConcat, string_itoa(bloq));
-			string_append(&pathConcat, ".txt");
-
-			FILE* fileDestino;
-			fileDestino = fopen(pathConcat, "w");
-			if (!(fileDestino = fopen(pathConcat, "w"))){
-					log_error(log, "Error al intentar escribir el archivo");
-			}else{
-				if(fwrite(text, size_concat, 1, fileDestino) != 1){
-					log_error(log, "Error al intentar escribir el archivo");
-				}else{
-					log_trace(log, "El archivo fue copiado correctamente");
-				}
-				fclose(fileDestino);
-				free(pathConcat);
-
-				bloq ++;
-			}
-
-
-		}
-		free(str1);
-		free(map);
-		free(text);
-	}
-	fclose(fileOrigen);
-
-
-}
-
 // Trae 2 bloques para original y copia
 // La idea es lograr que la tabla de nodos este lo mas balanceada posible
 // O sea, traer siempre los bloques con mayor cantidad de bloques libres
@@ -458,20 +351,28 @@ static t_list *cortar_modo_binario(FILE *in){
 	return retVal;
 }
 
-int almacenarArchivo(char *location, char *name, char *tipo){
-	// Para crear la tabla de archivos
-	// Separo el path del destino con las /
-	char *pathCompleto = string_new();
-	pathCompleto = string_duplicate(location);
+int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
+	// Concateno el path del origen con el nombre y el tipo
+	char *pathOrigenCompleto = string_new();
+	pathOrigenCompleto = string_duplicate(location);
 	if(!string_ends_with(location, "/"))
-		string_append(&pathCompleto, "/");
+		string_append(&pathOrigenCompleto, "/");
 
-	string_append(&pathCompleto, name);
-	string_append(&pathCompleto, ".");
-	string_append(&pathCompleto, tipo);
+	string_append(&pathOrigenCompleto, name);
+	string_append(&pathOrigenCompleto, ".");
+	string_append(&pathOrigenCompleto, tipo);
 
 
-	char **arrayDestino = string_split(pathCompleto, "/");
+	// Agarro el path destino y le concateno el nombre
+
+	char *pathDestinoCompleto = string_new();
+	pathDestinoCompleto = string_duplicate(pathDestino);
+	if(!string_ends_with(pathDestino, "/"))
+		string_append(&pathDestinoCompleto, "/");
+
+	string_append(&pathDestinoCompleto, name);
+
+	char **arrayDestino = string_split(pathDestinoCompleto, "/");
 	int cant = 0;
 	while(arrayDestino[cant] != NULL ){
 		cant++;
@@ -515,7 +416,7 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 	t_list *lista_de_paginas;
 
 	if ( strcmp(tipo,"txt") == 0 ) {
-		if ( (in = fopen(pathCompleto, "r") ) == NULL ) {
+		if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
 			printf("No se encontro el archivo");
 			return 1;
 		}
@@ -524,7 +425,7 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 
 	}
 	else{
-		if ( (in = fopen(pathCompleto, "rb") ) == NULL ) {
+		if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
 			printf("No se encontro el archivo");
 			return 1;
 		}
@@ -560,7 +461,7 @@ int almacenarArchivo(char *location, char *name, char *tipo){
 
 	fclose(archivo);
 	config_destroy(fileExport);
-	free(pathCompleto);
+	free(pathOrigenCompleto);
 	free(indicePath);
 	free(arrayDestino);
 

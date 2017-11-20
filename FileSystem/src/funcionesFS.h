@@ -75,15 +75,12 @@ void directory_destroy(t_directory *self);
 
 void servidorFs(int puerto);
 
-
-void copiaLocalAlYamafs(char* pathOrigen, char* pathDestino);
-
 static t_bloque_libre *traerBloquesLibres();
 
 //int enviarADataNode(t_pagina *unaPagina);
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
-int almacenarArchivo(char *location, char *name, char *tipo);
+int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
 char *leerArchivo(char *pathConNombre);
 

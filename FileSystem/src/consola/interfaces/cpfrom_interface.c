@@ -5,5 +5,5 @@
 #include <stdio.h>
 //cpfrom [path_archivo_origen] [directorio_yamafs]
 void cpfrom_interface(char **comando){
-	copiaLocalAlYamafs(comando[1], comando[2]);
+	almacenarArchivo(comando[1], comando[2], comando[3], comando[4]);
 };
