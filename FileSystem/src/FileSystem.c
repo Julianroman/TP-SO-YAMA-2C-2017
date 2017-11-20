@@ -60,7 +60,8 @@ int main(int arg, char** argv) {
 	inicializarNodo(3,5,60);
 
 	almacenarArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root","archivoBinario","bin");
-	almacenarArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root","archivoTexto","txt");*/
+	leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/archivoBinario.bin");
+	//almacenarArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root","archivoTexto","txt");*/
 	//importarArchivo("Nodo1.bin","");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");

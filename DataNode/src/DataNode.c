@@ -7,7 +7,6 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
-
 #include <utilidades/Sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +23,7 @@ int puertoFs = 0;
 int id = 1;
 char* ipFs = "";
 t_log* log;
-int cantidadDeBloques = 10;
+int cantidadDeBloques;
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
@@ -47,11 +46,11 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	//clienteDatanode(ipFs, puertoFs, id);
-	char * data = "holaquetal";
+	clienteDatanode(ipFs, puertoFs, id);
+	//char * data = "holaquetal";
 	//int size = sizeof(char*) * strlen(data);
 	//escribirArchivo(PATHPOSTA, data, strlen(data), 4);
-	leerArchivo(PATHPOSTA, 4, 4);
+	//leerArchivo(PATHPOSTA, 4, 4);
 	return EXIT_SUCCESS;
 }
 
@@ -72,7 +71,16 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	/*int numeroConvertido = htonl(id_tipo_proceso);
 	send(cliente, &numeroConvertido, sizeof(numeroConvertido), 0);*/
 
-	send_PRESENTACION_DATANODE(cliente , 1 , 1 ,  1 ,  2 , 5);
+	//------- Mensaje de bienvenida del FileSystem ---------------
+	//char buf[256];
+	char* buffer = malloc(1000);
+	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+	buffer[bytesRecibidos] = '\0';
+	printf("FileSystem dice: %s\n", buffer);
+	free(buffer);
+	//------------------------------------------------------------
+
+	send_PRESENTACION_DATANODE(cliente, 1, 1, cantidadDeBloques);
 
 	void* payload;
 	int id_bloque;
@@ -81,7 +89,7 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 		payload = receive(cliente, &header);
 		//este id deberia estan en el header
 		//id_bloque = header->id o como sea;
-		escribirArchivo("metadata/bloquesDataNode.dat", payload, 10 ,id_bloque);
+		escribirArchivo("metadata/bloquesDataNode.dat", payload, strlen(payload), id_bloque);
 		printf("%s dice: %s\n", tipo_proceso(0), payload);
 	}
 }
@@ -120,4 +128,3 @@ void leerArchivo(char* path, int size, int nroBloque){
 	printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	free(lectura);
 }
-
