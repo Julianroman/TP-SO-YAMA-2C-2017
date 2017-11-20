@@ -33,6 +33,8 @@ t_job *newJob();
 int agregarJob(t_job* job);
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
+void realizarTransformacionNodos(int idJob);
+void realizarReduccionLocal(int id_nodo, int idJob);
 
 // FUNCIONES DE NODO
 int* getSocketMasterId(int id_master);
@@ -51,15 +53,15 @@ void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
 
 //FUNCIONES DE PLANIFICACION
-void planificacionWClock(t_list* listaNodos);
+void planificacionWClock(t_list* listaNodos, int idJob);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 int PWL(t_worker* worker);
 int WLmax();
 int carga(t_worker* worker);
+void nodoConMayorDisponibilidad();
 void calcularDisponibilidad(t_worker* worker);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
-
 
 #endif /* PLANIFICADOR_H_ */

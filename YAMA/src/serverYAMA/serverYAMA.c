@@ -29,9 +29,8 @@ static int idUltimoMasterCreado = 1;
 #define BACKLOG       5
 
 void agregarADiccionarioMaster(int idUltimoMasterCreado, int socket){
-	int* socketMaster = socket;
 	char* keyMaster = string_itoa(idUltimoMasterCreado);
-	dictionary_put(diccionarioMasters, keyMaster, socketMaster);
+	dictionary_put(diccionarioMasters, keyMaster, socket);
 	idUltimoMasterCreado += 1;
 }
 
