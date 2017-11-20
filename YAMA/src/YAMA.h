@@ -68,7 +68,6 @@ void iniciarListaEstados();
 static t_list* TablaEstados;
 t_dictionary* diccionarioMasters;
 t_yama* leerConfiguracion();
-void agregarADiccionarioMaster(int* idUltimoMasterCreado, int socket);
 
 t_yama* configYAMA;
 t_log* logYAMA;
