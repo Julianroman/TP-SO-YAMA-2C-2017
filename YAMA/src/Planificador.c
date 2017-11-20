@@ -98,6 +98,25 @@ t_job *newJob(){
 	return job;
 }
 
+void replanificar(payload_RESPUESTA_MASTER* respuesta){
+	int nodoFallido(t_tablaEstados* registro){
+		return registro->estado == ERROR && registro->nodo->id == respuesta->id_nodo && registro->tarea == TRANSFORMACION && registro->bloque == respuesta->bloque;
+	}
+	t_tablaEstados* registroEstado = list_find(TablaEstados, (void*)nodoFallido);
+
+	int nodoConID(t_worker* nodo){
+		return nodo->id == registroEstado->nodo->id;
+	}
+	void eliminarNodo(t_worker* nodo){
+		free(nodo);
+	}
+	/*t_worker* nodo = getNodoConCopiaDeBloque(registroEstado->nodo, registroEstado->bloque);
+	int bloque = getBloque*/
+	list_remove_and_destroy_by_condition(nodosDisponibles, (void*)nodoConID, (void*)eliminarNodo);
+	int socketMaster = getSocketMaster(registroEstado->job);
+	send_INFO_TRANSFORMACION(socketMaster, nodo->puerto, nodo->ip, bloqueNuevo, 1048576, registroEstado->archivoTemporal);
+}
+
 void nodoPasarAReduccionLocal(t_worker* nodo){
 	nodo->etapaActiva = REDUCCION_LOCAL;
 	nodo->jobActivo->etapa = REDUCCION_LOCAL;
@@ -177,7 +196,7 @@ void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
 	registroEstado->bloque = infoMaster->bloque;
 	registroEstado->tarea = getTarea(infoMaster);
 	registroEstado->archivoTemporal = getArchivoTemporal(infoMaster);
-	if(infoMaster->estado){
+	if(infoMaster->estado == 0){
 		registroEstado->estado = EXITO;
 	}
 	else {

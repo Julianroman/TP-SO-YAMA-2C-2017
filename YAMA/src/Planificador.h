@@ -32,6 +32,7 @@ Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 void realizarTransformacionNodos();
 void realizarReduccionLocal(int id_nodo);
+void replanificar(payload_RESPUESTA_MASTER* infoMaster);
 
 // FUNCIONES DE NODO
 int getSocketMaster(int id_master);
