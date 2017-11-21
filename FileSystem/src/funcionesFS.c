@@ -232,7 +232,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
 	//Envio el original al primer nodo
-	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
+	//send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
 
 
 	// Envio la copia
@@ -252,7 +252,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
 	//Envio la copia al segundo nodo
-	send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
+	//send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
 
 	// Libero la estructura
 	free(bloquesLibres);
@@ -265,7 +265,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 }
 
 
-static t_list *cortar_modo_texto(FILE *in){ //TODO pasar a fread
+static t_list *cortar_modo_texto(FILE *in){
 	t_list *retVal = list_create();
 
 		if (!(in)){
@@ -477,7 +477,9 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 char *leerArchivo(char *pathConNombre){
 	//TODO
-	// Para crear la tabla de archivos
+	int cantidadDeBloques;
+
+	// Para leer la tabla de archivos
 	// Separo el path del destino con las /
 
 	char **arrayPath = string_split(pathConNombre, "/");
@@ -515,7 +517,38 @@ char *leerArchivo(char *pathConNombre){
 	t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
 	int tamanio;
-	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO"); // Deberia ser TAMANIO
+	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
+
+	char *tipo = string_new();
+	tipo = config_get_string_value(archivo_configuracion, "TIPO");
+
+	if(string_equals_ignore_case(tipo, "BINARIO")){
+		if ( tamanio % tamanioBloques != 0 )
+			cantidadDeBloques = tamanio/tamanioBloques +1;
+		else
+			cantidadDeBloques = tamanio/tamanioBloques;
+
+		char *propertyBloque;
+		char **nodoYBloque = malloc(sizeof(char*)*2);
+		int i;
+		for( i=0; i < cantidadDeBloques; i++ ){
+			//
+			propertyBloque = string_new();
+			string_append(&propertyBloque, "BLOQUE");
+			string_append(&propertyBloque, string_itoa(i));
+			string_append(&propertyBloque, "COPIA0");
+
+
+			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
+
+			// Leo del original si se puede.. Si no deberia buscar la copia
+			printf("Leido de %s -- bloque %s \n", nodoYBloque[0], nodoYBloque[1]);
+			// TODO: pedir bloques a data node
+
+
+		}
+		//config_has_property(t_config*, char* key);
+	}
 
 
 	config_destroy(archivo_configuracion);

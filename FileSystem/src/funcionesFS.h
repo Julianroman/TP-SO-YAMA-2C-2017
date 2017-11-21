@@ -76,7 +76,6 @@ void servidorFs(int puerto);
 
 static t_bloque_libre *traerBloquesLibres();
 
-//int enviarADataNode(t_pagina *unaPagina);
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
