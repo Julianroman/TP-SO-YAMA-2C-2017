@@ -294,3 +294,13 @@ void send_SCRIPT(int socket , char* contenido){
     free(paquete);
 };
 
+void send_PETICION_BLOQUE(int socket , uint32_t numero_bloque){
+    payload_PETICION_BLOQUE payload;
+    payload.numero_bloque = numero_bloque; 
+
+    int tamanio_paquete;
+    char* paquete = pack_PETICION_BLOQUE(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+

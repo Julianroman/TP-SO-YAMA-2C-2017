@@ -32,5 +32,6 @@ void* unpack_RESPUESTA_MASTER(int socket);
 void* unpack_EXITO_OPERACION(int socket);
 void* unpack_FRACASO_OPERACION(int socket);
 void* unpack_SCRIPT(int socket);
+void* unpack_PETICION_BLOQUE(int socket);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

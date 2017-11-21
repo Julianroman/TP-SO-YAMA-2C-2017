@@ -549,3 +549,22 @@ char* pack_SCRIPT(payload_SCRIPT payload,int* tamanio_paquete){
     return paquete;
 };
 
+char* pack_PETICION_BLOQUE(payload_PETICION_BLOQUE payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T) + sizeof(uint32_t);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = PETICION_BLOQUE;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(uint32_t);
+    memcpy(paquete+offset,&(payload.numero_bloque),tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+

@@ -320,3 +320,11 @@ void* unpack_SCRIPT(int socket){
     return (void*)payload;
 };
 
+void* unpack_PETICION_BLOQUE(int socket){
+    payload_PETICION_BLOQUE *payload= malloc(sizeof(payload_PETICION_BLOQUE));
+
+    recv(socket,&(payload->numero_bloque),sizeof(uint32_t),0);
+
+    return (void*)payload;
+};
+

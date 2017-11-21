@@ -83,6 +83,9 @@ void* receive(int socket,HEADER_T* cabecera){
         case SCRIPT:
         payload = unpack_SCRIPT(socket);
         break;
+        case PETICION_BLOQUE:
+        payload = unpack_PETICION_BLOQUE(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;
