@@ -187,23 +187,28 @@ static t_bloque_libre *traerBloquesLibres() {
 	// La mayor cantidad de bloques libres
 	int nSegundoBloques = -1;
 
-	for (i = 0; i < list_size(listaDeNodos); i ++){
-		t_nodo *unNodo;
-		unNodo = list_get(listaDeNodos, i);
-		if( i != nMayor){
-			int n = bloquesLibresEnNodo(unNodo);
+	if(list_size(listaDeNodos) > 1){
 
-			if ( n > nSegundoBloques ){
-				nSegundoMayor = i;
-				nSegundoBloques = n;
+		for (i = 0; i < list_size(listaDeNodos); i ++){
+			t_nodo *unNodo;
+			unNodo = list_get(listaDeNodos, i);
+			if( i != nMayor){
+				int n = bloquesLibresEnNodo(unNodo);
+
+				if ( n > nSegundoBloques ){
+					nSegundoMayor = i;
+					nSegundoBloques = n;
+				}
 			}
 		}
+		retVal[1].nodo = list_get(listaDeNodos,nSegundoMayor);
+		retVal[1].bloque = proximoBloqueLibre(retVal[1].nodo);
+		//Modifico el bitmap del nodo
+		// TODO: verificar que no sea -1
+		escribirBloqueLibre(retVal[1].nodo, retVal[1].bloque);
 	}
-	retVal[1].nodo = list_get(listaDeNodos,nSegundoMayor);
-	retVal[1].bloque = proximoBloqueLibre(retVal[1].nodo);
-	//Modifico el bitmap del nodo
-	// TODO: verificar que no sea -1
-	escribirBloqueLibre(retVal[1].nodo, retVal[1].bloque);
+
+
 
 	return retVal;
 }
@@ -234,25 +239,27 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	//Envio el original al primer nodo
 	//send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
 
+	if(bloquesLibres[1].nodo->nroNodo != -1){
+		// Envio la copia
+		nombreBloque = string_new();
+		almacenamientoBloque = string_new();
 
-	// Envio la copia
-	nombreBloque = string_new();
-	almacenamientoBloque = string_new();
+		string_append(&nombreBloque, "BLOQUE");
+		string_append(&nombreBloque, string_itoa(nroBloque));
+		string_append(&nombreBloque, "COPIA");
+		string_append(&nombreBloque, "1");
+		printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+		string_append(&almacenamientoBloque, "[Nodo");
+		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
+		string_append(&almacenamientoBloque, ", ");
+		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
+		string_append(&almacenamientoBloque, "]");
+		config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
-	string_append(&nombreBloque, "BLOQUE");
-	string_append(&nombreBloque, string_itoa(nroBloque));
-	string_append(&nombreBloque, "COPIA");
-	string_append(&nombreBloque, "1");
-	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
-	string_append(&almacenamientoBloque, "[Nodo");
-	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
-	string_append(&almacenamientoBloque, ", ");
-	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
-	string_append(&almacenamientoBloque, "]");
-	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
+		//Envio la copia al segundo nodo
+		//send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
+	}
 
-	//Envio la copia al segundo nodo
-	//send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
 
 	// Libero la estructura
 	free(bloquesLibres);
@@ -305,8 +312,6 @@ static t_list *cortar_modo_texto(FILE *in){
 
 				}else{
 					size_concat = strlen(text) * sizeof(char);
-					//printf("%s\n",text);
-					//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
 					t_pagina *nodo = malloc(sizeof(t_pagina));
 					nodo->tamanio = size_concat;
 					nodo->contenido = malloc(size_concat);
@@ -321,8 +326,7 @@ static t_list *cortar_modo_texto(FILE *in){
 			}
 			if(!string_is_empty(text)){
 				size_concat = strlen(text) * sizeof(char);
-				//printf("%s\n",text);
-				//enviarADataNode(text, bloq, tam, size_concat); // TODO Enviar a dataNode
+
 				t_pagina *nodo = malloc(sizeof(t_pagina));
 				nodo->tamanio = size_concat;
 				nodo->contenido = malloc(size_concat);
