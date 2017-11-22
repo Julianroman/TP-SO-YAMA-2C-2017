@@ -10,13 +10,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/log.h>
-#include <commons/collections/list.h>
-#include <commons/config.h>
-#include <commons/string.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <utilidades/socket_utils.h>
+#include <commons/collections/list.h>
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/string.h>
 
 #include "serverWorker/serverWorker.h"
 
@@ -32,6 +36,14 @@ int main(int argc, char **argv) {
 	}
 	char* puertoString = argv[1];
 	int puerto = atoi(puertoString);*/
+
+
+	// Crear la carpete scripts (si no existe)
+	struct stat st = {0};
+
+	if (stat("scripts", &st) == -1) {
+		mkdir("scripts", 0700);
+	}
 
 	// Manejo de logs
 	logger = log_create("worker.log", "Worker", true, LOG_LEVEL_TRACE);
