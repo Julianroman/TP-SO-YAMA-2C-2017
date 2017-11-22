@@ -41,12 +41,18 @@ typedef struct{
 	Tarea etapa;
 }t_job;
 
+typedef struct{
+	unsigned short bloqueNodo;
+	unsigned short bloqueArchivo;
+	unsigned short copia;
+} t_infoBloque;
+
 typedef struct {
 	int id;
 	char *ip;
 	int puerto;
 	int carga;
-	t_list* bloquesDelDatanode;
+	t_list* infoBloques;
 	t_list* bloquesAEjecutar;
 	int disponibilidad;
 	int cantTareasHistoricas;

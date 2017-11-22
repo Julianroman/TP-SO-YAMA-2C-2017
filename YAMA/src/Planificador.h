@@ -19,7 +19,7 @@ t_list* listaRespuestasMaster;
 
 // FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo);
-void inicializarPlanificador();
+int inicializarPlanificador();
 void finalizar();
 t_list* obtenerNodosParaPlanificacion(char* nombreArchivo);
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
@@ -27,17 +27,17 @@ t_worker* elegirEncargadoReduccionGlobal();
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 void realizarReduccionGlobal(t_worker* encargado);
 t_job *newJob();
-void agregarJob(t_job* job);
+int agregarJob(t_job* job);
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
-void realizarTransformacionNodos();
-void realizarReduccionLocal(int id_nodo);
+void realizarTransformacionNodos(int jobID);
+void realizarReduccionLocal(int id_nodo, int jobID);
 void replanificar(payload_RESPUESTA_MASTER* infoMaster);
 
 // FUNCIONES DE NODO
 int getSocketMaster(int id_master);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
-int todosLosNodosTerminaronReduccionLocal();
+int todosLosNodosTerminaronReduccionLocal(int jobID);
 int nodoTerminoTransformacion(int idJob);
 void nodoPasarAReduccionLocal(t_worker* nodo);
 t_worker* getNodo(int id);
@@ -53,7 +53,7 @@ void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarEstadosNodo(payload_RESPUESTA_MASTER* respuesta);
 
 //FUNCIONES DE PLANIFICACION
-void planificacionWClock(t_list* listaNodos);
+void planificacionWClock(t_list* listaNodos, int jobID);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 int PWL(t_worker* worker);
