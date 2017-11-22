@@ -20,31 +20,34 @@ t_list* listaRespuestasMaster;
 // FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo);
 int inicializarPlanificador();
-void finalizar();
+void finalizarCorrectamente(int jobID);
 t_list* obtenerNodosParaPlanificacion(char* nombreArchivo);
 void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
 t_worker* elegirEncargadoReduccionGlobal();
 payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 void realizarReduccionGlobal(t_worker* encargado);
-t_job *newJob();
-int agregarJob(t_job* job);
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 void realizarTransformacionNodos(int jobID);
-void realizarReduccionLocal(int id_nodo, int jobID);
+void realizarReduccionLocal(int nodoID, int jobID);
 void replanificar(payload_RESPUESTA_MASTER* infoMaster);
+
+//FUNCIONES DE JOB
+t_job *newJob();
+t_job* getJob(int jobID);
+int agregarJob(t_job* job);
 
 // FUNCIONES DE NODO
 int getSocketMaster(int id_master);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
-int todosLosNodosTerminaronReduccionLocal(int jobID);
+int todosLosNodosTerminaronReduccionLocal(int idnodoID_nodo, int jobID);
 int nodoTerminoTransformacion(int idJob);
 void nodoPasarAReduccionLocal(t_worker* nodo);
-t_worker* getNodo(int id);
+t_worker* getNodo(int nodoID);
 int estaActivo(t_worker* worker);
-t_job* getJobDeNodo(int id);
-char* getNombreArchivoTemporalRedLocal(int id_job, int id_nodo);
-Tarea etapaActiva(int id_nodo);
+t_job* getJobDeNodo(int nodoID);
+char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
+Tarea etapaActiva(int nodoID);
 
 // ACTUALIZACIONES
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta);
