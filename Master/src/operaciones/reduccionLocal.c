@@ -25,11 +25,15 @@ extern int reduxLocalesEnProceso;
 extern int paralelasEnProceso;
 extern int maxReduxLocalesEnProceso;
 extern int maxParalelasEnProceso;
+extern int masterID;
+
+int YAMAsocket;
 
 void* rutina_reduccionLocal(void* args);
 
 
 STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data){
+	YAMAsocket = socketYAMA;
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
@@ -68,10 +72,12 @@ void* rutina_reduccionLocal(void* args){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Redux local OK %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		fallosReduxLocal ++;
 		log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,1);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");

@@ -26,10 +26,13 @@ extern int transformacionesEnProceso;
 extern int paralelasEnProceso;
 extern int maxTransformacionesEnProceso;
 extern int maxParalelasEnProceso;
+extern int masterID;
+int YAMAsocket;
 
 void* rutina_transformacion(void* args);
 
 STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data){
+	YAMAsocket = socketYAMA;
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
@@ -54,8 +57,6 @@ void* rutina_transformacion(void* args){
 	HEADER_T header;
 	payload_INFO_TRANSFORMACION* payload = args;
 
-
-
 	// Iniciar timer
 	time (&inicioEtapa);
 
@@ -70,13 +71,16 @@ void* rutina_transformacion(void* args){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Transformacion OK %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,0,payload->bloque,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		fallosTransformacion ++;
 		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,0,payload->bloque,1);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");
+		exit(1);
 	}
 	close(socketWorker);
 	// TODO Destruir payload

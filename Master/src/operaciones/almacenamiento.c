@@ -19,6 +19,7 @@
 extern sem_t fin_job;
 extern t_log* logger;
 extern double tiempoAlmacenamiento;
+extern int masterID;
 
 STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	time_t inicioEtapa,finEtapa;
@@ -32,9 +33,11 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Almacenamiento de <%s> completado por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,1);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");

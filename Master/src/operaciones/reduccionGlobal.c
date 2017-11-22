@@ -20,6 +20,7 @@
 extern t_log* logger;
 extern char* scriptReductor;
 extern double tiempoReduxGlobal;
+extern int masterID;
 
 STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	time_t inicioEtapa,finEtapa;
@@ -68,9 +69,11 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Reduccion global completada en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,1);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");

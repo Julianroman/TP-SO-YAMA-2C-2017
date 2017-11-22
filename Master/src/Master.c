@@ -30,8 +30,6 @@
 #include "operaciones/operaciones.h"
 #include "funcionesMaster.h"
 
-int puertoYama = 0;
-char* ipYama = "";
 t_log* logger;
 
 int operaciones;
@@ -95,6 +93,8 @@ int main(int argc, char **argv) {
 
 
 	// Leer configuracion
+	int puertoYama;
+	char* ipYama;
 	leerConfiguracion("master-config.cfg", &ipYama,&puertoYama);
 	log_trace(logger, "Configuracion leida");
 
@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
 
 	// Parar timer de job
 
-	sleep(1);
 	time (&finJob);
 	// Mostrar estadisticas
 	printf("\x1b[33mEstadisticas de ejecucion\n\n");
