@@ -24,7 +24,7 @@ void abortarJob(int jobID);
 t_list* cargarNodosParaPlanificacion(char* nombreArchivo);
 t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
-void realizarTransformacionNodos(int jobID);
+void realizarTransformacionNodos(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, int jobID);
 void replanificar(payload_RESPUESTA_MASTER* infoMaster, int jobID);
 
@@ -46,21 +46,23 @@ int nodoTerminoTransformacion(int idJob);
 void nodoPasarAReduccionLocal(t_worker* nodo);
 t_worker* getNodo(int nodoID, int jobID);
 int estaActivo(t_worker* worker);
-t_job* getJobDeNodo(int nodoID);
 
 // ACTUALIZACIONES
-void actualizarEstados(payload_RESPUESTA_MASTER* respuesta);
-void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta);
+void actualizarEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
+void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
+t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID);
+void agregarRegistroATablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
+void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker* nodo, int bloque, char* nombreArchivoTemporal);
 
 //FUNCIONES DE PLANIFICACION
-void planificacionWClock(int jobID);
+void planificacionWClock(t_job_master* job_master);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
 int PWL(t_worker* worker);
 int WLmax();
 int carga(t_worker* worker);
-void nodoConMayorDisponibilidad(int jobID);
+void nodoConMayorDisponibilidad(t_list* listaNodos);
 void calcularDisponibilidad(t_worker* worker);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);

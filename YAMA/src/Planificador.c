@@ -24,17 +24,19 @@ void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 }
 
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
-	//Actualizar estados
+
+	actualizarEstados(infoMaster, job_master);
+
 	while(!todosLosNodosTerminaronReduccionLocal(job_master)){
 
-		t_worker* nodo = getNodo(infoMaster->id_nodo, jobID);
+		t_worker* nodo = getNodo(infoMaster->id_nodo, job_master->job->id);
 
 		if(infoMaster->estado == 0){ //SI LA OPERACION FUE EXITOSA
 
 			if(etapaActiva(nodo) == TRANSFORMACION){
 				if(nodoTerminoTransformacion(infoMaster->id_nodo)){
 					log_trace(logYAMA, "El nodo %d finalizo transformacion en todos sus bloques. Pasando a reduccion local", infoMaster->id_nodo);
-					realizarReduccionLocal(nodo, jobID);
+					realizarReduccionLocal(nodo, job_master->job->id);
 				}
 				else{
 					nodo->cantTareasHistoricas += 1;
@@ -49,24 +51,23 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 		else { // SI LA OPERACION FUE ERROR
 			if(etapaActiva(nodo) == TRANSFORMACION){
 				log_trace(logYAMA, "Replanificando transformacion para Nodo %d Bloque %d", infoMaster->id_nodo, infoMaster->bloque);
-				replanificar(infoMaster, jobID);
+				replanificar(infoMaster, job_master->job->id);
 			}
 			else {
 				log_error(logYAMA, "Fallo en la reduccion local - Abortando JOB");
-				abortarJob(jobID);
+				abortarJob(job_master->job->id);
 			}
 		}
 	}
-	t_worker* encargado = elegirEncargadoReduccionGlobal(jobID); //A desarrollar
+	/*t_worker* encargado = elegirEncargadoReduccionGlobal(jobID); //A desarrollar
 	realizarReduccionGlobal(encargado); // A desarrollar
-	finalizarCorrectamente(jobID);
+	finalizarCorrectamente(jobID);*/
 }
 
 void abortarJob(int jobID){
 	t_job* job = getJob(jobID);
 	job->estado = ERROR;
 	list_destroy(getNodosDeJob(jobID));
-	list_destroy(listaRespuestasMaster);
 	log_trace(logYAMA, "JOB TERMINADO ERRONEAMENTE");
 }
 
@@ -74,7 +75,6 @@ void finalizarCorrectamente(int jobID){
 	t_job* job = getJob(jobID);
 	job->estado = EXITO;
 	list_destroy(getNodosDeJob(jobID));
-	list_destroy(listaRespuestasMaster);
 	log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
 }
 
@@ -184,16 +184,37 @@ char* getNombreArchivoTemporalRedLocal(int jobID, int nodo){
 	return nombre;
 }
 
-void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster){
-	actualizarTablaEstados(infoMaster);
+void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
+	actualizarTablaEstados(infoMaster, job_master);
 	actualizarLog(infoMaster);
 }
 
-void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster){
+t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID){
+	int registroEspecifico(t_tablaEstados* registroEstado){
+		return registroEstado->nodo->id == infoMaster->id_nodo &&
+				registroEstado->bloque == infoMaster->bloque &&
+				registroEstado->estado == EN_EJECUCION &&
+				registroEstado->master == infoMaster->id_master &&
+				registroEstado->job->id == jobID;
+	}
+	return list_find(TablaEstados, (void*)registroEspecifico);
+}
+
+void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
+	t_tablaEstados* registroEstado = getRegistro(infoMaster, job_master->job->id);
+	if(infoMaster->estado == 0){
+		registroEstado->estado = EXITO;
+	}
+	else {
+		registroEstado->estado = ERROR;
+	}
+}
+
+void agregarRegistroATablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
 	t_tablaEstados* registroEstado = malloc(sizeof(t_tablaEstados));
-	registroEstado->job = getJobDeNodo(infoMaster->id_nodo);
+	registroEstado->job = job_master->job;
 	registroEstado->master = infoMaster->id_master;
-	registroEstado->nodo = getNodo(infoMaster->id_nodo,infoMaster->id_master); // El id de master es el mismo que el del job
+	registroEstado->nodo = getNodo(infoMaster->id_nodo,job_master->job->id); // El id de master es el mismo que el del job
 	registroEstado->bloque = infoMaster->bloque;
 	registroEstado->tarea = getTarea(infoMaster);
 	registroEstado->archivoTemporal = getArchivoTemporal(infoMaster);
@@ -241,14 +262,6 @@ t_worker* getNodo(int nodoID, int jobID){
 	}
 	t_list* nodosDisponibles = getNodosDeJob(jobID);
 	return list_find(nodosDisponibles, (void*)nodoConId);
-}
-
-t_job* getJobDeNodo(int idNodo){
-	int registroConNodoId(t_tablaEstados* registroEstado){
-		return registroEstado->nodo->id == idNodo;
-	}
-	t_tablaEstados* registroEstado = list_find(TablaEstados, (void*)registroConNodoId);
-	return registroEstado->job;
 }
 
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster){
