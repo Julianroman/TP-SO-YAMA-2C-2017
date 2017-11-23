@@ -1,7 +1,3 @@
-/*
- * packers.c
- * Generado automaticamente por ProtoCool
-*/
 
 #include <stdint.h>
 #include <string.h>

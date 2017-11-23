@@ -1,7 +1,3 @@
-/*
- * senders.h
- * Generado automaticamente por ProtoCool
-*/
 
 #ifndef UTILIDADES_PROTOCOL_SENDERS_H_
 #define UTILIDADES_PROTOCOL_SENDERS_H_

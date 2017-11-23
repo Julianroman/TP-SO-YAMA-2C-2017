@@ -1,7 +1,3 @@
-/*
- * unpackers.h
- * Generado automaticamente por ProtoCool
-*/
 
 #ifndef UTILIDADES_PROTOCOL_UNPACKERS_H_
 #define UTILIDADES_PROTOCOL_UNPACKERS_H_

@@ -1,7 +1,3 @@
-/*
- * types.h
- * Generado automaticamente por ProtoCool
-*/
 
 #ifndef UTILIDADES_PROTOCOL_TYPES_H_
 #define UTILIDADES_PROTOCOL_TYPES_H_

@@ -1,7 +1,3 @@
-/*
- * senders.c
- * Generado automaticamente por ProtoCool
-*/
 
 #include <sys/types.h>
 #include <sys/stat.h>
