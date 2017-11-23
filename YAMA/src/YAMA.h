@@ -41,6 +41,12 @@ typedef struct{
 	Tarea etapa;
 }t_job;
 
+typedef struct {
+	t_job* job;
+	int master_id;
+	int master_socket;
+}t_job_master;
+
 typedef struct{
 	unsigned short bloqueNodo;
 	unsigned short bloqueArchivo;
@@ -83,7 +89,7 @@ typedef struct {
 void iniciarListaEstados();
 
 static t_list* TablaEstados;
-t_dictionary* diccionarioMasters;
+t_list* MastersJobs;
 t_yama* leerConfiguracion();
 
 t_yama* configYAMA;

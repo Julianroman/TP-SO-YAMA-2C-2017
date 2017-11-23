@@ -21,12 +21,20 @@ void responder_SOLICITUD(int socket,void* data,HEADER_T tipoDeMensaje){
 void res_SOLICITUD_JOB(int socket,void*  data){
 	payload_SOLICITUD_JOB* payload = data;
 	log_trace(logYAMA,"SOLICITUD_JOB recibida. Empezando planificacion\n");
+	int buscarJob(t_job_master* job_master){
+		return job_master->master_socket == socket;
+	}
+	t_job_master* job_master = list_get(MastersJobs, (void*)buscarJob);
 	//MANDAR A PLANIFICAR
-	iniciarPlanificacion(payload->nombreArchivo);
+	iniciarPlanificacion(payload->nombreArchivo, job_master);
 }
 
 void res_RECIBIR_INFO(int socket, void* data){
 	payload_RESPUESTA_MASTER* infoMaster = data;
-	agregarAListaInfoMaster(infoMaster);
+	int buscarJob(t_job_master* job_master){
+			return job_master->master_socket == socket;
+		}
+	t_job_master* job_master = list_get(MastersJobs, (void*)buscarJob);
+	responderSolicitudMaster(infoMaster, job_master);
 	log_trace(logYAMA, "Informacion de master recibida. Actualizando estados\n");
 }

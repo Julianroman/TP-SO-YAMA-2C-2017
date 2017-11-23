@@ -12,15 +12,13 @@
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/senders.h>
 
-t_list* nodosDisponibles;
-t_dictionary* bloques_ejecutados;
-t_dictionary* diccionarioJobs;
-t_dictionary* diccionarioNodos;
-t_list* listaRespuestasMaster;
+t_list* nodosDisponibles; //Lista de nodos - cada una pertenece a un JOB
+t_dictionary* diccionarioNodos; //JJB ID - Lista nodos para ese JOB
 
 // FUNCIONES DE PLANIFICADOR
-void iniciarPlanificacion(char* nombreArchivo);
-int inicializarPlanificador();
+void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master);
+void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
+void inicializarPlanificador();
 void finalizarCorrectamente(int jobID);
 void abortarJob(int jobID);
 t_list* cargarNodosParaPlanificacion(char* nombreArchivo);
@@ -29,10 +27,9 @@ void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(int jobID);
 void realizarReduccionLocal(t_worker* nodo, int jobID);
 void replanificar(payload_RESPUESTA_MASTER* infoMaster, int jobID);
+
 //FUNCIONES DE JOB
 t_job *newJob();
-t_job* getJob(int jobID);
-int agregarJob(t_job* job);
 
 // UTILES
 t_list* getNodosDeJob(int jobID);
@@ -40,10 +37,7 @@ void agregarListaNodos(t_list* listaNodos, int jobID);
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
-void agregarAListaInfoMaster(payload_RESPUESTA_MASTER* infoMaster);
-payload_RESPUESTA_MASTER* obtenerSiguienteInfoMaster();
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
-int getSocketMaster(int id_master);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 
 // FUNCIONES DE NODO

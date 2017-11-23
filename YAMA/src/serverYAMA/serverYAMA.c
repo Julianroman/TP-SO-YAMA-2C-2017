@@ -28,9 +28,12 @@ static int idUltimoMasterCreado = 1;
 
 #define BACKLOG       5
 
-void agregarADiccionarioMaster(int idUltimoMasterCreado, int socket){
-	char* keyMaster = string_itoa(idUltimoMasterCreado);
-	dictionary_put(diccionarioMasters, keyMaster, socket);
+void agregarAListado(int idUltimoMasterCreado, int socket){
+	t_job_master* job_master = malloc(sizeof(t_job_master));
+	job_master->master_id = idUltimoMasterCreado;
+	job_master->master_socket = socket;
+	list_add(MastersJobs, job_master);
+	send_JOB(socket, idUltimoMasterCreado);
 	idUltimoMasterCreado += 1;
 }
 
@@ -80,8 +83,7 @@ void init_serverYAMA(int puertoEscucha){
 							if (nuevoCliente > fdmax) {
 								fdmax = nuevoCliente;
 								}
-							agregarADiccionarioMaster(idUltimoMasterCreado, i);
-							send_JOB(i, idUltimoMasterCreado);
+							agregarAListado(idUltimoMasterCreado, i);
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);

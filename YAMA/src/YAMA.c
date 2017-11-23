@@ -46,7 +46,7 @@ int main(void) {
 	t_yama* configYAMA = leerConfiguracion();
 	log_trace(logYAMA, "Configuracion leida");
 	TablaEstados = list_create();
-	diccionarioMasters = dictionary_create();
+	MastersJobs = list_create();
 	//cliente(ipFs, puertoFs, id);
 	log_trace(logYAMA, "Iniciando servidor YAMA");
 	init_serverYAMA((int)configYAMA->puertoYAMA);
