@@ -10,99 +10,77 @@
 #include "types.h"
 #include "packers.h"
 #include "enviar_paquete.h"
+#include "destroy.h"
 
 void destroy(HEADER_T header,void* payload){
 	switch(header) {
-	case SOLICITUD_JOB:
-		free(payload->nombreArchivo);
-		free(payload);
-	break;
-	case ORDEN_TRANSFORMACION:
-		free(payload->nombreArchivoTemporal);
-		free(payload);
-	break;
-	case ORDEN_REDUCCIONLOCAL:
-		free(payload->nombreTemporal_Transformacion);
-		free(payload->nombreTemporal_ReduccionLocal);
-		free(payload);
-	break;
-	case ORDEN_REDUCCIONGLOBAL:
-		free(payload->IP_Nodo);
-		free(payload->nombreTemporal_ReduccionLocal);
-		free(payload->nombreTemporal_ReduccionGlobal);
-		free(payload);
-	break;
-	case ORDEN_ALMACENAMIENTO:
-		free(payload->nombreTemporal_ReduccionGlobal);
-		free(payload);
-	break;
-	case INFO_TRANSFORMACION:
-		free(payload->IP_Worker);
-		free(payload->nombreArchivoTemporal);
-		free(payload);
-	break;
-	case INFO_REDUCCIONLOCAL:
-		free(payload->IP_Worker);
-		free(payload->nombreTemporal_Transformacion);
-		free(payload->nombreTemporal_ReduccionLocal);
-		free(payload);
-	break;
-	case INFO_REDUCCIONGLOBAL:
-		free(payload->IP_Worker);
-		free(payload->nombreTemporal_ReduccionLocal);
-		free(payload->nombreTemporal_ReduccionGlobal);
-		free(payload);
-	break;
-	case INFO_ALMACENAMIENTO:
-		free(payload->IP_Worker);
-		free(payload->nombreTemporal_ReduccionGlobal);
-		free(payload);
-	break;
-	case PETICION_NODO:
-		free(payload->nombreArchivo);
-		free(payload);
-	break;
-	case NODO:
-		free(payload->IP_Nodo);
-		free(payload->nombreNodo);
-		free(payload);
-	break;
-	case FIN_LISTA:
-		free(payload);
-	break;
-	case FIN_COMUNICACION:
-		free(payload);
-	break;
-	case ARCHIVO:
-		free(payload->archivo);
-		free(payload);
-	break;
-	case BLOQUE:
-		free(payload->contenido);
-		free(payload);
-	break;
-	case PRESENTACION_DATANODE:
-		free(payload);
-	break;
-	case JOB:
-		free(payload);
-	break;
-	case RESPUESTA_MASTER:
-		free(payload);
-	break;
-	case EXITO_OPERACION:
-		free(payload);
-	break;
-	case FRACASO_OPERACION:
-		free(payload);
-	break;
-	case SCRIPT:
-		free(payload->contenido);
-		free(payload);
-	break;
-	case PETICION_BLOQUE:
-		free(payload);
-	break;
+		case SOLICITUD_JOB:
+			destroy_SOLICITUD_JOB((payload_SOLICITUD_JOB*) payload);
+		break;
+		case ORDEN_TRANSFORMACION:
+			destroy_ORDEN_TRANSFORMACION((payload_ORDEN_TRANSFORMACION*) payload);
+		break;
+		case ORDEN_REDUCCIONLOCAL:
+			destroy_ORDEN_REDUCCIONLOCAL((payload_ORDEN_REDUCCIONLOCAL*) payload);
+		break;
+		case ORDEN_REDUCCIONGLOBAL:
+			destroy_ORDEN_REDUCCIONGLOBAL((payload_ORDEN_REDUCCIONGLOBAL*) payload);
+		break;
+		case ORDEN_ALMACENAMIENTO:
+			destroy_ORDEN_ALMACENAMIENTO((payload_ORDEN_ALMACENAMIENTO*) payload);
+		break;
+		case INFO_TRANSFORMACION:
+			destroy_INFO_TRANSFORMACION((payload_INFO_TRANSFORMACION*) payload);
+		break;
+		case INFO_REDUCCIONLOCAL:
+			destroy_INFO_REDUCCIONLOCAL((payload_INFO_REDUCCIONLOCAL*) payload);
+		break;
+		case INFO_REDUCCIONGLOBAL:
+			destroy_INFO_REDUCCIONGLOBAL((payload_INFO_REDUCCIONGLOBAL*) payload);
+		break;
+		case INFO_ALMACENAMIENTO:
+			destroy_INFO_ALMACENAMIENTO((payload_INFO_ALMACENAMIENTO*) payload);
+		break;
+		case PETICION_NODO:
+			destroy_PETICION_NODO((payload_PETICION_NODO*) payload);
+		break;
+		case NODO:
+			destroy_NODO((payload_NODO*) payload);
+		break;
+		case FIN_LISTA:
+			destroy_FIN_LISTA((payload_FIN_LISTA*) payload);
+		break;
+		case FIN_COMUNICACION:
+			destroy_FIN_COMUNICACION((payload_FIN_COMUNICACION*) payload);
+		break;
+		case ARCHIVO:
+			destroy_ARCHIVO((payload_ARCHIVO*) payload);
+		break;
+		case BLOQUE:
+			destroy_BLOQUE((payload_BLOQUE*) payload);
+		break;
+		case PRESENTACION_DATANODE:
+			destroy_PRESENTACION_DATANODE((payload_PRESENTACION_DATANODE*) payload);
+		break;
+		case JOB:
+			destroy_JOB((payload_JOB*) payload);
+		break;
+		case RESPUESTA_MASTER:
+			destroy_RESPUESTA_MASTER((payload_RESPUESTA_MASTER*) payload);
+		break;
+		case EXITO_OPERACION:
+			destroy_EXITO_OPERACION((payload_EXITO_OPERACION*) payload);
+		break;
+		case FRACASO_OPERACION:
+			destroy_FRACASO_OPERACION((payload_FRACASO_OPERACION*) payload);
+		break;
+		case SCRIPT:
+			destroy_SCRIPT((payload_SCRIPT*) payload);
+		break;
+		case PETICION_BLOQUE:
+			destroy_PETICION_BLOQUE((payload_PETICION_BLOQUE*) payload);
+		break;
+	}
 }
 
 void destroy_SOLICITUD_JOB(payload_SOLICITUD_JOB* payload){
