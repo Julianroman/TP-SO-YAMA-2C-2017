@@ -63,7 +63,6 @@ typedef struct {
 	int disponibilidad;
 	int cantTareasHistoricas;
 	int activo;
-	t_job* jobActivo;
 	Tarea etapaActiva;
 } t_worker;
 

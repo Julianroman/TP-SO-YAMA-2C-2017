@@ -13,19 +13,19 @@
 #include <utilidades/protocol/senders.h>
 
 t_list* nodosDisponibles; //Lista de nodos - cada una pertenece a un JOB
-t_dictionary* diccionarioNodos; //JJB ID - Lista nodos para ese JOB
+t_dictionary* diccionarioJobNodos; //JOB ID - Lista nodos para ese JOB
 
 // FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master);
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
 void inicializarPlanificador();
-void finalizarCorrectamente(int jobID);
-void abortarJob(int jobID);
+void finalizarCorrectamente(t_job* job);
+void abortarJob(t_job* job);
 t_list* cargarNodosParaPlanificacion(char* nombreArchivo);
 t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(t_job_master* job_master);
-void realizarReduccionLocal(t_worker* nodo, int jobID);
+void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
 void replanificar(payload_RESPUESTA_MASTER* infoMaster, int jobID);
 
 //FUNCIONES DE JOB
@@ -33,7 +33,7 @@ t_job *newJob();
 
 // UTILES
 t_list* getNodosDeJob(int jobID);
-void agregarListaNodos(t_list* listaNodos, int jobID);
+void agregarListaNodosAJob(t_list* listaNodos, int jobID);
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
@@ -44,6 +44,7 @@ int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 int todosLosNodosTerminaronReduccionLocal(int jobID);
 int nodoTerminoTransformacion(int idJob);
 void nodoPasarAReduccionLocal(t_worker* nodo);
+void nodoPasarATransformacion(t_worker* nodo);
 t_worker* getNodo(int nodoID, int jobID);
 int estaActivo(t_worker* worker);
 

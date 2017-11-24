@@ -27,65 +27,72 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 
 	actualizarEstados(infoMaster, job_master);
 
-	while(!todosLosNodosTerminaronReduccionLocal(job_master)){
+	t_worker* nodo = getNodo(infoMaster->id_nodo, job_master->job->id);
 
-		t_worker* nodo = getNodo(infoMaster->id_nodo, job_master->job->id);
+	if(infoMaster->estado == 0){ //SI LA OPERACION FUE EXITOSA
 
-		if(infoMaster->estado == 0){ //SI LA OPERACION FUE EXITOSA
-
-			if(etapaActiva(nodo) == TRANSFORMACION){
-				if(nodoTerminoTransformacion(infoMaster->id_nodo)){
-					log_trace(logYAMA, "El nodo %d finalizo transformacion en todos sus bloques. Pasando a reduccion local", infoMaster->id_nodo);
-					realizarReduccionLocal(nodo, job_master->job->id);
+		switch(etapaActiva(nodo)){
+		case TRANSFORMACION:
+			if(nodoTerminoTransformacion(infoMaster->id_nodo)){
+				log_trace(logYAMA, "El nodo %d finalizo transformacion en todos sus bloques. Pasando a reduccion local", infoMaster->id_nodo);
+				realizarReduccionLocal(nodo, job_master->job->id);
 				}
-				else{
-					nodo->cantTareasHistoricas += 1;
-					log_trace(logYAMA, "El nodo %d finalizo transformacion en el bloque %d", infoMaster->id_nodo, infoMaster->bloque);
-				}
-			}
-			else {
+			else{
 				nodo->cantTareasHistoricas += 1;
-				log_trace(logYAMA, "El nodo %d finalizo Reduccion Local", infoMaster->id_nodo);
+				log_trace(logYAMA, "El nodo %d finalizo transformacion en el bloque %d", infoMaster->id_nodo, infoMaster->bloque);
+				}
+			break;
+		case REDUCCION_LOCAL:
+			nodo->cantTareasHistoricas += 1;
+			log_trace(logYAMA, "El nodo %d finalizo Reduccion Local", infoMaster->id_nodo);
+			if(todosLosNodosTerminaronReduccionLocal(job_master->job->id)){
+				/*t_worker* encargado = elegirEncargadoReduccionGlobal(jobID); A desarrollar
+				realizarReduccionGlobal(encargado);  A desarrollar*/
 			}
-		}
-		else { // SI LA OPERACION FUE ERROR
-			if(etapaActiva(nodo) == TRANSFORMACION){
-				log_trace(logYAMA, "Replanificando transformacion para Nodo %d Bloque %d", infoMaster->id_nodo, infoMaster->bloque);
-				replanificar(infoMaster, job_master->job->id);
-			}
-			else {
-				log_error(logYAMA, "Fallo en la reduccion local - Abortando JOB");
-				abortarJob(job_master->job->id);
-			}
+			break;
+		case REDUCCION_GLOBAL:
+			//QUE SE HACE?
+			break;
+		case ALMACENAMIENTO:
+			// QUE SE HACE?
+			break;
 		}
 	}
-	/*t_worker* encargado = elegirEncargadoReduccionGlobal(jobID); //A desarrollar
-	realizarReduccionGlobal(encargado); // A desarrollar
-	finalizarCorrectamente(jobID);*/
+
+	else { // SI LA OPERACION FUE ERROR
+		if(etapaActiva(nodo) == TRANSFORMACION){
+			log_trace(logYAMA, "Replanificando transformacion para Nodo %d Bloque %d", infoMaster->id_nodo, infoMaster->bloque);
+			replanificar(infoMaster, job_master->job->id);
+		}
+		else {
+			log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE - Abortando JOB");
+			abortarJob(job_master->job->id);
+		}
+	}
+
+	finalizarCorrectamente(job_master->job->id);
 }
 
-void abortarJob(int jobID){
-	t_job* job = getJob(jobID);
+void abortarJob(t_job* job){
 	job->estado = ERROR;
-	list_destroy(getNodosDeJob(jobID));
+	list_destroy(getNodosDeJob(job));
 	log_trace(logYAMA, "JOB TERMINADO ERRONEAMENTE");
 }
 
-void finalizarCorrectamente(int jobID){
-	t_job* job = getJob(jobID);
+void finalizarCorrectamente(t_job* job){
 	job->estado = EXITO;
-	list_destroy(getNodosDeJob(jobID));
+	list_destroy(getNodosDeJob(job));
 	log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
 }
 
 void inicializarPlanificador(t_job_master* job_master){ //Devuelve el id del job creado
 	if(ESTAINICIALIZADO == 0){
-		diccionarioNodos = dictionary_create();
+		diccionarioJobNodos = dictionary_create();
 		ESTAINICIALIZADO++;
 	}
 	nodosDisponibles = list_create();
 	job_master->job = newJob();
-	agregarListaNodos(nodosDisponibles, job_master->job->id);
+	agregarListaNodosAJob(nodosDisponibles, job_master->job->id);
 }
 
 t_job *newJob(){
@@ -97,14 +104,14 @@ t_job *newJob(){
 	return job;
 }
 
-void agregarListaNodos(t_list* listaNodos, int jobID){
+void agregarListaNodosAJob(t_list* listaNodos, int jobID){
 	char* keyJob = string_itoa(jobID);
-	dictionary_put(diccionarioNodos, keyJob, listaNodos);
+	dictionary_put(diccionarioJobNodos, keyJob, listaNodos);
 }
 
 t_list* getNodosDeJob(int jobID){
 	char* keyJob = string_itoa(jobID);
-	return dictionary_get(diccionarioNodos, keyJob);
+	return dictionary_get(diccionarioJobNodos, keyJob);
 }
 
 /*void replanificar(payload_RESPUESTA_MASTER* respuesta, int jobID){
@@ -129,21 +136,29 @@ t_list* getNodosDeJob(int jobID){
 
 void nodoPasarAReduccionLocal(t_worker* nodo){
 	nodo->etapaActiva = REDUCCION_LOCAL;
-	nodo->jobActivo->etapa = REDUCCION_LOCAL;
 }
 
-void realizarReduccionLocal(t_worker* nodo, int jobID){
-	int socketMaster = getSocketMaster(jobID);
+void nodoPasarATransformacion(t_worker* nodo){
+	nodo->etapaActiva = TRANSFORMACION;
+}
+
+void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master){
 	int getRegistroEstadoTransformacion(t_tablaEstados* registroEstado){
-		return registroEstado->tarea == TRANSFORMACION && registroEstado->nodo->id == nodo->id && registroEstado->estado == EXITO;
+		return registroEstado->tarea == TRANSFORMACION &&
+				registroEstado->nodo->id == nodo->id &&
+				registroEstado->estado == EXITO &&
+				registroEstado->job->id == job_master->job->id;
 	}
-	t_list* nodoConTransformacionTerminada = list_find(TablaEstados, (void*)getRegistroEstadoTransformacion);
-	char* nombreTemporalReduccionLocal = getNombreArchivoTemporalRedLocal(jobID, nodo->id);
+	t_list* nodoConTransformacionTerminada = list_create();
+	nodoConTransformacionTerminada = list_filter(TablaEstados, (void*)getRegistroEstadoTransformacion);
+	char* nombreTemporalReduccionLocal = getNombreArchivoTemporalRedLocal(job_master->job->id, nodo->id);
 	void realizarRedLocal(t_tablaEstados* registroEstado){
-		send_INFO_REDUCCIONLOCAL(socketMaster, nodo->puerto, nodo->ip , registroEstado->archivoTemporal , nombreTemporalReduccionLocal);
+		send_INFO_REDUCCIONLOCAL(job_master->master_socket, nodo->puerto, nodo->ip , registroEstado->archivoTemporal , nombreTemporalReduccionLocal);
 	}
 	list_iterate(nodoConTransformacionTerminada, (void*)realizarRedLocal);
+	send_FIN_LISTA(job_master->master_socket);
 	nodoPasarAReduccionLocal(nodo);
+	list_destroy(nodoConTransformacionTerminada);
 }
 
 Tarea etapaActiva(t_worker* nodo){
@@ -401,7 +416,7 @@ void realizarTransformacionNodos(t_job_master* job_master){
 	int i,j;
 	for(i=0; i<list_size(nodosDisponibles);i++){
 		t_worker* nodo = list_get(nodosDisponibles, i);
-		nodo->etapaActiva = TRANSFORMACION;
+		nodoPasarATransformacion(nodo);
 		//Aca paso la lista de chars a ints
 		nodo->bloquesAEjecutar = list_map(nodo->bloquesAEjecutar, (void*) charToInt);
 		for(j=0; j<list_size(nodo->bloquesAEjecutar);j++){
@@ -410,7 +425,7 @@ void realizarTransformacionNodos(t_job_master* job_master){
 			//uint16_t bloque = bloqueChar[0] - '0'; // Esto convierte el '1' a 1
 			char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloque, nodo->id);
 			send_INFO_TRANSFORMACION(job_master->master_socket, nodo->puerto, nodo->ip, bloque, 1048576, nombreArchivoTemporal);
-			actualizarTablaDeEstadosConTransformacion(job_master, nodo, bloque, nombreArchivoTemporal);
+			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque, nombreArchivoTemporal);
 		}
 	}
 }
