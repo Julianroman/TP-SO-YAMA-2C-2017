@@ -37,7 +37,6 @@
 									<listOptionValue builtIn="false" value="Utilidades"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 									<listOptionValue builtIn="false" value="commons"/>
-									<listOptionValue builtIn="false" value="parser-ansisop"/>
 									<listOptionValue builtIn="false" value="readline"/>
 								</option>
 								<option id="gnu.c.link.option.paths.819436440" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">

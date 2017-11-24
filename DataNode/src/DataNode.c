@@ -29,7 +29,7 @@
 #include <utilidades/protocol/receive.h>
 
 #define TAMANIOBLOQUE 10
-#define PATHPOSTA "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/metadata/DataNode.dat"
+#define PATHPOSTA "/home/git/tp-2017-2c-Grupo-1---K3525/DataNode/metadata/DataNode.dat"
 //
 int puertoFs = 0;
 int id = 1;
@@ -71,7 +71,7 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	struct sockaddr_in direccionServidor;
 	direccionServidor.sin_family = AF_INET;
 	direccionServidor.sin_addr.s_addr = INADDR_ANY;
-	//direccionServidor.sin_addr.s_addr = inet_addr(ip);
+	direccionServidor.sin_addr.s_addr = inet_addr(ip);
 	direccionServidor.sin_port = htons(puerto);
 
 	int cliente = socket(AF_INET, SOCK_STREAM, 0);

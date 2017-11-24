@@ -114,6 +114,10 @@ t_list* getNodosDeJob(int jobID){
 	return dictionary_get(diccionarioJobNodos, keyJob);
 }
 
+void cargarNodosParaPlanificacion(char* nombreArchivo){
+
+}
+
 void replanificar(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master, t_worker* nodoFallido){
 
 	int nodoConID(t_worker* nodo){
@@ -131,6 +135,7 @@ void replanificar(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master,
 	char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, infoBloqueNuevo->bloqueNodo, nodoConCopia->id);
 	send_INFO_TRANSFORMACION(job_master->master_socket, nodoConCopia->puerto, nodoConCopia->ip, infoBloqueNuevo->bloqueNodo, 1048576, nombreArchivoTemporal);
 	list_remove_and_destroy_by_condition(nodosDisponibles, (void*)nodoConID, (void*)eliminarNodo);
+	//TODO REPLANIFICAR EN TODOS LOS NODOS DEL QUE SE CAE
 }
 
 t_worker* getNodoConCopiaDeBloque(int bloqueABuscar, t_worker* nodoFallido, t_list* listaNodos){
@@ -430,22 +435,14 @@ void planificacionWClock(t_job_master* job_master){//Esta seria la lista o dicci
 	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
 }
 
-int charToInt(char* c){
-	return atoi(c);
-}
-
 void realizarTransformacionNodos(t_job_master* job_master){
 	t_list* nodosDisponibles = getNodosDeJob(job_master->job->id);
 	int i,j;
 	for(i=0; i<list_size(nodosDisponibles);i++){
 		t_worker* nodo = list_get(nodosDisponibles, i);
 		nodoPasarATransformacion(nodo);
-		//Aca paso la lista de chars a ints
-		nodo->bloquesAEjecutar = list_map(nodo->bloquesAEjecutar, (void*) charToInt);
 		for(j=0; j<list_size(nodo->bloquesAEjecutar);j++){
 			int bloque = list_get(nodo->bloquesAEjecutar,j);
-			//char* bloqueChar = list_get(nodo->bloquesAEjecutar,j);
-			//uint16_t bloque = bloqueChar[0] - '0'; // Esto convierte el '1' a 1
 			char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloque, nodo->id);
 			send_INFO_TRANSFORMACION(job_master->master_socket, nodo->puerto, nodo->ip, bloque, 1048576, nombreArchivoTemporal);
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque, nombreArchivoTemporal);
@@ -475,11 +472,11 @@ void nodoConMayorDisponibilidad(t_list* listaNodos){ // ordena la lista de nodos
 	worker = listaNodos->head->data;
 }
 
-int PWL(t_worker* worker){
-	return WLmax() + carga(worker);
+int PWL(t_worker* worker, t_list* listaNodos){
+	return WLmax(listaNodos) + carga(worker);
 }
 
-/*int WLmax(){ // ordena la lista de nodos segun la disponibilidad
+int WLmax(t_list* listaNodos){ // ordena la lista de nodos segun la disponibilidad
 	t_worker* worker = malloc(sizeof(t_worker));
 	int mayorCarga(t_worker* nodo1, t_worker* nodo2){
 			return carga(nodo1) > carga(nodo2);
@@ -488,7 +485,7 @@ int PWL(t_worker* worker){
 	//para verificar que el primero este bien
 	worker = listaNodos->head->data;
 	return carga(worker);
-}*/// VER COMO USAR LA LISTA SIN EL ID DE JOB; O DEBERIA USAR EL ID DE JOB? ES UNA FUNCION SOBRE UN WORKER GENERICO O TIENE EN CUENTA EL JOB?
+}/// VER COMO USAR LA LISTA SIN EL ID DE JOB; O DEBERIA USAR EL ID DE JOB? ES UNA FUNCION SOBRE UN WORKER GENERICO O TIENE EN CUENTA EL JOB?
 
 int carga(t_worker* worker){
 	return worker->carga;

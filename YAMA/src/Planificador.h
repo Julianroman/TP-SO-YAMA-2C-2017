@@ -21,7 +21,7 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 void inicializarPlanificador();
 void finalizarCorrectamente(t_job* job);
 void abortarJob(t_job* job);
-t_list* cargarNodosParaPlanificacion(char* nombreArchivo);
+void cargarNodosParaPlanificacion(char* nombreArchivo);
 t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(t_job_master* job_master);
