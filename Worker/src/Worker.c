@@ -28,6 +28,7 @@
 
 
 t_log* logger;
+char* nodePath = "data.bin";
 
 int main(int argc, char **argv) {
 	/*if (argc!=2){

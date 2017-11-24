@@ -30,6 +30,8 @@
 #include "operaciones/operaciones.h"
 #include "funcionesMaster.h"
 
+sem_t recepcionSem;
+
 t_log* logger;
 
 int operaciones;
@@ -70,6 +72,7 @@ int main(int argc, char **argv) {
 
 	// Inicializar semaforo de fin de job
 	sem_init(&fin_job, 0, 0);
+	sem_init(&recepcionSem, 0, 0);
 
 
 	// Imprimir titulo

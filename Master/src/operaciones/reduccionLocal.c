@@ -10,6 +10,7 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/destroy.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <pthread.h>
@@ -26,6 +27,8 @@ extern int paralelasEnProceso;
 extern int maxReduxLocalesEnProceso;
 extern int maxParalelasEnProceso;
 extern int masterID;
+extern sem_t recepcionSem;
+
 
 int YAMAsocket;
 
@@ -50,6 +53,9 @@ STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_create(&tid, &attr, rutina_reduccionLocal, data);
 
+	// Esperar que el hilo reciba las informaciones necesarias
+	sem_wait(&recepcionSem);
+
 	return EXITO;
 }
 
@@ -61,9 +67,33 @@ void* rutina_reduccionLocal(void* args){
 	// Iniciar timer
 	time (&inicioEtapa);
 
-	// Enviar orden
+	// Enviar orden inicial
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+	// Destruir lo que no uso
+	destroy_INFO_REDUCCIONLOCAL(payload);
+
+	// Recibir mas reducciones del mismo nodo
+	payload = receive(YAMAsocket,&header);
+	while(header == INFO_REDUCCIONLOCAL){
+		printf("HEAD: %d\n",header);
+		// Enviar
+		send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		// Destruir
+		destroy_INFO_REDUCCIONLOCAL(payload);
+		// Repeat
+		payload = receive(YAMAsocket,&header);
+	}
+	printf("HEAD: %d\n",header);
+	// Destruir el fin de lista
+	if(header != FIN_LISTA){puts("FIN DE LISTA esperado"); exit(1);}
+	//destroy(FIN_LISTA,payload);
+
+	// Enviar fin de lista al Worker
+	send_FIN_LISTA(socketWorker);
+
+	// Indicar fin de recepcion
+	sem_post(&recepcionSem);
 
 	// Enviar script
 	send_SCRIPT(socketWorker,scriptReductor);

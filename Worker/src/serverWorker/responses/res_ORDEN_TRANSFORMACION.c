@@ -16,14 +16,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
+
+#define BUFFERSIZE 1024
+
 
 extern t_log* logger;
+extern char* nodePath;
 
 void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	pid_t pid = getpid();
 
 	log_info(logger, "Respondiendo ORDEN_TRANSFORMACION");
-	payload_ORDEN_TRANSFORMACION* orden;
+	payload_ORDEN_TRANSFORMACION* orden = data;
 	HEADER_T cabecera;
 
 	// Recibo el script
@@ -38,30 +44,100 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	char* contenido = script -> contenido;
 
 	// Guardo el script
-	char* path = string_from_format("scripts/transformador%d", pid);
-    FILE *fp = fopen(path, "ab");
-    if (fp != NULL)
-    {
-        fputs(contenido, fp);
-        fclose(fp);
+	char* scriptPath = string_from_format("scripts/transformador%d", pid);
+    FILE *scriptFile = fopen(scriptPath, "ab");
+    if (scriptFile != NULL){
+        fputs(contenido, scriptFile);
+        fclose(scriptFile);
     }
 
     // Le otorgo permisos de ejecucion
-    // la funcion chmod no me estaria funcionando pero el buen system siempre provee
-    char* chmodComand = string_from_format("chmod 777 %s", path);
+    char* chmodComand = string_from_format("chmod +x %s", scriptPath);
     system(chmodComand);
 
-    // Ejecutar
-    char* comando = string_from_format("./%s", path);
-    system(comando);
 
-    // Borro el script
-    remove(path);
-    srand((unsigned)time(NULL));
-    int random = rand() % 3;
-    sleep(random);
-	send_EXITO_OPERACION(socket_cliente);
-	exit(EXIT_SUCCESS);
+    // Cargar archivo a procesar
+    off_t offset = 0;// Posible seleccion de bloque
+
+    // Abrir archivo y conocer sus propiedades
+    int nodeFD = open(nodePath,O_RDWR);
+    struct stat nodeStats;
+    fstat(nodeFD, &nodeStats);
+    size_t nodeLenght = nodeStats.st_size;
+
+    // Cargarlo en memoria
+    void * node = mmap(NULL,nodeLenght, PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,offset);
+
+    //PIPEO INTENSIFIES!!!
+    int pipe_padreAHijo[2];
+    int pipe_hijoAPadre[2];
+
+    pipe(pipe_padreAHijo);
+    pipe(pipe_hijoAPadre);
+
+    int status;
+    // Un buffer para leer
+
+
+    if ((pid=fork()) == 0 ){
+    	//Hijo
+    	// Copio las pipes que necesito a stdin y stdout
+      	dup2(pipe_padreAHijo[0],STDIN_FILENO);
+      	dup2(pipe_hijoAPadre[1],STDOUT_FILENO);
+
+      	// Ciello lo que no necesito
+       	close( pipe_padreAHijo[1]);
+      	close( pipe_hijoAPadre[0]);
+    	close( pipe_hijoAPadre[1]);
+    	close( pipe_padreAHijo[0]);
+
+    	// Ejecuto el script
+        char *argv[] = {NULL};
+        char *envp[] = {NULL};
+
+        execve(scriptPath, argv, envp);
+        free(scriptPath);
+        exit(1);
+    }else{
+    	//Padre
+    	// Cierro lo que no necesito
+    	close( pipe_padreAHijo[0] );
+    	close( pipe_hijoAPadre[1] );
+
+    	// Escribo
+    	write( pipe_padreAHijo[1],node,nodeLenght);// De cebado le mando to do el contenido pero en cuanto tenga un nodo particionado lo pongo como corresponde
+    	// Cierro pipe
+    	close( pipe_padreAHijo[1]);
+    	// Espero al hijo
+    	waitpid(pid,&status,0);
+
+    	// Creo un archivo
+    	char* temporalPath = string_from_format("tmp/%s",orden->nombreArchivoTemporal);
+		FILE* fd = fopen(temporalPath,"w+");
+
+    	// Leo de a un char
+    	char bufferTemp;
+		// Leo de la pipe y escribo en el archivo
+    	while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
+			fputs(&bufferTemp,fd);
+    		//printf("%s\n",buffer);
+    	}
+
+    	// Cierro todo
+    	close(pipe_hijoAPadre[0]);
+		fclose(fd);
+	    remove(scriptPath);
+
+	    // Ordeno el archivo
+	    char* sortCommand = string_from_format("sort %s -o %s",temporalPath,temporalPath);
+	    system(sortCommand);
+	    free(sortCommand);
+		free(temporalPath);
+
+	    // Esito
+		send_EXITO_OPERACION(socket_cliente);
+		exit(EXIT_SUCCESS);
+    }
 
 };
 
