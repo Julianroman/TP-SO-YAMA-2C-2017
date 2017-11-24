@@ -48,9 +48,9 @@ typedef struct {
 }t_job_master;
 
 typedef struct{
-	unsigned short bloqueNodo;
-	unsigned short bloqueArchivo;
-	unsigned short copia;
+	int bloqueNodo;
+	int bloqueArchivo;
+	int copia;
 } t_infoBloque;
 
 typedef struct {

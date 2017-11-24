@@ -26,7 +26,7 @@ t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
-void replanificar(payload_RESPUESTA_MASTER* infoMaster, int jobID);
+void replanificar(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master, t_worker* nodoFallido);
 
 //FUNCIONES DE JOB
 t_job *newJob();
@@ -38,11 +38,13 @@ Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
+char* getNombreArchivoTemporalTransformacion(int jobID, int bloque, int nodoID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 
 // FUNCIONES DE NODO
+t_worker* getNodoConCopiaDeBloque(int bloqueABuscar, t_worker* nodoFallido, t_list* listaNodos);
 int todosLosNodosTerminaronReduccionLocal(int jobID);
-int nodoTerminoTransformacion(int idJob);
+int nodoTerminoTransformacion(int idJob, int jobID);
 void nodoPasarAReduccionLocal(t_worker* nodo);
 void nodoPasarATransformacion(t_worker* nodo);
 t_worker* getNodo(int nodoID, int jobID);
