@@ -22,7 +22,7 @@ void send_SOLICITUD_JOB(int socket , char* nombreArchivo){
     free(paquete);
 };
 
-void send_ORDEN_TRANSFORMACION(int socket , uint16_t bloque , uint32_t bytesocupados , char* nombreArchivoTemporal){
+void send_ORDEN_TRANSFORMACION(int socket , int bloque , int bytesocupados , char* nombreArchivoTemporal){
     payload_ORDEN_TRANSFORMACION payload;
     payload.bloque = bloque; 
     payload.bytesocupados = bytesocupados; 
@@ -48,7 +48,7 @@ void send_ORDEN_REDUCCIONLOCAL(int socket , char* nombreTemporal_Transformacion 
     free(paquete);
 };
 
-void send_ORDEN_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
+void send_ORDEN_REDUCCIONGLOBAL(int socket , int PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado){
     payload_ORDEN_REDUCCIONGLOBAL payload;
     payload.PUERTO_Nodo = PUERTO_Nodo; 
     payload.tamanio_IP_Nodo = (strlen(IP_Nodo)+1)*sizeof(char);
@@ -76,7 +76,7 @@ void send_ORDEN_ALMACENAMIENTO(int socket , char* nombreTemporal_ReduccionGlobal
     free(paquete);
 };
 
-void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , char* IP_Worker , uint16_t bloque , uint32_t bytesocupados , char* nombreArchivoTemporal){
+void send_INFO_TRANSFORMACION(int socket , int PUERTO_Worker , char* IP_Worker , int bloque , int bytesocupados , char* nombreArchivoTemporal){
     payload_INFO_TRANSFORMACION payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -92,7 +92,7 @@ void send_INFO_TRANSFORMACION(int socket , uint16_t PUERTO_Worker , char* IP_Wor
     free(paquete);
 };
 
-void send_INFO_REDUCCIONLOCAL(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal){
+void send_INFO_REDUCCIONLOCAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal){
     payload_INFO_REDUCCIONLOCAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -108,7 +108,7 @@ void send_INFO_REDUCCIONLOCAL(int socket , uint16_t PUERTO_Worker , char* IP_Wor
     free(paquete);
 };
 
-void send_INFO_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , uint16_t encargado){
+void send_INFO_REDUCCIONGLOBAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado){
     payload_INFO_REDUCCIONGLOBAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -125,7 +125,7 @@ void send_INFO_REDUCCIONGLOBAL(int socket , uint16_t PUERTO_Worker , char* IP_Wo
     free(paquete);
 };
 
-void send_INFO_ALMACENAMIENTO(int socket , uint16_t PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal){
+void send_INFO_ALMACENAMIENTO(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal){
     payload_INFO_ALMACENAMIENTO payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -150,7 +150,7 @@ void send_PETICION_NODO(int socket , char* nombreArchivo){
     free(paquete);
 };
 
-void send_NODO(int socket , uint16_t PUERTO_Nodo , char* IP_Nodo , char* nombreNodo){
+void send_NODO(int socket , int PUERTO_Nodo , char* IP_Nodo , char* nombreNodo){
     payload_NODO payload;
     payload.PUERTO_Nodo = PUERTO_Nodo; 
     payload.tamanio_IP_Nodo = (strlen(IP_Nodo)+1)*sizeof(char);
@@ -226,7 +226,7 @@ void send_BLOQUE(int socket, uint64_t tamanio_bloque, char* bloque, uint32_t id_
 	free(paquete);
 
 };
-void send_PRESENTACION_DATANODE(int socket , uint16_t pid , uint16_t id_dataNode , uint16_t cantidad_bloques){
+void send_PRESENTACION_DATANODE(int socket , int pid , int id_dataNode , int cantidad_bloques){
     payload_PRESENTACION_DATANODE payload;
     payload.pid = pid; 
     payload.id_dataNode = id_dataNode; 
@@ -238,7 +238,7 @@ void send_PRESENTACION_DATANODE(int socket , uint16_t pid , uint16_t id_dataNode
     free(paquete);
 };
 
-void send_JOB(int socket , uint16_t id_master){
+void send_JOB(int socket , int id_master){
     payload_JOB payload;
     payload.id_master = id_master; 
 
@@ -248,7 +248,7 @@ void send_JOB(int socket , uint16_t id_master){
     free(paquete);
 };
 
-void send_RESPUESTA_MASTER(int socket , uint16_t id_master , uint16_t id_nodo , uint16_t bloque , uint16_t estado){
+void send_RESPUESTA_MASTER(int socket , int id_master , int id_nodo , int bloque , int estado){
     payload_RESPUESTA_MASTER payload;
     payload.id_master = id_master; 
     payload.id_nodo = id_nodo; 
@@ -290,7 +290,7 @@ void send_SCRIPT(int socket , char* contenido){
     free(paquete);
 };
 
-void send_PETICION_BLOQUE(int socket , uint32_t numero_bloque){
+void send_PETICION_BLOQUE(int socket , int numero_bloque){
     payload_PETICION_BLOQUE payload;
     payload.numero_bloque = numero_bloque; 
 
