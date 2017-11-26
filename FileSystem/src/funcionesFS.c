@@ -2,14 +2,17 @@
 
 t_log *log; // Log file
 
-int32_t tamanioBloques = 1048576; // tamaño bloques 1MB
+int tamanioBloques = 1048576; // tamaño bloques 1MB
 
 
 t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
 
-static char *directorioRaiz = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/";
+static char *directorioRaiz = "root/";
 static char *pathArchivos = "metadata/archivos/";
+static char *pathTablaNodos = "root/metadata/nodos.bin";
+
+t_config *fileNodos;
 
 
 
@@ -31,6 +34,20 @@ void directory_destroy(t_directory *self) {
     free(self->nombre);
 
     free(self);
+}
+
+void desconectarNodo(int id_dataNode){
+	int i;
+	for (i = 0; i < list_size(listaDeNodos); i ++){
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+		if ( unNodo->nroNodo == id_dataNode ){
+			list_remove(listaDeNodos, i);
+			nodo_destroy(unNodo);
+		}
+	}
+
+	actualizarTablaDeNodos();
 }
 
 void servidorFs(int puerto){
@@ -136,6 +153,9 @@ void servidorFs(int puerto){
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
 								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
+
+								desconectarNodo(payloadCliente->id_dataNode);
+
 								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
@@ -239,7 +259,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	//Envio el original al primer nodo
 	//send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
 
-	if(bloquesLibres[1].nodo->nroNodo != -1){
+	if(list_size(listaDeNodos) > 1){
 		// Envio la copia
 		nombreBloque = string_new();
 		almacenamientoBloque = string_new();
@@ -479,7 +499,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	return 0;
 }
 
-char *leerArchivo(char *pathConNombre){
+void leerArchivo(char *pathConNombre){
 	//TODO
 	int cantidadDeBloques;
 
@@ -534,6 +554,8 @@ char *leerArchivo(char *pathConNombre){
 
 		char *propertyBloque;
 		char **nodoYBloque = malloc(sizeof(char*)*2);
+		char *propertyBloqueCopia;
+		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
 		int i;
 		for( i=0; i < cantidadDeBloques; i++ ){
 			//
@@ -542,13 +564,21 @@ char *leerArchivo(char *pathConNombre){
 			string_append(&propertyBloque, string_itoa(i));
 			string_append(&propertyBloque, "COPIA0");
 
-
 			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
 
-			// Leo del original si se puede.. Si no deberia buscar la copia
+			// Envio el original
 			printf("Leido de %s -- bloque %s \n", nodoYBloque[0], nodoYBloque[1]);
-			// TODO: pedir bloques a data node
+			// TODO: Enviar a YAMA
 
+			propertyBloqueCopia = string_new();
+			string_append(&propertyBloqueCopia, "BLOQUE");
+			string_append(&propertyBloqueCopia, string_itoa(i));
+			string_append(&propertyBloqueCopia, "COPIA1");
+
+			nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
+			// Envio la copia
+			printf("Leido de %s -- bloque %s \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1]);
+			// TODO: Enviar a YAMA
 
 		}
 		//config_has_property(t_config*, char* key);
@@ -557,7 +587,6 @@ char *leerArchivo(char *pathConNombre){
 
 	config_destroy(archivo_configuracion);
 
-	return "";
 }
 
 void formatear(){
@@ -610,6 +639,20 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 	return cantidad;
 }
 
+int cantidadTotalBloques(){
+	int cantidad;
+	cantidad = 0;
+	//PARA CADA ELEMENTO DE LA LISTA
+	int i;
+	for (i = 0; i < list_size(listaDeNodos); i ++){
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+		cantidad += unNodo->cantidadBloques;
+	}
+	log_trace(log,"Total bloques libres: %d", cantidad);
+	return cantidad;
+}
+
 int cantidadTotalBloquesLibres(){
 	int cantidad;
 	cantidad = 0;
@@ -632,6 +675,8 @@ void escribirBloqueLibre(t_nodo* unNodo,int bloque){
 	bitarray_set_bit(unNodo->bitmap, bloque);
 	printf("bloque %i\n",bloque);
 	almacenarBitmapEnArchivo(unNodo);
+
+	actualizarNodoEnTabla(unNodo);
 }
 int proximoBloqueLibre(t_nodo* unNodo){
 	int j;
@@ -717,6 +762,71 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 	return unBitarray;
 }
 
+char* listaDeNodosAsArray(){
+	char *textArray = string_new();
+	string_append(&textArray, "[");
+	int i = 0;
+	for(i=0; i < list_size(listaDeNodos); i++){
+		if(i>0){
+			string_append(&textArray, ", ");
+		}
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+		string_append(&textArray, string_from_format("Nodo%d", unNodo->nroNodo));
+	}
+	string_append(&textArray, "]");
+
+	return textArray;
+}
+
+void actualizarTablaDeNodos(){
+	int i = 0;
+	for(i=0; i < list_size(listaDeNodos); i++){
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+
+		config_set_value(fileNodos, string_from_format("Nodo%dTotal", unNodo->nroNodo), string_itoa(unNodo->cantidadBloques));
+
+		int cantLibres = bloquesLibresEnNodo(unNodo);
+		config_set_value(fileNodos, string_from_format("Nodo%dLibres", unNodo->nroNodo), string_itoa(cantLibres));
+
+		config_set_value(fileNodos, "LIBRE", string_itoa(cantidadTotalBloquesLibres()));
+
+		config_set_value(fileNodos, "NODOS", listaDeNodosAsArray());
+
+		config_set_value(fileNodos, "TAMANIO", string_itoa(cantidadTotalBloques()));
+
+		config_save(fileNodos);
+	}
+}
+
+void actualizarNodoEnTabla(t_nodo *unNodo){
+	config_set_value(fileNodos, string_from_format("Nodo%dTotal", unNodo->nroNodo), string_itoa(unNodo->cantidadBloques));
+
+	int cantLibres = bloquesLibresEnNodo(unNodo);
+	config_set_value(fileNodos, string_from_format("Nodo%dLibres", unNodo->nroNodo), string_itoa(cantLibres));
+
+	config_set_value(fileNodos, "LIBRE", string_itoa(cantidadTotalBloquesLibres()));
+
+	config_save(fileNodos);
+}
+
+void agregarNodoATabla(t_nodo *unNodo){
+	config_set_value(fileNodos, string_from_format("Nodo%dTotal", unNodo->nroNodo), string_itoa(unNodo->cantidadBloques));
+
+	int cantLibres = bloquesLibresEnNodo(unNodo);
+	config_set_value(fileNodos, string_from_format("Nodo%dLibres", unNodo->nroNodo), string_itoa(cantLibres));
+
+	config_set_value(fileNodos, "LIBRE", string_itoa(cantidadTotalBloquesLibres()));
+
+	config_set_value(fileNodos, "NODOS", listaDeNodosAsArray());
+
+	config_set_value(fileNodos, "TAMANIO", string_itoa(cantidadTotalBloques()));
+
+	config_save(fileNodos);
+
+}
+
 void inicializarNodo(int nroNodo, int socket, int cantidadBloques){
 	t_bitarray* unBitarray = initOrCreateBitmap(nroNodo, cantidadBloques);
 
@@ -724,7 +834,32 @@ void inicializarNodo(int nroNodo, int socket, int cantidadBloques){
 	nuevoNodo = nodo_create(nroNodo, unBitarray, socket, cantidadBloques);
 	list_add(listaDeNodos, nuevoNodo);
 
+	agregarNodoATabla(nuevoNodo);
 
+
+}
+
+void initTablaDeNodos(){
+	listaDeNodos = list_create();
+
+	FILE *archivoNodos;
+	if (!(archivoNodos = fopen(pathTablaNodos, "r"))){
+		archivoNodos = fopen(pathTablaNodos, "w");
+	}
+
+	fileNodos = config_create(pathTablaNodos);
+	if(!config_has_property(fileNodos, "TAMANIO")){
+		config_set_value(fileNodos, "TAMANIO", "0");
+	}
+	if(!config_has_property(fileNodos, "LIBRE")){
+		config_set_value(fileNodos, "LIBRE", "0");
+	}
+	if(!config_has_property(fileNodos, "NODOS")){
+		config_set_value(fileNodos, "NODOS", "[]");
+	}
+
+	fclose(archivoNodos);
+	config_save(fileNodos);
 }
 
 void printLs(char* path){

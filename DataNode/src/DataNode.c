@@ -32,7 +32,7 @@
 #define PATHPOSTA "/home/git/tp-2017-2c-Grupo-1---K3525/DataNode/metadata/DataNode.dat"
 //
 int puertoFs = 0;
-int id = 1;
+int id;
 char* ipFs = "";
 t_log* log;
 int cantidadDeBloques;
@@ -46,8 +46,9 @@ void leerConfiguracion(){
 	printf("La IP FS es: %s \n", ipFs);
 	cantidadDeBloques = config_get_int_value(archivo_configuracion, "CANTIDAD_BLOQUES");
 	printf("La cantidad de bloques es: %i \n", cantidadDeBloques);
+	id = config_get_int_value(archivo_configuracion, "NUMERO_NODO");
+	printf("El numero del nodo es: %i \n", id);
 
-	config_destroy(archivo_configuracion);
 }
 
 int main(void) {
@@ -58,7 +59,7 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(log, "Configuracion leida");
 
-	clienteDatanode(ipFs, puertoFs, id);
+	clienteDatanode(ipFs, puertoFs);
 	//char * data = "holaquetal";
 	//int size = sizeof(char*) * strlen(data);
 	//escribirArchivo(PATHPOSTA, data, strlen(data), 4);
@@ -67,10 +68,9 @@ int main(void) {
 }
 
 
-void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
+void clienteDatanode(const char* ip, int puerto){
 	struct sockaddr_in direccionServidor;
 	direccionServidor.sin_family = AF_INET;
-	direccionServidor.sin_addr.s_addr = INADDR_ANY;
 	direccionServidor.sin_addr.s_addr = inet_addr(ip);
 	direccionServidor.sin_port = htons(puerto);
 
@@ -88,7 +88,7 @@ void clienteDatanode(const char* ip, int puerto, int id_tipo_proceso){
 	free(buffer);
 	//------------------------------------------------------------
 
-	send_PRESENTACION_DATANODE(cliente, 1, 1, cantidadDeBloques);
+	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
 	//TODO: aca se queda escuchando para recibir bloques
 	while (1) {
 		HEADER_T* cabecera;
