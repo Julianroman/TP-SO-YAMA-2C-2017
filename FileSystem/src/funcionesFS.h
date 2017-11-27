@@ -83,6 +83,8 @@ int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
 void leerArchivo(char *pathConNombre);
 
+char *leerContenidoArchivo(char *pathConNombre);
+
 void formatear();
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo);

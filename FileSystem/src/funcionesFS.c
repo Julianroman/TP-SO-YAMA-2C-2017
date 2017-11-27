@@ -327,7 +327,7 @@ static t_list *cortar_modo_texto(FILE *in){
 				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
 
 				if(size_concat < tamanioBloques){
-					string_append(&text, str1[i]);
+					text = string_duplicate(textConcat);
 					tam += size_concat;
 
 				}else{
@@ -358,8 +358,8 @@ static t_list *cortar_modo_texto(FILE *in){
 			free(str1);
 			free(map);
 			free(text);
+			free(textConcat);
 		}
-		fclose(in);
 
 
 	return retVal;
@@ -581,12 +581,110 @@ void leerArchivo(char *pathConNombre){
 			// TODO: Enviar a YAMA
 
 		}
-		//config_has_property(t_config*, char* key);
+		free(nodoYBloque);
+		free(nodoYBloqueCopia);
+		free(propertyBloque);
+		free(propertyBloqueCopia);
+		free(tipo);
 	}
 
 
 	config_destroy(archivo_configuracion);
 
+}
+
+char *leerContenidoArchivo(char *pathConNombre){
+	int cantidadDeBloques;
+
+	// Para leer la tabla de archivos
+	// Separo el path del destino con las /
+
+	char **arrayPath = string_split(pathConNombre, "/");
+	int cant = 0;
+	while(arrayPath[cant] != NULL ){
+		cant++;
+	}
+
+	// Agarro el nombre sin la extension
+	char *name = string_new();
+	name = arrayPath[cant - 1];
+
+	if(string_contains(name, ".")){
+		name = string_substring_until(name, strlen(name) - 4);
+	}
+
+	// Busco el indice de la carpeta de destino
+	int indice = findDirByname(arrayPath[cant - 2]);
+	// Concateno el path con el indice y el path de los archivos
+	char *indicePath = string_new();
+
+	// Entro al directorio de nombre:  numero de indice (Si no existe)
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+
+	// Concateno el path con el nombre del archivo
+	string_append(&indicePath, "/");
+	string_append(&indicePath, name);
+
+	// Abro el archivo de configuracion que tiene la tabla del archivo
+	char *pathArchivoConfig = string_new();
+	string_append(&pathArchivoConfig, directorioRaiz);
+	string_append(&pathArchivoConfig, indicePath);
+
+	t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+	int tamanio;
+	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
+
+	char *tipo = string_new();
+	tipo = config_get_string_value(archivo_configuracion, "TIPO");
+
+	if(string_equals_ignore_case(tipo, "BINARIO")){
+		if ( tamanio % tamanioBloques != 0 )
+			cantidadDeBloques = tamanio/tamanioBloques +1;
+		else
+			cantidadDeBloques = tamanio/tamanioBloques;
+
+		char *propertyBloque;
+		char **nodoYBloque = malloc(sizeof(char*)*2);
+		char *propertyBloqueCopia;
+		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+		int i;
+		for( i=0; i < cantidadDeBloques; i++ ){
+			//
+			propertyBloque = string_new();
+			string_append(&propertyBloque, "BLOQUE");
+			string_append(&propertyBloque, string_itoa(i));
+			string_append(&propertyBloque, "COPIA0");
+
+			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
+
+			// Pido el original si se puede
+			printf("Obtener de Nodo %s -- bloque %s \n", nodoYBloque[0], nodoYBloque[1]);
+			// TODO: Pedir a DataNode
+
+			propertyBloqueCopia = string_new();
+			string_append(&propertyBloqueCopia, "BLOQUE");
+			string_append(&propertyBloqueCopia, string_itoa(i));
+			string_append(&propertyBloqueCopia, "COPIA1");
+
+			nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
+			// Si no se pudo obtener el origina, pido la copia
+			printf("Obtener de Nodo %s -- bloque %s \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1]);
+			// TODO: Pedir a DataNode
+
+
+
+		}
+		free(nodoYBloque);
+		free(nodoYBloqueCopia);
+		free(propertyBloque);
+		free(propertyBloqueCopia);
+		free(tipo);
+
+	}
+	config_destroy(archivo_configuracion);
+	return ""; // TODO
 }
 
 void formatear(){
