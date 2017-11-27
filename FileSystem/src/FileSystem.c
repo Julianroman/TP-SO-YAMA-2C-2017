@@ -17,17 +17,19 @@
 
 extern t_log *log;
 extern t_list *listaDeNodos;
-int32_t miPuerto = 5040; // Puerto de conexion
+int miPuerto = 5040; // Puerto de conexion
 
 int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
 
-	listaDeNodos = list_create();
+
 	initTablaDeDirectorios();
 	createDirectory("metadata");
 	createDirectory("metadata/bitmaps");
 	createDirectory("metadata/archivos");
+
+	initTablaDeNodos();
 
 	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
 		log_info(log,"Iniciar ignorando/eliminando estado anterior");
@@ -42,27 +44,26 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	pthread_t hiloConsola;
+	/*pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidorFs, miPuerto);
 
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	pthread_join(hiloServidor, NULL);*/
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
-	/*inicializarNodo(1,5,20);
+	inicializarNodo(1,5,20);
 	inicializarNodo(2,5,40);
-	inicializarNodo(3,5,60);*/
+	inicializarNodo(3,5,60);
 
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario","bin");
+	almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");
 	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin");
-	//almacenarArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root","archivoTexto","txt");*/
-	//importarArchivo("Nodo1.bin","");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");
 

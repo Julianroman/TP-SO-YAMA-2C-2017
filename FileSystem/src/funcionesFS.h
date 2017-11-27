@@ -27,7 +27,7 @@
 
 #define TOTALDIRECTORIOS 100
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
-#define PATHBITMAP "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/bitmaps/"
+#define PATHBITMAP "root/metadata/bitmaps/"
 
 
 
@@ -71,6 +71,7 @@ typedef struct {
 
 void directory_destroy(t_directory *self);
 
+void desconectarNodo(int id_dataNode);
 
 void servidorFs(int puerto);
 
@@ -80,13 +81,21 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
-char *leerArchivo(char *pathConNombre);
+void leerArchivo(char *pathConNombre);
+
+char *leerContenidoArchivo(char *pathConNombre);
 
 void formatear();
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo);
 
 int bloquesLibresEnNodo(t_nodo* unNodo);
+
+void actualizarTablaDeNodos();
+
+void actualizarNodoEnTabla(t_nodo *unNodo);
+
+int cantidadTotalBloques();
 
 int cantidadTotalBloquesLibres();
 
@@ -98,7 +107,13 @@ void printBitmap(t_bitarray* unBitarray);
 
 t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques);
 
+char* listaDeNodosAsArray();
+
+void agregarNodoATabla(t_nodo *unNodo);
+
 void inicializarNodo(int nroNodo, int socket, int cantidadBloques);
+
+void initTablaDeNodos();
 
 void printLs(char* path);
 

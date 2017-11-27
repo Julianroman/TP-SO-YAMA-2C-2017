@@ -7,89 +7,89 @@
 typedef enum {SOLICITUD_JOB, ORDEN_TRANSFORMACION, ORDEN_REDUCCIONLOCAL, ORDEN_REDUCCIONGLOBAL, ORDEN_ALMACENAMIENTO, INFO_TRANSFORMACION, INFO_REDUCCIONLOCAL, INFO_REDUCCIONGLOBAL, INFO_ALMACENAMIENTO, PETICION_NODO, NODO, FIN_LISTA, FIN_COMUNICACION, ARCHIVO, BLOQUE, PRESENTACION_DATANODE, JOB, RESPUESTA_MASTER, EXITO_OPERACION, FRACASO_OPERACION, SCRIPT, PETICION_BLOQUE}HEADER_T;
 
 typedef struct { 
-    uint16_t tamanio_nombreArchivo; 
+    int tamanio_nombreArchivo; 
     char* nombreArchivo; 
 }payload_SOLICITUD_JOB;
 
 typedef struct { 
-    uint16_t bloque; 
-    uint32_t bytesocupados; 
-    uint16_t tamanio_nombreArchivoTemporal; 
+    int bloque; 
+    int bytesocupados; 
+    int tamanio_nombreArchivoTemporal; 
     char* nombreArchivoTemporal; 
 }payload_ORDEN_TRANSFORMACION;
 
 typedef struct { 
-    uint16_t tamanio_nombreTemporal_Transformacion; 
+    int tamanio_nombreTemporal_Transformacion; 
     char* nombreTemporal_Transformacion; 
-    uint16_t tamanio_nombreTemporal_ReduccionLocal; 
+    int tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
 }payload_ORDEN_REDUCCIONLOCAL;
 
 typedef struct { 
-    uint16_t PUERTO_Nodo; 
-    uint16_t tamanio_IP_Nodo; 
+    int PUERTO_Nodo; 
+    int tamanio_IP_Nodo; 
     char* IP_Nodo; 
-    uint16_t tamanio_nombreTemporal_ReduccionLocal; 
+    int tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
-    uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
+    int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
-    uint16_t encargado; 
+    int encargado; 
 }payload_ORDEN_REDUCCIONGLOBAL;
 
 typedef struct { 
-    uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
+    int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
 }payload_ORDEN_ALMACENAMIENTO;
 
 typedef struct { 
-    uint16_t PUERTO_Worker; 
-    uint16_t tamanio_IP_Worker; 
+    int PUERTO_Worker; 
+    int tamanio_IP_Worker; 
     char* IP_Worker; 
-    uint16_t bloque; 
-    uint32_t bytesocupados; 
-    uint16_t tamanio_nombreArchivoTemporal; 
+    int bloque; 
+    int bytesocupados; 
+    int tamanio_nombreArchivoTemporal; 
     char* nombreArchivoTemporal; 
 }payload_INFO_TRANSFORMACION;
 
 typedef struct { 
-    uint16_t PUERTO_Worker; 
-    uint16_t tamanio_IP_Worker; 
+    int PUERTO_Worker; 
+    int tamanio_IP_Worker; 
     char* IP_Worker; 
-    uint16_t tamanio_nombreTemporal_Transformacion; 
+    int tamanio_nombreTemporal_Transformacion; 
     char* nombreTemporal_Transformacion; 
-    uint16_t tamanio_nombreTemporal_ReduccionLocal; 
+    int tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
 }payload_INFO_REDUCCIONLOCAL;
 
 typedef struct { 
-    uint16_t PUERTO_Worker; 
-    uint16_t tamanio_IP_Worker; 
+    int PUERTO_Worker; 
+    int tamanio_IP_Worker; 
     char* IP_Worker; 
-    uint16_t tamanio_nombreTemporal_ReduccionLocal; 
+    int tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
-    uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
+    int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
-    uint16_t encargado; 
+    int encargado; 
 }payload_INFO_REDUCCIONGLOBAL;
 
 typedef struct { 
-    uint16_t PUERTO_Worker; 
-    uint16_t tamanio_IP_Worker; 
+    int PUERTO_Worker; 
+    int tamanio_IP_Worker; 
     char* IP_Worker; 
-    uint16_t tamanio_nombreTemporal_ReduccionGlobal; 
+    int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
 }payload_INFO_ALMACENAMIENTO;
 
 typedef struct { 
-    uint16_t tamanio_nombreArchivo; 
+    int tamanio_nombreArchivo; 
     char* nombreArchivo; 
 }payload_PETICION_NODO;
 
 typedef struct { 
-    uint16_t PUERTO_Nodo; 
-    uint16_t tamanio_IP_Nodo; 
+    int PUERTO_Nodo; 
+    int tamanio_IP_Nodo; 
     char* IP_Nodo; 
-    uint16_t tamanio_nombreNodo; 
+    int tamanio_nombreNodo; 
     char* nombreNodo; 
 }payload_NODO;
 
@@ -100,31 +100,31 @@ typedef struct {
 }payload_FIN_COMUNICACION;
 
 typedef struct { 
-    uint64_t tamanio_archivo; 
+    int tamanio_archivo; 
     char* archivo; 
 }payload_ARCHIVO;
 
 typedef struct { 
-    uint64_t tamanio_bloque; 
+    int tamanio_bloque; 
     char* contenido; 
-    uint32_t numero_bloque; 
+    int numero_bloque; 
 }payload_BLOQUE;
 
 typedef struct { 
-    uint16_t pid; 
-    uint16_t id_dataNode; 
-    uint16_t cantidad_bloques; 
+    int pid; 
+    int id_dataNode; 
+    int cantidad_bloques; 
 }payload_PRESENTACION_DATANODE;
 
 typedef struct { 
-    uint16_t id_master; 
+    int id_master; 
 }payload_JOB;
 
 typedef struct { 
-    uint16_t id_master; 
-    uint16_t id_nodo; 
-    uint16_t bloque; 
-    uint16_t estado; 
+    int id_master; 
+    int id_nodo; 
+    int bloque; 
+    int estado; 
 }payload_RESPUESTA_MASTER;
 
 typedef struct { 
@@ -134,12 +134,12 @@ typedef struct {
 }payload_FRACASO_OPERACION;
 
 typedef struct { 
-    uint16_t tamanio_contenido; 
+    int tamanio_contenido; 
     char* contenido; 
 }payload_SCRIPT;
 
 typedef struct { 
-    uint32_t numero_bloque; 
+    int numero_bloque; 
 }payload_PETICION_BLOQUE;
 
 
