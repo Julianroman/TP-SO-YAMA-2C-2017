@@ -62,3 +62,6 @@ RemoteSystemsTempFiles/*
 
 #test_launcher
 Worker/test_launcher
+
+#YAMA de testeo para Master y Worker
+testYAMA

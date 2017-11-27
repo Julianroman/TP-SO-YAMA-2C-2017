@@ -76,7 +76,6 @@ void* rutina_reduccionLocal(void* args){
 	// Recibir mas reducciones del mismo nodo
 	payload = receive(YAMAsocket,&header);
 	while(header == INFO_REDUCCIONLOCAL){
-		printf("HEAD: %d\n",header);
 		// Enviar
 		send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 		// Destruir
@@ -84,7 +83,6 @@ void* rutina_reduccionLocal(void* args){
 		// Repeat
 		payload = receive(YAMAsocket,&header);
 	}
-	printf("HEAD: %d\n",header);
 	// Destruir el fin de lista
 	if(header != FIN_LISTA){puts("FIN DE LISTA esperado"); exit(1);}
 	//destroy(FIN_LISTA,payload);
@@ -106,7 +104,9 @@ void* rutina_reduccionLocal(void* args){
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		fallosReduxLocal ++;
-		log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		// TODO Corregir la info del logger
+		//log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		log_error(logger, "Redux local ERR ");
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,1);
 	}
 	else{

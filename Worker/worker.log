@@ -13,3 +13,6 @@
 [INFO] 22:29:33:683 Worker/(17431:17469): Respondiendo ORDEN_TRANSFORMACION
 [TRACE] 22:29:42:632 Worker/(17431:17431): Proceso 17469 creado
 [TRACE] 22:29:50:523 Worker/(17431:17431): Esperando instrucciones
+[TRACE] 16:03:01:465 Worker/(6874:6874): Comenzando Worker en el puerto 9095
+
+[TRACE] 16:03:01:465 Worker/(6874:6874): Esperando instrucciones

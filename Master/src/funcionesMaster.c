@@ -40,6 +40,10 @@ char* scriptToChar(char* path){
 	char *file_contents;
 	long input_file_size;
 	FILE *input_file = fopen(path, "rb");
+	if(input_file == NULL){
+		puts("No se pudo leer el archivo");
+		exit(1);
+	}
 	fseek(input_file, 0, SEEK_END);
 	input_file_size = ftell(input_file);
 	rewind(input_file);

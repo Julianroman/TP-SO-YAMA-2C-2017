@@ -72,7 +72,9 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
-		log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		// TODO Corregir la info del logger
+		//log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		log_error(logger, "Redux global ERR ");
 		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,1);
 	}
 	else{

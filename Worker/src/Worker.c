@@ -31,25 +31,30 @@ t_log* logger;
 char* nodePath = "data.bin";
 
 int main(int argc, char **argv) {
-	/*if (argc!=2){
-		puts("Ingrese un puerto");
-		return 1;
+	// DEV-FEATURE
+	// Opcion de asignar puerto para multiples workers en el mismo ordenador
+	int puerto;
+	if (argc==2){
+		char* puertoString = argv[1];
+		puerto = atoi(puertoString);
+	} else{
+		puerto = 9095;
 	}
-	char* puertoString = argv[1];
-	int puerto = atoi(puertoString);*/
 
 
-	// Crear la carpete scripts (si no existe)
+	// Creao carpetas (si no existen)
 	struct stat st = {0};
-
 	if (stat("scripts", &st) == -1) {
 		mkdir("scripts", 0700);
 	}
+	if (stat("tmp", &st) == -1) {
+		mkdir("tmp", 0700);
+	}
+
 
 	// Manejo de logs
 	logger = log_create("worker.log", "Worker", true, LOG_LEVEL_TRACE);
 
-	int puerto = 9095;
 	log_trace(logger, "Comenzando Worker en el puerto %d\n",puerto);
 
 
