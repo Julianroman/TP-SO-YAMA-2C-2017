@@ -493,7 +493,7 @@ int carga(t_worker* worker){
 
 void calcularDisponibilidad(t_worker* worker){
 	if(string_equals_ignore_case(configYAMA->algoritmoBalanceo,"WCLOCK")){
-		worker->disponibilidad = base + PWL(worker);
+		worker->disponibilidad = base + PWL(worker, listaNodos);
 	}
 	else{
 		worker->disponibilidad = base;

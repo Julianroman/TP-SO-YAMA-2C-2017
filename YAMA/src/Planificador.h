@@ -62,11 +62,11 @@ void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker*
 void planificacionWClock(t_job_master* job_master);
 int existeEn(t_list* lista , char* dato);
 int obtenerDisponibilidadNodo(t_worker* worker);
-int PWL(t_worker* worker);
-int WLmax();
+int PWL(t_worker* worker, t_list* listaNodos);
+int WLmax(t_list* listaNodos);
 int carga(t_worker* worker);
 void nodoConMayorDisponibilidad(t_list* listaNodos);
-void calcularDisponibilidad(t_worker* worker);
+void calcularDisponibilidad(t_worker* worker, t_list* listaNodos);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
 
