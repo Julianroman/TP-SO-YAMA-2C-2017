@@ -77,8 +77,8 @@ typedef struct {
 } t_tablaEstados;
 
 typedef struct {
-	int puertoFs;
-	char* ipFs;
+	int FS_PUERTO;
+	char* FS_IP;
 	int puertoYAMA;
 	char* ipYAMA;
 	int retardoPlanificacion; // En mili segundos

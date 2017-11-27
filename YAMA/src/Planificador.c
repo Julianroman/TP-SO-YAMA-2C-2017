@@ -19,7 +19,7 @@ int base = 2;
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 	usleep(configYAMA->retardoPlanificacion);
 	inicializarPlanificador(job_master);
-	cargarNodosParaPlanificacion(nombreArchivo);//Funcion a desarrollar conjuntamente con FS
+	cargarNodosParaPlanificacion(nombreArchivo, job_master->job->id);//Funcion a desarrollar conjuntamente con FS
 	planificacionWClock(job_master);
 }
 
@@ -90,7 +90,6 @@ void inicializarPlanificador(t_job_master* job_master){ //Devuelve el id del job
 		diccionarioJobNodos = dictionary_create();
 		ESTAINICIALIZADO++;
 	}
-	nodosDisponibles = list_create();
 	job_master->job = newJob();
 	agregarListaNodosAJob(nodosDisponibles, job_master->job->id);
 }
@@ -114,8 +113,50 @@ t_list* getNodosDeJob(int jobID){
 	return dictionary_get(diccionarioJobNodos, keyJob);
 }
 
-void cargarNodosParaPlanificacion(char* nombreArchivo){
+void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
+	HEADER_T header;
+	int socketFS = crearConexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
+	send_PETICION_NODO(socketFS, nombreArchivo);
 
+	void* data = receive(socketFS,&header);
+
+	if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
+		//FD_CLR(socketFS,&master); // Eliminar de la lista
+		break;
+	}
+
+	nodosDisponibles = list_create();
+	agregarListaNodosAJob(nodosDisponibles, jobID);
+
+	int nodoConID(t_worker* worker){
+		worker->id == data->id_nodo;
+	}
+
+	while (header != FIN_LISTA){
+
+		if(list_any_satisfy(nodosDisponibles, (void*)nodoConID)){ //SI YA LO TENGO AGREGO LO NUEVO
+			t_worker* nodo = getNodo(data->id_nodo, jobID);
+			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
+			infoBloque->bloqueNodo = data->bloqueNodo;
+			infoBloque->bloqueArchivo = data->bloqueArchivo;
+			infoBloque->copia = data->copia;
+			list_add(nodo->infoBloques, infoBloque);
+			log_trace(logYAMA, "Se agregó al nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+		}
+
+		else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
+			t_worker* nodo = malloc(sizeof(t_worker));
+			nodo->id = data->id_nodo;
+			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
+			infoBloque->bloqueNodo = data->bloqueNodo;
+			infoBloque->bloqueArchivo = data->bloqueArchivo;
+			infoBloque->copia = data->copia;
+			list_add(nodo->infoBloques, infoBloque);
+			list_add(nodosDisponibles, nodo);
+			log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+		}
+	}
+	log_trace(logYAMA, "Se cargaron los nodos correctamente);
 }
 
 void replanificar(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master, t_worker* nodoFallido){
