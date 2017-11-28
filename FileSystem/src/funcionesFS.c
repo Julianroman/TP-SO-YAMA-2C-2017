@@ -257,7 +257,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
 	//Envio el original al primer nodo
-	//send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].nodo->nroNodo);
+	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].bloque);
 
 	if(list_size(listaDeNodos) > 1){
 		// Envio la copia
@@ -277,7 +277,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 		config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
 		//Envio la copia al segundo nodo
-		//send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].nodo->nroNodo);
+		send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].bloque);
 	}
 
 
@@ -567,7 +567,7 @@ void leerArchivo(char *pathConNombre){
 			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
 
 			// Envio el original
-			printf("Leido de %s -- bloque %s \n", nodoYBloque[0], nodoYBloque[1]);
+			printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 			// TODO: Enviar a YAMA
 
 			propertyBloqueCopia = string_new();
@@ -577,7 +577,7 @@ void leerArchivo(char *pathConNombre){
 
 			nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
 			// Envio la copia
-			printf("Leido de %s -- bloque %s \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1]);
+			printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 			// TODO: Enviar a YAMA
 
 		}

@@ -44,25 +44,25 @@ int main(int arg, char** argv) {
 		}*/
 	}
 
-	/*pthread_t hiloConsola;
+	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidorFs, miPuerto);
 
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);*/
+	pthread_join(hiloServidor, NULL);
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//estadoEstable == 0
 	//No permita conexiones de Workers o YAMA
 
-	inicializarNodo(1,5,20);
-	inicializarNodo(2,5,40);
-	inicializarNodo(3,5,60);
+	//inicializarNodo(1,5,20);
+	//inicializarNodo(2,5,40);
+	//inicializarNodo(3,5,60);
 
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario","bin");
-	almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");
+	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");
 	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin");
 
 	//copiaLocalAlYamafs("/home/utnso/Nuevo.txt", "root");

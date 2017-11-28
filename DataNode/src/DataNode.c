@@ -28,8 +28,8 @@
 #include <sys/mman.h>
 #include <utilidades/protocol/receive.h>
 
-#define TAMANIOBLOQUE 10
-#define PATHPOSTA "/home/git/tp-2017-2c-Grupo-1---K3525/DataNode/metadata/DataNode.dat"
+#define TAMANIOBLOQUE 1048576
+#define PATHPOSTA "DataNode.dat"
 //
 int puertoFs = 0;
 int id;
