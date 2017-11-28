@@ -11,6 +11,7 @@
 #include "YAMA.h"
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/senders.h>
+#include <utilidades/socket_utils.h>
 
 t_list* nodosDisponibles; //Lista de nodos - cada una pertenece a un JOB
 t_dictionary* diccionarioJobNodos; //JOB ID - Lista nodos para ese JOB
