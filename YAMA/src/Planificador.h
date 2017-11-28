@@ -27,7 +27,7 @@ t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
-void replanificar(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master, t_worker* nodoFallido);
+void replanificar(t_job_master* job_master, t_worker* nodoFallido);
 
 //FUNCIONES DE JOB
 t_job *newJob();
@@ -45,7 +45,6 @@ t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 // FUNCIONES DE NODO
 t_list* getNodosDeJob(int jobID);
 void agregarListaNodosAJob(t_list* listaNodos, int jobID);
-t_worker* getNodoConCopiaDeBloque(int bloqueABuscar, t_worker* nodoFallido, t_list* listaNodos);
 int todosLosNodosTerminaronReduccionLocal(int jobID);
 int nodoTerminoTransformacion(int idJob, int jobID);
 void nodoPasarAReduccionLocal(t_worker* nodo);

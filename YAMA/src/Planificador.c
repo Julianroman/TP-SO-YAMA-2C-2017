@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <commons/string.h>
 #include <utilidades/protocol/senders.h>
+#include <utilidades/protocol/types.h>
 #include "Planificador.h"
 #include "YAMA.h"
 
@@ -64,7 +65,7 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 	else { // SI LA OPERACION FUE ERROR
 		if(etapaActiva(nodo) == TRANSFORMACION){
 			log_trace(logYAMA, "Replanificando transformacion del Nodo %d ", infoMaster->id_nodo);
-			replanificar(infoMaster, job_master, nodo);
+			replanificar(job_master, nodo);
 		}
 		else {
 			log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE - Abortando JOB");
@@ -115,10 +116,10 @@ t_list* getNodosDeJob(int jobID){
 
 void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 	HEADER_T header;
-	int socketFS = crearConexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
+	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
 	send_PETICION_NODO(socketFS, nombreArchivo);
 
-	* data = receive(socketFS,&header);
+	payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
 
 	/*if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 		//FD_CLR(socketFS,&master); // Eliminar de la lista
@@ -129,17 +130,17 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 	agregarListaNodosAJob(nodosDisponibles, jobID);
 
 	int nodoConID(t_worker* worker){
-		return worker->id == data->id_nodo;
+		return worker->id == data->numero_nodo;
 	}
 
 	while (header != FIN_LISTA){
 
 		if(list_any_satisfy(nodosDisponibles, (void*)nodoConID)){ //SI YA LO TENGO AGREGO LO NUEVO
-			t_worker* nodo = getNodo(data->id_nodo, jobID);
+			t_worker* nodo = getNodo(data->numero_nodo, jobID);
 
 			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
-			infoBloque->bloqueNodo = data->bloqueNodo;
-			infoBloque->bloqueArchivo = data->bloqueArchivo;
+			infoBloque->bloqueNodo = data->bloque_nodo;
+			infoBloque->bloqueArchivo = data->bloque_archivo;
 			infoBloque->copia = data->copia;
 
 			list_add(nodo->infoBloques, infoBloque);
@@ -148,13 +149,13 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 
 		else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
 			t_worker* nodo = malloc(sizeof(t_worker));
-			nodo->id = data->id_nodo;
+			nodo->id = data->numero_nodo;
 			nodo->disponibilidad=configYAMA->base;
 			nodo->carga=0;
 
 			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
-			infoBloque->bloqueNodo = data->bloqueNodo;
-			infoBloque->bloqueArchivo = data->bloqueArchivo;
+			infoBloque->bloqueNodo = data->bloque_nodo;
+			infoBloque->bloqueArchivo = data->bloque_archivo;
 			infoBloque->copia = data->copia;
 
 			list_add(nodo->infoBloques, infoBloque);
@@ -179,18 +180,32 @@ void realizarTransformacionNodos(t_job_master* job_master){
 		}
 	}
 }
-/*
-void replanificar(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master, t_worker* nodoFallido){
+
+void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 
 	t_list* listaNodos = getNodosDeJob(job_master->job->id);
 	int cantidadBloquesAReplanificar = list_size(nodoFallido->bloquesAEjecutar);
-	int i;
-	int j;
+	int i, j;
 
 	int sacarNodoCaido(t_worker* worker){
 		return worker->id != nodoFallido->id;
 	}
 	t_list* nodosActivos = list_filter(listaNodos, (void*)sacarNodoCaido);
+
+	for(i=0; i < cantidadBloquesAReplanificar; i++){
+		t_infoBloque* bloqueABuscar = list_get(nodoFallido->bloquesAEjecutar, i);
+		int tieneCopia(t_infoBloque* bloqueInfo){
+			return bloqueInfo->bloqueArchivo == bloqueABuscar->bloqueArchivo;
+		}
+		for(j=0; j < list_size(nodosActivos); j++){
+			t_worker* worker = list_get(nodosActivos, j);
+			if(list_any_satisfy(worker->infoBloques, (void*)tieneCopia)){
+				t_infoBloque* bloqueEncontrado = list_find(worker->infoBloques, (void*)tieneCopia);
+				char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloqueEncontrado->bloqueNodo, worker->id);
+				send_INFO_TRANSFORMACION(job_master->master_socket, worker->puerto, worker->ip, bloqueEncontrado->bloqueNodo, 1048576, nombreArchivoTemporal);
+			}
+		}
+	}
 
 	int nodoConID(t_worker* nodo){
 		return nodo->id == nodoFallido->id;
@@ -198,48 +213,15 @@ void replanificar(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master,
 	void eliminarNodo(t_worker* nodo){
 		free(nodo);
 	}
-
-	for(i=0; i < cantidadBloquesAReplanificar; i++){
-		t_infoBloque* infoBloque = list_get(nodoFallido->bloquesAEjecutar, i);
-		int bloqueConCopia(t_infoBloque* bloqueInfo){
-				return bloqueInfo->bloqueNodo == infoBloque->bloqueNodo;
-			}
-		for(j=0; j < list_size(nodosActivos); j++)
-		t_worker* worker = list_find(nodosActivos, (void*) bloqueConCopia);
-		//t_worker* nodoConCopia = getNodoConCopiaDeBloque(respuesta->bloque, nodoFallido, nodosDisponibles);
-	}
-
-	int infoBloqueExacto(t_infoBloque* t_bloque){
-			return t_bloque->bloqueNodo == respuesta->bloque;
-		}
-	t_infoBloque* infoBloqueNuevo = list_find(nodoConCopia->infoBloques, (void*)infoBloqueExacto);
-	char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, infoBloqueNuevo->bloqueNodo, nodoConCopia->id);
-
-	send_INFO_TRANSFORMACION(job_master->master_socket, nodoConCopia->puerto, nodoConCopia->ip, infoBloqueNuevo->bloqueNodo, 1048576, nombreArchivoTemporal);
 	list_remove_and_destroy_by_condition(listaNodos, (void*)nodoConID, (void*)eliminarNodo);
 	//TODO REPLANIFICAR EN TODOS LOS NODOS DEL QUE SE CAE
-}*/
+}
 
-t_worker* getNodoConCopiaDeBloque(int bloqueABuscar, t_worker* nodoFallido, t_list* listaNodos){
-	int infoBloqueExacto(t_infoBloque* t_bloque){
-		return t_bloque->bloqueNodo == bloqueABuscar;
+t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo){
+	int getBloque(t_infoBloque* infoBloque){
+		return infoBloque->bloqueArchivo == bloqueArchivo;
 	}
-	t_infoBloque* infoBloque = list_find(nodoFallido->infoBloques, (void*)infoBloqueExacto);
-
-	int nodoActivo(t_worker* worker){
-		return worker->id != nodoFallido->id;
-	}
-	t_list* nodosActivos = list_filter(listaNodos, (void*)nodoActivo);
-	int i;
-	for(i=0; list_size(nodosActivos); i++){
-		t_worker* worker = list_get(nodosActivos, i);
-		int infoBloqueExacto(t_infoBloque* t_bloque){
-				return t_bloque->bloqueArchivo == infoBloque->bloqueArchivo;
-			}
-		if(list_any_satisfy(worker->infoBloques, (void*)infoBloqueExacto)){
-			return worker;
-		}
-	}
+	return list_find(bloques, (void*) getBloque);
 }
 
 void nodoPasarAReduccionLocal(t_worker* nodo){
@@ -526,13 +508,6 @@ void planificacionWClock(t_job_master* job_master){//Esta seria la lista o dicci
 	}
 	realizarTransformacionNodos(job_master);
 	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
-}
-
-t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo){
-	int getBloque(t_infoBloque* infoBloque){
-		return infoBloque->bloqueArchivo == bloqueArchivo;
-	}
-	return list_find(bloques, (void*) getBloque);
 }
 
 int existeEn(t_list* listaBloques , int bloqueArchivo){
