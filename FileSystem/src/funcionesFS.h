@@ -81,6 +81,8 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia);
+
 void leerArchivo(char *pathConNombre);
 
 char *leerContenidoArchivo(char *pathConNombre);

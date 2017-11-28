@@ -1,11 +1,11 @@
 Nodo2Libres=14
 Nodo-1238365920Libres=19
-NODOS=[Nodo2]
+NODOS=[Nodo1]
 TAMANIO=20
 Nodo1Libres=15
 Nodo-1238365920Total=20
 Nodo1Total=20
 Nodo-1238364960Total=20
 Nodo-1238364960Libres=19
-LIBRE=0
+LIBRE=15
 Nodo2Total=20
