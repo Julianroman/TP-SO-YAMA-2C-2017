@@ -21,7 +21,7 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 void inicializarPlanificador();
 void finalizarCorrectamente(t_job* job);
 void abortarJob(t_job* job);
-void cargarNodosParaPlanificacion(char* nombreArchivo);
+void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID);
 t_worker* elegirEncargadoReduccionGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
 void realizarTransformacionNodos(t_job_master* job_master);
@@ -32,16 +32,18 @@ void replanificar(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master
 t_job *newJob();
 
 // UTILES
-t_list* getNodosDeJob(int jobID);
-void agregarListaNodosAJob(t_list* listaNodos, int jobID);
+
 Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
 char* getNombreArchivoTemporalTransformacion(int jobID, int bloque, int nodoID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
+t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 
 // FUNCIONES DE NODO
+t_list* getNodosDeJob(int jobID);
+void agregarListaNodosAJob(t_list* listaNodos, int jobID);
 t_worker* getNodoConCopiaDeBloque(int bloqueABuscar, t_worker* nodoFallido, t_list* listaNodos);
 int todosLosNodosTerminaronReduccionLocal(int jobID);
 int nodoTerminoTransformacion(int idJob, int jobID);
@@ -60,13 +62,13 @@ void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker*
 
 //FUNCIONES DE PLANIFICACION
 void planificacionWClock(t_job_master* job_master);
-int existeEn(t_list* lista , char* dato);
+int existeEn(t_list* lista , int bloqueArchivo);
 int obtenerDisponibilidadNodo(t_worker* worker);
-int PWL(t_worker* worker);
-int WLmax();
+int PWL(t_worker* worker, int jobID);
+int WLmax(int jobID);
 int carga(t_worker* worker);
-void nodoConMayorDisponibilidad(t_list* listaNodos);
-void calcularDisponibilidad(t_worker* worker);
+void ordenarListaNodosPorDisponibilidad(t_list* listaNodos);
+void calcularDisponibilidad(t_worker* worker, int jobID);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
 
