@@ -516,7 +516,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia){
 	// TODO
-	SEND_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+	send_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
 }
 
 void leerArchivo(char *pathConNombre){
