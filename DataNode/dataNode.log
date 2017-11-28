@@ -357,3 +357,49 @@
 [TRACE] 22:22:58:559 DataNode/(7215:7215): Configuracion leida
 [TRACE] 22:24:11:841 DataNode/(7280:7280): Leyendo configuracion
 [TRACE] 22:24:11:841 DataNode/(7280:7280): Configuracion leida
+[TRACE] 20:11:24:701 DataNode/(9030:9030): Leyendo configuracion
+[TRACE] 20:12:05:956 DataNode/(9156:9156): Leyendo configuracion
+[TRACE] 20:12:52:262 DataNode/(9256:9256): Leyendo configuracion
+[TRACE] 20:13:37:233 DataNode/(9339:9339): Leyendo configuracion
+[TRACE] 20:13:38:309 DataNode/(9339:9339): Configuracion leida
+[TRACE] 20:13:39:732 DataNode/(9339:9339): Archivo inexistente se crea.
+[TRACE] 20:15:36:127 DataNode/(9486:9486): Leyendo configuracion
+[TRACE] 20:15:37:442 DataNode/(9486:9486): Configuracion leida
+[TRACE] 20:15:38:78 DataNode/(9486:9486): Archivo inexistente se crea.
+[TRACE] 20:17:31:881 DataNode/(9591:9591): Leyendo configuracion
+[TRACE] 20:17:32:554 DataNode/(9591:9591): Configuracion leida
+[TRACE] 20:17:38:169 DataNode/(9591:9591): Archivo inexistente se crea.
+[TRACE] 20:18:25:116 DataNode/(9651:9651): Leyendo configuracion
+[TRACE] 20:18:25:117 DataNode/(9651:9651): Configuracion leida
+[TRACE] 20:18:25:117 DataNode/(9651:9651): Archivo inexistente se crea.
+[TRACE] 20:24:02:139 DataNode/(9823:9823): Leyendo configuracion
+[TRACE] 20:24:02:140 DataNode/(9823:9823): Configuracion leida
+[TRACE] 20:24:02:140 DataNode/(9823:9823): Archivo inexistente se crea.
+[TRACE] 20:24:02:143 DataNode/(9823:9823): Escritura completa en bloque 3 /Tamanio: 1048576
+[TRACE] 20:24:24:568 DataNode/(9870:9870): Leyendo configuracion
+[TRACE] 20:24:24:569 DataNode/(9870:9870): Configuracion leida
+[TRACE] 20:25:01:525 DataNode/(9930:9930): Leyendo configuracion
+[TRACE] 20:25:02:364 DataNode/(9930:9930): Configuracion leida
+[TRACE] 20:25:42:648 DataNode/(9984:9984): Leyendo configuracion
+[TRACE] 20:25:43:276 DataNode/(9984:9984): Configuracion leida
+[TRACE] 20:27:37:904 DataNode/(10099:10099): Leyendo configuracion
+[TRACE] 20:27:39:177 DataNode/(10099:10099): Configuracion leida
+[TRACE] 20:27:53:989 DataNode/(10099:10099): Escritura completa en bloque 3 /Tamanio: 1048576
+[TRACE] 20:28:33:806 DataNode/(10207:10207): Leyendo configuracion
+[TRACE] 20:28:34:738 DataNode/(10207:10207): Configuracion leida
+[TRACE] 20:28:54:680 DataNode/(10207:10207): Escritura completa en bloque 3 /Tamanio: 1048576
+[TRACE] 20:29:38:799 DataNode/(10282:10282): Leyendo configuracion
+[TRACE] 20:29:38:800 DataNode/(10282:10282): Configuracion leida
+[TRACE] 20:29:47:245 DataNode/(10324:10324): Leyendo configuracion
+[TRACE] 20:29:47:246 DataNode/(10324:10324): Configuracion leida
+[TRACE] 20:37:50:601 DataNode/(11069:11069): Leyendo configuracion
+[TRACE] 20:37:50:601 DataNode/(11069:11069): Configuracion leida
+[TRACE] 20:37:50:604 DataNode/(11069:11069): Escritura completa en bloque 8 /Tamanio: 1048576
+[TRACE] 20:38:35:474 DataNode/(11118:11118): Leyendo configuracion
+[TRACE] 20:38:35:475 DataNode/(11118:11118): Configuracion leida
+[TRACE] 20:38:35:621 DataNode/(11118:11118): Escritura completa en bloque 8 /Tamanio: 1048576
+[TRACE] 20:38:57:941 DataNode/(11173:11173): Leyendo configuracion
+[TRACE] 20:38:57:941 DataNode/(11173:11173): Configuracion leida
+[TRACE] 20:43:31:700 DataNode/(11275:11275): Leyendo configuracion
+[TRACE] 20:43:31:701 DataNode/(11275:11275): Configuracion leida
+[TRACE] 20:43:31:851 DataNode/(11275:11275): Escritura completa en bloque 10 /Tamanio: 1048576
