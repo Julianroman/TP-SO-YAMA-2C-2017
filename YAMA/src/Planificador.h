@@ -39,6 +39,7 @@ char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
 char* getNombreArchivoTemporalTransformacion(int jobID, int bloque, int nodoID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
+t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 
 // FUNCIONES DE NODO
 t_list* getNodosDeJob(int jobID);
@@ -61,13 +62,13 @@ void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker*
 
 //FUNCIONES DE PLANIFICACION
 void planificacionWClock(t_job_master* job_master);
-int existeEn(t_list* lista , char* dato);
+int existeEn(t_list* lista , int bloqueArchivo);
 int obtenerDisponibilidadNodo(t_worker* worker);
-int PWL(t_worker* worker, t_list* listaNodos);
-int WLmax(t_list* listaNodos);
+int PWL(t_worker* worker, int jobID);
+int WLmax(int jobID);
 int carga(t_worker* worker);
-void nodoConMayorDisponibilidad(t_list* listaNodos);
-void calcularDisponibilidad(t_worker* worker, t_list* listaNodos);
+void ordenarListaNodosPorDisponibilidad(t_list* listaNodos);
+void calcularDisponibilidad(t_worker* worker, int jobID);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
 

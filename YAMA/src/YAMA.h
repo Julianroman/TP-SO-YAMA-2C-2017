@@ -83,6 +83,7 @@ typedef struct {
 	char* ipYAMA;
 	int retardoPlanificacion; // En mili segundos
 	char* algoritmoBalanceo;
+	int base;
 } t_yama;
 
 void iniciarListaEstados();

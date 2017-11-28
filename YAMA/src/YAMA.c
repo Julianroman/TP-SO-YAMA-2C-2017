@@ -35,7 +35,8 @@ t_yama* leerConfiguracion(){
 	configYAMA->puertoYAMA = config_get_int_value(archivo_configuracion, "YAMA_PUERTO");
 	printf("YAMA se conectara en el puerto: %d \n", configYAMA->puertoYAMA);
 
-
+	configYAMA->base = config_get_int_value(archivo_configuracion, "BASE");
+	printf("La disponibilidad base es: %d \n", configYAMA->base);
 
 	config_destroy(archivo_configuracion);
 	return configYAMA;
