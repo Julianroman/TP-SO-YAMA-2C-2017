@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/senders.h>
 
 #define TAMANIOBLOQUE 1048576
 #define PATHPOSTA "DataNode.dat"
@@ -36,8 +37,13 @@
 int puertoFs;
 int id;
 char* ipFs = "";
-t_log* log;
+t_log* logger;
 int cantidadDeBloques;
+
+// Prototipos
+void clienteDatanode(const char* ip, int puerto);
+void escribirArchivo(char* path, char* data, int size, int nroBloque);
+void leerArchivo(char* path, int size, int nroBloque);
 
 void leerConfiguracion(){
 	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
@@ -53,13 +59,25 @@ void leerConfiguracion(){
 
 }
 
-int main(void) {
+int main(int argc, char **argv) {
 	puts("Comienza DataNode");
+
 	///Se crea el log
-	log = log_create("dataNode.log", "DataNode", false, LOG_LEVEL_TRACE);
-	log_trace(log, "Leyendo configuracion");
+	logger = log_create("dataNode.log", "DataNode", false, LOG_LEVEL_TRACE);
+	log_trace(logger, "Leyendo configuracion");
 	leerConfiguracion();
-	log_trace(log, "Configuracion leida");
+	log_trace(logger, "Configuracion leida");
+
+	/* -------- DEV-FEATURE ---------------------------------------------- */
+	/* Opcion de asignar puerto para multiples nodos en el mismo ordenador */
+
+	// Si recibo un numero de puerto desde la consola,
+	// lo utilizo en lugar que el puerto de la configuracion
+	if (argc==2){
+		char* puertoString = argv[1];
+		puertoFs = atoi(puertoString);
+	}
+	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
 	clienteDatanode(ipFs, puertoFs);
 	//char * data = "juli puto";
@@ -93,7 +111,7 @@ void clienteDatanode(const char* ip, int puerto){
 	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
 	//TODO: aca se queda escuchando para recibir bloques
 	while (1) {
-		HEADER_T* cabecera;
+		HEADER_T cabecera;
 		void* data;
 		data = receive(cliente,&cabecera);
 		payload_BLOQUE * payload = data;
@@ -106,7 +124,7 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_trace(log, "Archivo inexistente se crea.");
+		log_trace(logger, "Archivo inexistente se crea.");
 		archivo = fopen(path,"w");
 		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
 		fclose(archivo);
@@ -122,7 +140,7 @@ void leerArchivo(char* path, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "Archivo inexistente.");
+		log_error(logger, "Archivo inexistente.");
 	}
 	char* lectura = malloc(size);
 	archivo = open(path, O_RDONLY);
