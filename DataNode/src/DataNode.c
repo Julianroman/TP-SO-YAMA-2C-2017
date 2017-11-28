@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	puts("Comienza DataNode");
 
 	///Se crea el log
-	logger = log_create("dataNode.log", "DataNode", false, LOG_LEVEL_TRACE);
+	logger = log_create("dataNode.log", "DataNode", true, LOG_LEVEL_TRACE);
 	log_trace(logger, "Leyendo configuracion");
 	leerConfiguracion();
 	log_trace(logger, "Configuracion leida");
@@ -71,11 +71,9 @@ int main(int argc, char **argv) {
 	/* -------- DEV-FEATURE ---------------------------------------------- */
 	/* Opcion de asignar puerto para multiples nodos en el mismo ordenador */
 
-	// Si recibo un numero de puerto desde la consola,
-	// lo utilizo en lugar que el puerto de la configuracion
 	if (argc==2){
-		char* puertoString = argv[1];
-		puertoFs = atoi(puertoString);
+		char* idString = argv[1];
+		id = atoi(idString);
 	}
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
@@ -133,7 +131,9 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	char * map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset);
 	memcpy(map, data, size);
 	close(archivo);
-	puts("Escritura Completa");
+	char* mensajeEscritura = string_from_format("Escritura completa en bloque %d /Tamanio: %d",nroBloque,size);
+	log_trace(logger, mensajeEscritura);
+	free(mensajeEscritura);
 }
 
 void leerArchivo(char* path, int size, int nroBloque){
