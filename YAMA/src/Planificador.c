@@ -127,11 +127,11 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 		break;
 	}*/
 
+	payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
+
 	int nodoConID(t_worker* worker){
 		return worker->id == data->numero_nodo;
 	}
-
-	payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
 
 	while (header != FIN_LISTA){
 
@@ -264,12 +264,20 @@ int registroTerminoExitosamente(t_tablaEstados* registroEstado){
 
 int todosLosNodosTerminaronReduccionLocal(int jobID){
 
+	t_list* nodosActivos = getNodosDeJob(jobID);
+
 	int nodoConJOBYReduccionLocal(t_tablaEstados* registroEstado){
 		return registroEstado->job->id == jobID && registroEstado->tarea == REDUCCION_LOCAL;
 	}
 
 	t_list* nodosEnReduccionLocal = list_filter(TablaEstados, (void*)nodoConJOBYReduccionLocal);
-	return list_all_satisfy(nodosEnReduccionLocal, (void*)registroTerminoExitosamente);
+
+	if(list_size(nodosActivos) == list_size(nodosEnReduccionLocal)){
+		return list_all_satisfy(nodosEnReduccionLocal, (void*)registroTerminoExitosamente);
+	}
+	else{
+		return 0;
+	}
 }
 
 int nodoTerminoTransformacion(int idNodo, int jobID){
@@ -393,14 +401,18 @@ char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster){
 }
 
 int getTotalBloquesArchivo(int jobID){
-	int total;
-	int ultimoBloque = 0;
+	int max=0;
 	t_list* listaNodos = getNodosDeJob(jobID);
-
-	int sumarTotal(t_worker* worker){
-		// TODO HACERRRR
+	void maximo(t_infoBloque* bloque){
+		if(bloque->bloqueArchivo > max){
+			max = bloque->bloqueArchivo;
+		}
+	}
+	void sumarTotal(t_worker* worker){
+		list_iterate(worker->infoBloques, (void*)maximo);
 	}
 	list_iterate(listaNodos, (void*)sumarTotal);
+	return max;
 }
 
 /*typedef struct {
@@ -474,7 +486,6 @@ void planificacionWClock(t_job_master* job_master){//Esta seria la lista o dicci
 
 	t_worker* workerActual = malloc(sizeof(t_worker));
 	t_link_element* valor = malloc(sizeof(t_link_element));
-	int verificador = 0;
 	int bloqueArchivo;
 	int cantidadTotalBloquesArchivo = getTotalBloquesArchivo(job_master->job->id);
 	valor = listaNodos->head;
