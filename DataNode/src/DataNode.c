@@ -1,5 +1,7 @@
 /*
  ============================================================================
+ /*
+ ============================================================================
  Name        : DataNode.c
  Author      : 
  Version     :
@@ -31,7 +33,7 @@
 #define TAMANIOBLOQUE 1048576
 #define PATHPOSTA "DataNode.dat"
 //
-int puertoFs = 0;
+int puertoFs;
 int id;
 char* ipFs = "";
 t_log* log;
@@ -60,10 +62,10 @@ int main(void) {
 	log_trace(log, "Configuracion leida");
 
 	clienteDatanode(ipFs, puertoFs);
-	//char * data = "holaquetal";
+	//char * data = "juli puto";
 	//int size = sizeof(char*) * strlen(data);
-	//escribirArchivo(PATHPOSTA, data, strlen(data), 4);
-	//leerArchivo(PATHPOSTA, 4, 4);
+	//escribirArchivo(PATHPOSTA, data, strlen(data), 3);
+	//leerArchivo(PATHPOSTA, strlen(data), 3);
 	return EXIT_SUCCESS;
 }
 
@@ -95,7 +97,7 @@ void clienteDatanode(const char* ip, int puerto){
 		void* data;
 		data = receive(cliente,&cabecera);
 		payload_BLOQUE * payload = data;
-		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, payload->numero_bloque);
+		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, 1);
 		//printf("Datanode %d dice: %s\n", payload->id_bloque, payload->bloque);
 	}
 }
@@ -104,15 +106,14 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_trace(log, "Archivo inexistencia se crea.");
+		log_trace(log, "Archivo inexistente se crea.");
 		archivo = fopen(path,"w");
 		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
 		fclose(archivo);
 	}
-	void* map;
 	archivo = open(path, O_RDWR);
-	map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, (off_t) 0);
-	memcpy(map + offset, data, size);
+	char * map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset);
+	memcpy(map, data, size);
 	close(archivo);
 	puts("Escritura Completa");
 }
@@ -121,16 +122,16 @@ void leerArchivo(char* path, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(path, "r"))){
-		log_error(log, "Archivo inexistencia se crea.");
+		log_error(log, "Archivo inexistente.");
 	}
-	void* map;
 	char* lectura = malloc(size);
 	archivo = open(path, O_RDONLY);
-	map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, (off_t) 0);
+	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
 	//Se guarda en lectura lo leido desde el offset
-	memcpy(lectura, map + offset, size);
+	memcpy(lectura, map, size);
 	lectura[size] = '\0';
 	close(archivo);
 	printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	free(lectura);
 }
+

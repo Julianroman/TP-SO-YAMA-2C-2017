@@ -324,3 +324,16 @@ void* unpack_PETICION_BLOQUE(int socket){
     return (void*)payload;
 };
 
+void* unpack_UBICACION_BLOQUE(int socket){
+    payload_UBICACION_BLOQUE *payload= malloc(sizeof(payload_UBICACION_BLOQUE));
+
+    recv(socket,&(payload->numero_nodo),sizeof(int),0);
+
+    recv(socket,&(payload->bloque_nodo),sizeof(int),0);
+
+    recv(socket,&(payload->bloque_archivo),sizeof(int),0);
+
+    recv(socket,&(payload->copia),sizeof(int),0);
+
+    return (void*)payload;
+};

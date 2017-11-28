@@ -19,6 +19,7 @@
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/senders.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -80,6 +81,8 @@ static t_bloque_libre *traerBloquesLibres();
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
+
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia);
 
 void leerArchivo(char *pathConNombre);
 

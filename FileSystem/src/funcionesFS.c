@@ -14,7 +14,7 @@ static char *pathTablaNodos = "root/metadata/nodos.bin";
 
 t_config *fileNodos;
 
-
+int socketYama;
 
 t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques) {
 	t_nodo *new = malloc(sizeof(t_nodo));
@@ -126,7 +126,7 @@ void servidorFs(int puerto){
 						}
 						free(proceso);
 						//vector[cliente]= "0";
-						char* mensaje = "Bienvenido!!";
+						char* mensaje = "Bienvenido a FS!!";
 						send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
@@ -135,26 +135,41 @@ void servidorFs(int puerto){
 					snprintf(proceso, 16, "%d", i);
 					payload_PRESENTACION_DATANODE * payloadCliente = dictionary_get(diccionario, proceso);
 					//if(vector[i] == "0"){
+
+					HEADER_T cabecera;
 					if(dictionary_get(diccionario, proceso) == 0){
-						HEADER_T* cabecera;
+
 						void* data;
 						data = receive(i,&cabecera);
-						payload_PRESENTACION_DATANODE * payload = data;
-						//payload tiene toda la info
-						dictionary_put(diccionario, proceso, payload);
-						payloadCliente = dictionary_get(diccionario, proceso);
-						printf("Recibí una conexión de DataNode %d!!\n", payloadCliente->id_dataNode);
+						if(cabecera == PRESENTACION_DATANODE){
+							payload_PRESENTACION_DATANODE * payload = data;
+							//payload tiene toda la info
+							dictionary_put(diccionario, proceso, payload);
+							payloadCliente = dictionary_get(diccionario, proceso);
+							printf("Recibí una conexión de DataNode %d!!\n", payloadCliente->id_dataNode);
 
-						inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
+							inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
 
-						free(proceso);
+							free(proceso);
+						}else if(cabecera == PETICION_NODO){
+							// TODO:
+							payload_PETICION_NODO *payload = data;
+							socketYama = i;
+							leerArchivo(payload->nombreArchivo);
+						}
+
 						}else{
 							int bytesRecibidos = recv(i, buffer, 1000, 0);
 							if (bytesRecibidos <= 0) {
 								// error o conexión cerrada por el cliente
-								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
+								if(cabecera == PRESENTACION_DATANODE){
+									printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
+									desconectarNodo(payloadCliente->id_dataNode);
+								}else if(cabecera == PETICION_NODO){
+									// TODO:
+									printf("El YAMA %d se desconectó\n", payloadCliente->id_dataNode);
+								}
 
-								desconectarNodo(payloadCliente->id_dataNode);
 
 								dictionary_remove(diccionario, proceso);
 								close(i); // bye!
@@ -499,6 +514,11 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	return 0;
 }
 
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia){
+	// TODO
+	send_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+}
+
 void leerArchivo(char *pathConNombre){
 	//TODO
 	int cantidadDeBloques;
@@ -569,6 +589,7 @@ void leerArchivo(char *pathConNombre){
 			// Envio el original
 			printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 			// TODO: Enviar a YAMA
+			enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
 
 			propertyBloqueCopia = string_new();
 			string_append(&propertyBloqueCopia, "BLOQUE");
@@ -579,6 +600,7 @@ void leerArchivo(char *pathConNombre){
 			// Envio la copia
 			printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 			// TODO: Enviar a YAMA
+			enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 1);
 
 		}
 		free(nodoYBloque);

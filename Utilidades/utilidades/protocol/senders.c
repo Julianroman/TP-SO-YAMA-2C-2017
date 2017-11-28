@@ -301,3 +301,15 @@ void send_PETICION_BLOQUE(int socket , int numero_bloque){
     free(paquete);
 };
 
+void send_UBICACION_BLOQUE(int socket , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia){
+    payload_UBICACION_BLOQUE payload;
+    payload.numero_nodo = numero_nodo; 
+    payload.bloque_nodo = bloque_nodo; 
+    payload.bloque_archivo = bloque_archivo; 
+    payload.copia = copia; 
+
+    int tamanio_paquete;
+    char* paquete = pack_UBICACION_BLOQUE(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
