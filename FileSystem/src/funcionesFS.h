@@ -19,6 +19,7 @@
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/senders.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
