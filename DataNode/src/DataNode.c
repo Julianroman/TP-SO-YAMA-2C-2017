@@ -97,7 +97,7 @@ void clienteDatanode(const char* ip, int puerto){
 		void* data;
 		data = receive(cliente,&cabecera);
 		payload_BLOQUE * payload = data;
-		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, 1);
+		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, payload->numero_bloque);
 		//printf("Datanode %d dice: %s\n", payload->id_bloque, payload->bloque);
 	}
 }
