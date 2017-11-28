@@ -524,7 +524,7 @@ void leerArchivo(char *pathConNombre){
 	int cantidadDeBloques;
 
 	// Para leer la tabla de archivos
-	// Separo el path del destino con las /
+	// Separo el path con las /
 
 	char **arrayPath = string_split(pathConNombre, "/");
 	int cant = 0;
@@ -558,60 +558,92 @@ void leerArchivo(char *pathConNombre){
 	string_append(&pathArchivoConfig, directorioRaiz);
 	string_append(&pathArchivoConfig, indicePath);
 
-	t_config* archivo_configuracion = config_create(pathArchivoConfig);
+	FILE *in;
+	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+		log_error(log, "No se encontro el archivo");
+	}else{
+		t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-	int tamanio;
-	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
+		int tamanio;
+		tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
 
-	char *tipo = string_new();
-	tipo = config_get_string_value(archivo_configuracion, "TIPO");
+		char *tipo = string_new();
+		tipo = config_get_string_value(archivo_configuracion, "TIPO");
 
-	if(string_equals_ignore_case(tipo, "BINARIO")){
-		if ( tamanio % tamanioBloques != 0 )
-			cantidadDeBloques = tamanio/tamanioBloques +1;
-		else
-			cantidadDeBloques = tamanio/tamanioBloques;
+		if(string_equals_ignore_case(tipo, "BINARIO")){
+			if ( tamanio % tamanioBloques != 0 )
+				cantidadDeBloques = tamanio/tamanioBloques +1;
+			else
+				cantidadDeBloques = tamanio/tamanioBloques;
 
-		char *propertyBloque;
-		char **nodoYBloque = malloc(sizeof(char*)*2);
-		char *propertyBloqueCopia;
-		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-		int i;
-		for( i=0; i < cantidadDeBloques; i++ ){
-			//
-			propertyBloque = string_new();
-			string_append(&propertyBloque, "BLOQUE");
-			string_append(&propertyBloque, string_itoa(i));
-			string_append(&propertyBloque, "COPIA0");
+			char *propertyBloque;
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char *propertyBloqueCopia;
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int i;
+			for( i=0; i < cantidadDeBloques; i++ ){
+				//
+				propertyBloque = string_new();
+				string_append(&propertyBloque, "BLOQUE");
+				string_append(&propertyBloque, string_itoa(i));
+				string_append(&propertyBloque, "COPIA0");
 
-			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
 
-			// Envio el original
-			printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
-			// TODO: Enviar a YAMA
-			enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
+				// Envio el original
+				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+				// TODO: Enviar a YAMA
+				enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
 
-			propertyBloqueCopia = string_new();
-			string_append(&propertyBloqueCopia, "BLOQUE");
-			string_append(&propertyBloqueCopia, string_itoa(i));
-			string_append(&propertyBloqueCopia, "COPIA1");
+				propertyBloqueCopia = string_new();
+				string_append(&propertyBloqueCopia, "BLOQUE");
+				string_append(&propertyBloqueCopia, string_itoa(i));
+				string_append(&propertyBloqueCopia, "COPIA1");
 
-			nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
-			// Envio la copia
-			printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-			// TODO: Enviar a YAMA
-			enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 1);
+				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
+				// Envio la copia
+				printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+				// TODO: Enviar a YAMA
+				enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 1);
 
-		}
-		free(nodoYBloque);
-		free(nodoYBloqueCopia);
-		free(propertyBloque);
-		free(propertyBloqueCopia);
-		free(tipo);
+			}
+			send_FIN_LISTA(socketYama);
+
+			free(nodoYBloque);
+			free(nodoYBloqueCopia);
+			free(propertyBloque);
+			free(propertyBloqueCopia);
+			free(tipo);
+		}else{
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int ok = 1;
+			int i = 0;
+			while(ok == 1){
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+					// TODO: Enviar a YAMA
+					enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
+				}else{
+					ok = 0;
+				}
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+					// TODO: Enviar a YAMA
+					enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
+				}else{
+					ok = 0;
+				}
+
+				i++;
+			}
+			send_FIN_LISTA(socketYama);
+			}
+		config_destroy(archivo_configuracion);
 	}
-
-
-	config_destroy(archivo_configuracion);
 
 }
 
@@ -1095,42 +1127,52 @@ void createDirectory(char* path){
 			if(indiceDisponible == -1){
 				log_error(log, "La tabla de directorios esta completa");
 			}else{
+				char **padres = string_split(path, "/");
+				int cant;
+				cant = strlen(padres) / sizeof(char*); //Length de padres
 
-				struct stat st = {0};
+				if(findDirByname(padres[cant-1]) == -1){ //Si es -1 no existe
 
-				if (stat(pathConcat, &st) == -1) { //Si no existe el path, lo creo
-					if(mkdir(pathConcat, 0700) == 0){
-						char **padres = string_split(path, "/");
-						int cant;
-						cant = strlen(padres) / sizeof(char*); //Length de padres
-						if(cant == 1){
-							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
-							tablaDeDirectorios[indiceDisponible].padre = 0;
-						}
-						else{
-							int32_t father;
-							log_trace(log,"Padre: %s", padres[cant-2]);
-							if(strcmp(padres[cant-2], "root") == 0){
-								father = 0;
-							}else{
-								father = findDirByname(padres[cant-2]);
+					struct stat st = {0};
+
+					if (stat(pathConcat, &st) == -1) { //Si no existe el path, lo creo
+						if(mkdir(pathConcat, 0700) == 0){
+
+
+							if(cant == 1){
+								tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+								strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
+								tablaDeDirectorios[indiceDisponible].padre = 0;
+							}
+							else{
+								int32_t father;
+								log_trace(log,"Padre: %s", padres[cant-2]);
+								if(strcmp(padres[cant-2], "root") == 0){
+									father = 0;
+								}else{
+									father = findDirByname(padres[cant-2]);
+								}
+
+								tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+								strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
+								tablaDeDirectorios[indiceDisponible].padre = father;
 							}
 
-							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
-							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
-							tablaDeDirectorios[indiceDisponible].padre = father;
+							log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
+
+						}else{
+							log_error(log, "Error al crear directorio");
 						}
-
-						log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
-
-					}else{
-						log_error(log, "Error al crear directorio");
 					}
+					else{
+						log_error(log, "El directorio ya existe o no se pudo crear");
+					}
+
+					free(padres);
+				}else{
+					log_error(log, "El directorio que intenta crear ya existe");
 				}
-				else{
-					log_error(log, "El directorio ya existe o no se pudo crear");
-				}
+
 			}
 			saveTablaDeDirectorios();
 	}

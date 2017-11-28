@@ -17,6 +17,7 @@
 #include <pthread.h>
 #include <sys/mman.h>
 #include <commons/bitarray.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 #include <utilidades/protocol/receive.h>
 #include <utilidades/protocol/senders.h>
