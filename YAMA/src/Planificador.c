@@ -119,19 +119,19 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
 	send_PETICION_NODO(socketFS, nombreArchivo);
 
-	payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
+	nodosDisponibles = list_create();
+	agregarListaNodosAJob(nodosDisponibles, jobID);
 
 	/*if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 		//FD_CLR(socketFS,&master); // Eliminar de la lista
 		break;
 	}*/
 
-	nodosDisponibles = list_create();
-	agregarListaNodosAJob(nodosDisponibles, jobID);
-
 	int nodoConID(t_worker* worker){
 		return worker->id == data->numero_nodo;
 	}
+
+	payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
 
 	while (header != FIN_LISTA){
 
@@ -162,6 +162,8 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 			list_add(nodosDisponibles, nodo);
 			log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
 		}
+
+		payload_UBICACION_BLOQUE* data = receive(socketFS,&header);
 	}
 	log_trace(logYAMA, "Se cargaron los nodos correctamente");
 }
@@ -203,6 +205,7 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 				t_infoBloque* bloqueEncontrado = list_find(worker->infoBloques, (void*)tieneCopia);
 				char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloqueEncontrado->bloqueNodo, worker->id);
 				send_INFO_TRANSFORMACION(job_master->master_socket, worker->puerto, worker->ip, bloqueEncontrado->bloqueNodo, 1048576, nombreArchivoTemporal);
+				actualizarTablaEstadosConTransformacion(job_master, worker, bloqueEncontrado->bloqueNodo, nombreArchivoTemporal);
 			}
 		}
 	}
