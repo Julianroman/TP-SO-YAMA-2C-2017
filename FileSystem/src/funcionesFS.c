@@ -740,6 +740,13 @@ char *leerContenidoArchivo(char *pathConNombre){
 				int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
 				if(socketOriginal != -1){
 					send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+
+					HEADER_T cabecera;
+					void* data;
+					data = receive(socketOriginal,&cabecera);
+					payload_BLOQUE * payload = data;
+
+					string_append(&contenido, payload->contenido);
 				}
 				else{
 					propertyBloqueCopia = string_new();
@@ -752,13 +759,17 @@ char *leerContenidoArchivo(char *pathConNombre){
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 					// TODO: Pedir a DataNode
 					send_PETICION_BLOQUE(getSocketNodoByName(string_itoa(nodoYBloqueCopia[0])),string_itoa(nodoYBloqueCopia[1]));
+
+					HEADER_T cabecera;
+					void* data;
+					data = receive(socketOriginal,&cabecera);
+					payload_BLOQUE * payload = data;
+
+					// TODO: Concatenarlo al contenido
+					string_append(&contenido, payload->contenido);
 				}
 
-
-
 			}
-			send_FIN_LISTA(socketYama);
-
 			free(nodoYBloque);
 			free(nodoYBloqueCopia);
 			free(propertyBloque);
@@ -773,8 +784,18 @@ char *leerContenidoArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
-					// TODO: Enviar a YAMA
-					enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
+					// TODO: Pedir a DataNode
+					int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
+					if(socketOriginal != -1){
+						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+
+						HEADER_T cabecera;
+						void* data;
+						data = receive(socketOriginal,&cabecera);
+						payload_BLOQUE * payload = data;
+
+						string_append(&contenido, payload->contenido);
+					}
 				}else{
 					ok = 0;
 				}
@@ -782,16 +803,25 @@ char *leerContenidoArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-					// TODO: Enviar a YAMA
-					enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
+					// TODO: Pedir a DataNode
+					int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
+					if(socketOriginal != -1){
+						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+
+						HEADER_T cabecera;
+						void* data;
+						data = receive(socketOriginal,&cabecera);
+						payload_BLOQUE * payload = data;
+
+						string_append(&contenido, payload->contenido);
+					}
 				}else{
 					ok = 0;
 				}
 
 				i++;
 			}
-			send_FIN_LISTA(socketYama);
-			}
+		}
 
 		config_destroy(archivo_configuracion);
 	}
