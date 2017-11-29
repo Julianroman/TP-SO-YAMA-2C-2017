@@ -32,26 +32,32 @@
 #include <utilidades/protocol/senders.h>
 
 #define TAMANIOBLOQUE 1048576
-#define PATHPOSTA "DataNode.dat"
 //
 int puertoFs;
 int id;
 char* ipFs = "";
+char* pathDataBin = "";
 t_log* logger;
 int cantidadDeBloques;
 
 // Prototipos
+void leerConfiguracion();
 void clienteDatanode(const char* ip, int puerto);
-void escribirArchivo(char* path, char* data, int size, int nroBloque);
-void leerArchivo(char* path, int size, int nroBloque);
+void escribirArchivo(char* data, int size, int nroBloque);
+char *leerArchivo(int size, int nroBloque);
+void realizarPeticion(void * data, HEADER_T cabecera, int socket);
+void crearDataBin();
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
+	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
+	char* path = "nodo-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoFs = config_get_int_value(archivo_configuracion, "PUERTO_FILESYSTEM");
 	printf("El puerto FS es: %i \n", puertoFs);
 	ipFs = config_get_string_value(archivo_configuracion, "IP_FILESYSTEM");
 	printf("La IP FS es: %s \n", ipFs);
+	pathDataBin = config_get_string_value(archivo_configuracion, "RUTA_DATABIN");
+	printf("La ruta del DataBin es: %s \n", pathDataBin);
 	cantidadDeBloques = config_get_int_value(archivo_configuracion, "CANTIDAD_BLOQUES");
 	printf("La cantidad de bloques es: %i \n", cantidadDeBloques);
 	id = config_get_int_value(archivo_configuracion, "NUMERO_NODO");
@@ -59,7 +65,7 @@ void leerConfiguracion(){
 
 }
 
-int main(int argc, char **argv) {
+int main(void) {
 	puts("Comienza DataNode");
 
 	///Se crea el log
@@ -71,20 +77,30 @@ int main(int argc, char **argv) {
 	/* -------- DEV-FEATURE ---------------------------------------------- */
 	/* Opcion de asignar puerto para multiples nodos en el mismo ordenador */
 
-	if (argc==2){
+	/*if (argc==2){
 		char* idString = argv[1];
 		id = atoi(idString);
-	}
+	}*/
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
+	crearDataBin();
+	/*char* lectura;
+	lectura = leerArchivo(TAMANIOBLOQUE, 3);
+	escribirArchivo(lectura, TAMANIOBLOQUE, 3);
+	free(lectura);*/
 	clienteDatanode(ipFs, puertoFs);
-	//char * data = "juli puto";
-	//int size = sizeof(char*) * strlen(data);
-	//escribirArchivo(PATHPOSTA, data, strlen(data), 3);
-	//leerArchivo(PATHPOSTA, strlen(data), 3);
 	return EXIT_SUCCESS;
 }
 
+void crearDataBin(){
+	int archivo;
+	if (!(archivo = fopen(pathDataBin, "r"))){
+		log_trace(logger, "Archivo inexistente se crea.");
+		archivo = fopen(pathDataBin,"w");
+		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
+		fclose(archivo);
+	}
+}
 
 void clienteDatanode(const char* ip, int puerto){
 	struct sockaddr_in direccionServidor;
@@ -109,25 +125,42 @@ void clienteDatanode(const char* ip, int puerto){
 	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
 	//TODO: aca se queda escuchando para recibir bloques
 	while (1) {
-		HEADER_T cabecera;
-		void* data;
-		data = receive(cliente,&cabecera);
-		payload_BLOQUE * payload = data;
-		escribirArchivo(PATHPOSTA, payload->contenido, payload->tamanio_bloque, payload->numero_bloque);
-		//printf("Datanode %d dice: %s\n", payload->id_bloque, payload->bloque);
+			HEADER_T cabecera;
+			void* data;
+			data = receive(cliente,&cabecera);
+			realizarPeticion(data, cabecera, cliente);
 	}
 }
 
-void escribirArchivo(char* path, char* data, int size, int nroBloque){
+void realizarPeticion(void * data, HEADER_T cabecera, int socket){
+	char* bloque;
+	payload_BLOQUE * payloadEscribir;
+	payload_PETICION_BLOQUE * payloadLeer;
+	switch(cabecera){
+	case PETICION_BLOQUE:
+		payloadLeer = data;
+		bloque = malloc(payloadLeer->tamanio_bloque);
+		bloque = leerArchivo(payloadLeer->tamanio_bloque, payloadLeer->numero_bloque);
+		send_BLOQUE(socket, payloadLeer->tamanio_bloque, bloque, payloadLeer->numero_bloque);
+		free(bloque);
+		break;
+	case BLOQUE:
+		payloadEscribir = data;
+		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
+		break;
+	default:
+		exit(1);
+		break;
+	}
+}
+
+void escribirArchivo(char* data, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
-	if (!(archivo = fopen(path, "r"))){
-		log_trace(logger, "Archivo inexistente se crea.");
-		archivo = fopen(path,"w");
-		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
-		fclose(archivo);
+	if (!(archivo = fopen(pathDataBin, "r"))){
+		crearDataBin();
 	}
-	archivo = open(path, O_RDWR);
+	archivo = open(pathDataBin, O_RDWR);
 	char * map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset);
 	memcpy(map, data, size);
 	close(archivo);
@@ -136,20 +169,20 @@ void escribirArchivo(char* path, char* data, int size, int nroBloque){
 	free(mensajeEscritura);
 }
 
-void leerArchivo(char* path, int size, int nroBloque){
+char *leerArchivo(int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
-	if (!(archivo = fopen(path, "r"))){
-		log_error(logger, "Archivo inexistente.");
+	if (!(archivo = fopen(pathDataBin, "r"))){
+		crearDataBin();
 	}
 	char* lectura = malloc(size);
-	archivo = open(path, O_RDONLY);
+	archivo = open(pathDataBin, O_RDONLY);
 	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
 	//Se guarda en lectura lo leido desde el offset
 	memcpy(lectura, map, size);
 	lectura[size] = '\0';
 	close(archivo);
 	printf("El bloque %d dice: %s \n", nroBloque, lectura);
-	free(lectura);
+	return lectura;
 }
 

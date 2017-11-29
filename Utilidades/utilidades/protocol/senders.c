@@ -222,8 +222,9 @@ void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
 
 	memcpy(paquete+offset,&id_bloque,sizeof(int));
 	offset += sizeof(int);
-
+	
 	enviar_paquete(socket,paquete,offset);
+
 	free(paquete);
 
 };
@@ -291,9 +292,10 @@ void send_SCRIPT(int socket , char* contenido){
     free(paquete);
 };
 
-void send_PETICION_BLOQUE(int socket , int numero_bloque){
+void send_PETICION_BLOQUE(int socket , int numero_bloque , int tam_bloque){
     payload_PETICION_BLOQUE payload;
     payload.numero_bloque = numero_bloque; 
+    payload.tam_bloque = tam_bloque; 
 
     int tamanio_paquete;
     char* paquete = pack_PETICION_BLOQUE(payload,&tamanio_paquete);
@@ -313,3 +315,4 @@ void send_UBICACION_BLOQUE(int socket , int numero_nodo , int bloque_nodo , int 
     enviar_paquete(socket,paquete,tamanio_paquete);
     free(paquete);
 };
+

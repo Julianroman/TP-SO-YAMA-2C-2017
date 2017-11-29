@@ -259,7 +259,7 @@ void* unpack_BLOQUE(int socket){
     payload_BLOQUE *payload= malloc(sizeof(payload_BLOQUE));
 
     recv(socket,&(payload->tamanio_bloque),sizeof(int),0);
-    int  tamanio_bloque = payload->tamanio_bloque;
+    uint64_t  tamanio_bloque = payload->tamanio_bloque;
 
     char* bloque = malloc(tamanio_bloque);
     recv(socket,bloque,tamanio_bloque,0);
@@ -321,6 +321,8 @@ void* unpack_PETICION_BLOQUE(int socket){
 
     recv(socket,&(payload->numero_bloque),sizeof(int),0);
 
+    recv(socket,&(payload->tam_bloque),sizeof(int),0);
+
     return (void*)payload;
 };
 
@@ -337,3 +339,4 @@ void* unpack_UBICACION_BLOQUE(int socket){
 
     return (void*)payload;
 };
+

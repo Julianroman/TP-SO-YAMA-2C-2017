@@ -140,6 +140,7 @@ typedef struct {
 
 typedef struct { 
     int numero_bloque; 
+    int tam_bloque; 
 }payload_PETICION_BLOQUE;
 
 typedef struct { 
@@ -148,7 +149,6 @@ typedef struct {
     int bloque_archivo; 
     int copia; 
 }payload_UBICACION_BLOQUE;
-
 
 
 #endif /* UTILIDADES_PROTOCOL_TYPES_H_ */

@@ -28,8 +28,7 @@ void send_RESPUESTA_MASTER(int socket  , int id_master , int id_nodo , int bloqu
 void send_EXITO_OPERACION(int socket );
 void send_FRACASO_OPERACION(int socket );
 void send_SCRIPT(int socket  , char* contenido);
-void send_PETICION_BLOQUE(int socket  , int numero_bloque);
+void send_PETICION_BLOQUE(int socket  , int numero_bloque , int tam_bloque);
 void send_UBICACION_BLOQUE(int socket  , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia);
-
 
 #endif /* UTILIDADES_PROTOCOL_SENDER_H_ */
