@@ -29,5 +29,4 @@ char* pack_SCRIPT(payload_SCRIPT payload,int* tamanio_paquete);
 char* pack_PETICION_BLOQUE(payload_PETICION_BLOQUE payload,int* tamanio_paquete);
 char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquete);
 
-
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

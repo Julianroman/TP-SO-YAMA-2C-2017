@@ -80,6 +80,9 @@ void destroy(HEADER_T header,void* payload){
 		case PETICION_BLOQUE:
 			destroy_PETICION_BLOQUE((payload_PETICION_BLOQUE*) payload);
 		break;
+		case UBICACION_BLOQUE:
+			destroy_UBICACION_BLOQUE((payload_UBICACION_BLOQUE*) payload);
+		break;
 	}
 }
 
@@ -192,6 +195,10 @@ void destroy_SCRIPT(payload_SCRIPT* payload){
 }
 
 void destroy_PETICION_BLOQUE(payload_PETICION_BLOQUE* payload){
+	free(payload);
+}
+
+void destroy_UBICACION_BLOQUE(payload_UBICACION_BLOQUE* payload){
 	free(payload);
 }
 
