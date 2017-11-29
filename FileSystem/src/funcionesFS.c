@@ -726,7 +726,9 @@ char *leerContenidoArchivo(char *pathConNombre){
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
 			int i;
 			for( i=0; i < cantidadDeBloques; i++ ){
-				//
+				// Agarro el tamanio del bloque
+				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
 				propertyBloque = string_new();
 				string_append(&propertyBloque, "BLOQUE");
 				string_append(&propertyBloque, string_itoa(i));
@@ -739,7 +741,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 				// TODO: Pedir a DataNode
 				int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
 				if(socketOriginal != -1){
-					send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+					send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]), tamanioBloque);
 
 					HEADER_T cabecera;
 					void* data;
@@ -758,7 +760,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 					// Si no se pudo agarrar el original, pido la copia
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 					// TODO: Pedir a DataNode
-					send_PETICION_BLOQUE(getSocketNodoByName(string_itoa(nodoYBloqueCopia[0])),string_itoa(nodoYBloqueCopia[1]));
+					send_PETICION_BLOQUE(getSocketNodoByName(string_itoa(nodoYBloqueCopia[0])),string_itoa(nodoYBloqueCopia[1]), tamanioBloque);
 
 					HEADER_T cabecera;
 					void* data;
@@ -784,10 +786,14 @@ char *leerContenidoArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
 					// TODO: Pedir a DataNode
 					int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
 					if(socketOriginal != -1){
-						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]), tamanioBloque);
 
 						HEADER_T cabecera;
 						void* data;
@@ -803,14 +809,18 @@ char *leerContenidoArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
 					// TODO: Pedir a DataNode
-					int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
-					if(socketOriginal != -1){
-						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+					int socketCopia = getSocketNodoByName(string_itoa(nodoYBloqueCopia[0]));
+					if(socketCopia != -1){
+						send_PETICION_BLOQUE(socketCopia,string_itoa(nodoYBloqueCopia[1]), tamanioBloque);
 
 						HEADER_T cabecera;
 						void* data;
-						data = receive(socketOriginal,&cabecera);
+						data = receive(socketCopia,&cabecera);
 						payload_BLOQUE * payload = data;
 
 						string_append(&contenido, payload->contenido);
@@ -828,14 +838,38 @@ char *leerContenidoArchivo(char *pathConNombre){
 	return contenido;
 }
 
+void initFS(){
+
+	//Si se borró el /root lo inicializo
+	struct stat st = {0};
+	if (stat(directorioRaiz, &st) == -1) { //Si no existe el path, lo creo
+		if(mkdir(directorioRaiz, 0700) == 0){
+			log_info(log,"Se creo el directorio root");
+		}
+	}
+
+
+	initTablaDeDirectorios();
+	createDirectory("metadata");
+	createDirectory("metadata/bitmaps");
+	createDirectory("metadata/archivos");
+
+	initTablaDeNodos();
+}
+
 void formatear(){
-	/*if(existeUnEstadoAnterior){
-		restaurarDesdeAhi
-	}*/
+	system(string_from_format("rm -r %s/*", directorioRaiz));
 
+	if(remove(PATHDIRECTORIOS) == -1){
+		//No se elimino
+	}
 
-	/*estadoEstable = 1;
-	formateado = 1;*/
+	initTablaDeDirectorios();
+	createDirectory("metadata");
+	createDirectory("metadata/bitmaps");
+	createDirectory("metadata/archivos");
+
+	initTablaDeNodos();
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){
@@ -1233,7 +1267,6 @@ void createDirectory(char* path){
 							}
 							else{
 								int32_t father;
-								log_trace(log,"Padre: %s", padres[cant-2]);
 								if(strcmp(padres[cant-2], "root") == 0){
 									father = 0;
 								}else{
