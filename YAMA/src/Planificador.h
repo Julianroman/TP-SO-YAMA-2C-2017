@@ -13,18 +13,17 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/socket_utils.h>
 
-t_list* nodosDisponibles; //Lista de nodos - cada una pertenece a un JOB
 t_dictionary* diccionarioJobNodos; //JOB ID - Lista nodos para ese JOB
 
 // FUNCIONES DE PLANIFICADOR
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master);
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
-void inicializarPlanificador();
+void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo);
 void finalizarCorrectamente(t_job* job);
 void abortarJob(t_job* job);
-void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID);
+t_list* cargarNodosParaPlanificacion(char* nombreArchivo, int jobID);
 t_worker* elegirEncargadoRedGlobal(int jobID);
-void realizarReduccionGlobal(t_worker* encargado);
+void realizarReduccionGlobal(t_job_master* job_master);
 void realizarTransformacion(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
 void replanificar(t_job_master* job_master, t_worker* nodoFallido);
@@ -34,7 +33,6 @@ t_job *newJob();
 
 // UTILES
 
-Tarea getTarea(payload_RESPUESTA_MASTER* infoMaster);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
@@ -48,8 +46,7 @@ t_list* getNodosDeJob(int jobID);
 void agregarListaNodosAJob(t_list* listaNodos, int jobID);
 int todosLosNodosTerminaronReduccionLocal(int jobID);
 int nodoTerminoTransformacion(int idJob, int jobID);
-void nodoPasarAReduccionLocal(t_worker* nodo);
-void nodoPasarATransformacion(t_worker* nodo);
+void nodoPasarAEtapa(t_worker* nodo, Tarea etapa);
 t_worker* getNodo(int nodoID, int jobID);
 int estaActivo(t_worker* worker);
 void aumentarCarga(t_worker* nodo);
