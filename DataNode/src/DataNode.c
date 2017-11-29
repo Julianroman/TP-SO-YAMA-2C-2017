@@ -82,10 +82,11 @@ int main(void) {
 	}*/
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
-	crearDataBin();
-	char* lectura = malloc(TAMANIOBLOQUE);
+	//crearDataBin();
+	char* lectura;
 	lectura = leerArchivo(TAMANIOBLOQUE, 8);
 	escribirArchivo(lectura, TAMANIOBLOQUE, 10);
+	free(lectura);
 	//clienteDatanode(ipFs, puertoFs);
 	return EXIT_SUCCESS;
 }
@@ -152,10 +153,7 @@ void escribirArchivo(char* data, int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
 	if (!(archivo = fopen(pathDataBin, "r"))){
-		log_trace(logger, "Archivo inexistente se crea.");
-		archivo = fopen(pathDataBin,"w");
-		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
-		fclose(archivo);
+		crearDataBin();
 	}
 	archivo = open(pathDataBin, O_RDWR);
 	char * map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset);
@@ -169,11 +167,11 @@ void escribirArchivo(char* data, int size, int nroBloque){
 char *leerArchivo(int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
-	if (!(archivo = fopen(pathDataBin, "r"))){
-		log_error(logger, "Archivo inexistente.");
+	if (!(archivo = fopen("metadata/texto.txt", "r"))){
+		crearDataBin();
 	}
 	char* lectura = malloc(size);
-	archivo = open(pathDataBin, O_RDONLY);
+	archivo = open("metadata/texto.txt", O_RDONLY);
 	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
 	//Se guarda en lectura lo leido desde el offset
 	memcpy(lectura, map, size);
@@ -181,6 +179,5 @@ char *leerArchivo(int size, int nroBloque){
 	close(archivo);
 	printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	return lectura;
-	free(lectura);
 }
 

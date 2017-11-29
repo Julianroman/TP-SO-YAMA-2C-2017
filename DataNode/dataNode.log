@@ -403,3 +403,10 @@
 [TRACE] 20:43:31:700 DataNode/(11275:11275): Leyendo configuracion
 [TRACE] 20:43:31:701 DataNode/(11275:11275): Configuracion leida
 [TRACE] 20:43:31:851 DataNode/(11275:11275): Escritura completa en bloque 10 /Tamanio: 1048576
+[TRACE] 21:04:27:647 DataNode/(11740:11740): Leyendo configuracion
+[TRACE] 21:04:27:647 DataNode/(11740:11740): Configuracion leida
+[TRACE] 21:04:27:647 DataNode/(11740:11740): Archivo inexistente se crea.
+[TRACE] 21:04:27:659 DataNode/(11740:11740): Escritura completa en bloque 10 /Tamanio: 1048576
+[TRACE] 21:14:46:318 DataNode/(12332:12332): Leyendo configuracion
+[TRACE] 21:14:46:325 DataNode/(12332:12332): Configuracion leida
+[TRACE] 21:14:46:325 DataNode/(12332:12332): Archivo inexistente se crea.
