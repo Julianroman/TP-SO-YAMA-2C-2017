@@ -25,12 +25,12 @@ int main(int arg, char** argv) {
 
 	initFS();
 
-	if (argv[1] != NULL && strcmp(argv[1], "--clean")){
+	if (arg > 0 && string_equals_ignore_case(argv[1], "--clean")){
 		log_info(log,"Se inicia el Filesystem ignorando y eliminando estado anterior");
 		formatear();
 	}
 	else{
-		//log_info(log,"Iniciar reestableciendo desde estado anterior");
+		log_info(log,"Se inicia el Filesystem reestableciendo desde estado anterior");
 		/*restablecerEstado();
 		for(int i = 0; i < list_size(archivos); i++){
 			t_arch* archivo = list_get(archivos, i);
