@@ -23,9 +23,9 @@ void inicializarPlanificador();
 void finalizarCorrectamente(t_job* job);
 void abortarJob(t_job* job);
 void cargarNodosParaPlanificacion(char* nombreArchivo, int jobID);
-t_worker* elegirEncargadoReduccionGlobal(int jobID);
+t_worker* elegirEncargadoRedGlobal(int jobID);
 void realizarReduccionGlobal(t_worker* encargado);
-void realizarTransformacionNodos(t_job_master* job_master);
+void realizarTransformacion(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
 void replanificar(t_job_master* job_master, t_worker* nodoFallido);
 
@@ -39,6 +39,7 @@ Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);
 char* getNombreArchivoTemporalTransformacion(int jobID, int bloque, int nodoID);
+char* getNombreArchivoTemporalRedGlobal(int jobID, int masterID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 
@@ -51,14 +52,16 @@ void nodoPasarAReduccionLocal(t_worker* nodo);
 void nodoPasarATransformacion(t_worker* nodo);
 t_worker* getNodo(int nodoID, int jobID);
 int estaActivo(t_worker* worker);
+void aumentarCarga(t_worker* nodo);
+void disminuirCarga(t_worker* nodo);
 
 // ACTUALIZACIONES
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
 t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID);
-void agregarRegistroATablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
 void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker* nodo, int bloque, char* nombreArchivoTemporal);
+void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo, char* nombreArchivoTemporal, Tarea etapa);
 
 //FUNCIONES DE PLANIFICACION
 void planificacionWClock(t_job_master* job_master);
@@ -71,5 +74,6 @@ void ordenarListaNodosPorDisponibilidad(t_list* listaNodos);
 void calcularDisponibilidad(t_worker* worker, int jobID);
 int disponibilidad(t_worker* worker);
 int tareasHistoricas(t_worker* worker);
+void aumentarTareasHistoricas(t_worker* worker);
 
 #endif /* PLANIFICADOR_H_ */
