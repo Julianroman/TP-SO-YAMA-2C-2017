@@ -647,11 +647,26 @@ void leerArchivo(char *pathConNombre){
 
 }
 
+int getSocketNodoByName(int nroNodo){
+	int socket = -1;
+	int i;
+	for (i = 0; i < list_size(listaDeNodos); i ++){
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+		if ( unNodo->nroNodo == nroNodo ){
+			socket = unNodo->socket;
+		}
+	}
+	return socket;
+}
+
 char *leerContenidoArchivo(char *pathConNombre){
+	//TODO
 	int cantidadDeBloques;
+	char *contenido;
 
 	// Para leer la tabla de archivos
-	// Separo el path del destino con las /
+	// Separo el path con las /
 
 	char **arrayPath = string_split(pathConNombre, "/");
 	int cant = 0;
@@ -685,60 +700,102 @@ char *leerContenidoArchivo(char *pathConNombre){
 	string_append(&pathArchivoConfig, directorioRaiz);
 	string_append(&pathArchivoConfig, indicePath);
 
-	t_config* archivo_configuracion = config_create(pathArchivoConfig);
+	FILE *in;
+	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+		log_error(log, "No se encontro el archivo");
+	}else{
+		t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-	int tamanio;
-	tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
+		int tamanio;
+		tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
 
-	char *tipo = string_new();
-	tipo = config_get_string_value(archivo_configuracion, "TIPO");
+		contenido = malloc(tamanio);
 
-	if(string_equals_ignore_case(tipo, "BINARIO")){
-		if ( tamanio % tamanioBloques != 0 )
-			cantidadDeBloques = tamanio/tamanioBloques +1;
-		else
-			cantidadDeBloques = tamanio/tamanioBloques;
+		char *tipo = string_new();
+		tipo = config_get_string_value(archivo_configuracion, "TIPO");
 
-		char *propertyBloque;
-		char **nodoYBloque = malloc(sizeof(char*)*2);
-		char *propertyBloqueCopia;
-		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-		int i;
-		for( i=0; i < cantidadDeBloques; i++ ){
-			//
-			propertyBloque = string_new();
-			string_append(&propertyBloque, "BLOQUE");
-			string_append(&propertyBloque, string_itoa(i));
-			string_append(&propertyBloque, "COPIA0");
+		if(string_equals_ignore_case(tipo, "BINARIO")){
+			if ( tamanio % tamanioBloques != 0 )
+				cantidadDeBloques = tamanio/tamanioBloques +1;
+			else
+				cantidadDeBloques = tamanio/tamanioBloques;
 
-			nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
+			char *propertyBloque;
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char *propertyBloqueCopia;
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int i;
+			for( i=0; i < cantidadDeBloques; i++ ){
+				//
+				propertyBloque = string_new();
+				string_append(&propertyBloque, "BLOQUE");
+				string_append(&propertyBloque, string_itoa(i));
+				string_append(&propertyBloque, "COPIA0");
 
-			// Pido el original si se puede
-			printf("Obtener de Nodo %s -- bloque %s \n", nodoYBloque[0], nodoYBloque[1]);
-			// TODO: Pedir a DataNode
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
 
-			propertyBloqueCopia = string_new();
-			string_append(&propertyBloqueCopia, "BLOQUE");
-			string_append(&propertyBloqueCopia, string_itoa(i));
-			string_append(&propertyBloqueCopia, "COPIA1");
+				// Pido el original
+				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+				// TODO: Pedir a DataNode
+				int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
+				if(socketOriginal != -1){
+					send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]));
+				}
+				else{
+					propertyBloqueCopia = string_new();
+					string_append(&propertyBloqueCopia, "BLOQUE");
+					string_append(&propertyBloqueCopia, string_itoa(i));
+					string_append(&propertyBloqueCopia, "COPIA1");
 
-			nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
-			// Si no se pudo obtener el origina, pido la copia
-			printf("Obtener de Nodo %s -- bloque %s \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1]);
-			// TODO: Pedir a DataNode
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
+					// Si no se pudo agarrar el original, pido la copia
+					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+					// TODO: Pedir a DataNode
+					send_PETICION_BLOQUE(getSocketNodoByName(string_itoa(nodoYBloqueCopia[0])),string_itoa(nodoYBloqueCopia[1]));
+				}
 
 
 
-		}
-		free(nodoYBloque);
-		free(nodoYBloqueCopia);
-		free(propertyBloque);
-		free(propertyBloqueCopia);
-		free(tipo);
+			}
+			send_FIN_LISTA(socketYama);
 
+			free(nodoYBloque);
+			free(nodoYBloqueCopia);
+			free(propertyBloque);
+			free(propertyBloqueCopia);
+			free(tipo);
+		}else{
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int ok = 1;
+			int i = 0;
+			while(ok == 1){
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+					// TODO: Enviar a YAMA
+					enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
+				}else{
+					ok = 0;
+				}
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+					// TODO: Enviar a YAMA
+					enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
+				}else{
+					ok = 0;
+				}
+
+				i++;
+			}
+			send_FIN_LISTA(socketYama);
+			}
+
+		config_destroy(archivo_configuracion);
 	}
-	config_destroy(archivo_configuracion);
-	return ""; // TODO
+	return contenido;
 }
 
 void formatear(){
