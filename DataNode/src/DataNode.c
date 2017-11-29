@@ -49,7 +49,8 @@ void realizarPeticion(payload_BLOQUE * payload, HEADER_T cabecera, int socket);
 void crearDataBin();
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
+	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
+	char* path = "nodo-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoFs = config_get_int_value(archivo_configuracion, "PUERTO_FILESYSTEM");
 	printf("El puerto FS es: %i \n", puertoFs);
@@ -82,12 +83,12 @@ int main(void) {
 	}*/
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
-	//crearDataBin();
-	char* lectura;
-	lectura = leerArchivo(TAMANIOBLOQUE, 8);
-	escribirArchivo(lectura, TAMANIOBLOQUE, 10);
-	free(lectura);
-	//clienteDatanode(ipFs, puertoFs);
+	crearDataBin();
+	/*char* lectura;
+	lectura = leerArchivo(TAMANIOBLOQUE, 3);
+	escribirArchivo(lectura, TAMANIOBLOQUE, 3);
+	free(lectura);*/
+	clienteDatanode(ipFs, puertoFs);
 	return EXIT_SUCCESS;
 }
 
@@ -167,11 +168,11 @@ void escribirArchivo(char* data, int size, int nroBloque){
 char *leerArchivo(int size, int nroBloque){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
-	if (!(archivo = fopen("metadata/texto.txt", "r"))){
+	if (!(archivo = fopen(pathDataBin, "r"))){
 		crearDataBin();
 	}
 	char* lectura = malloc(size);
-	archivo = open("metadata/texto.txt", O_RDONLY);
+	archivo = open(pathDataBin, O_RDONLY);
 	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
 	//Se guarda en lectura lo leido desde el offset
 	memcpy(lectura, map, size);
