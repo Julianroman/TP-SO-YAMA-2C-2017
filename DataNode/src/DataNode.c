@@ -45,7 +45,7 @@ void leerConfiguracion();
 void clienteDatanode(const char* ip, int puerto);
 void escribirArchivo(char* data, int size, int nroBloque);
 char *leerArchivo(int size, int nroBloque);
-void realizarPeticion(payload_BLOQUE * payload, HEADER_T cabecera, int socket);
+void realizarPeticion(void * data, HEADER_T cabecera, int socket);
 void crearDataBin();
 
 void leerConfiguracion(){
@@ -128,21 +128,25 @@ void clienteDatanode(const char* ip, int puerto){
 			HEADER_T cabecera;
 			void* data;
 			data = receive(cliente,&cabecera);
-			payload_BLOQUE * payload = data;
-			realizarPeticion(payload, cabecera, cliente);
+			realizarPeticion(data, cabecera, cliente);
 	}
 }
 
-void realizarPeticion(payload_BLOQUE * payload, HEADER_T cabecera, int socket){
+void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	char* bloque;
+	payload_BLOQUE * payloadEscribir;
+	payload_PETICION_BLOQUE * payloadLeer;
 	switch(cabecera){
 	case PETICION_BLOQUE:
-		bloque = malloc(payload->tamanio_bloque);
-		bloque = leerArchivo(payload->tamanio_bloque, payload->numero_bloque);
-		send_BLOQUE(socket, payload->tamanio_bloque, bloque, payload->numero_bloque);
+		payloadLeer = data;
+		bloque = malloc(payloadLeer->tamanio_bloque);
+		bloque = leerArchivo(payloadLeer->tamanio_bloque, payloadLeer->numero_bloque);
+		send_BLOQUE(socket, payloadLeer->tamanio_bloque, bloque, payloadLeer->numero_bloque);
+		free(bloque);
 		break;
-	case UBICACION_BLOQUE:
-		escribirArchivo(payload->contenido, payload->tamanio_bloque, payload->numero_bloque);
+	case BLOQUE:
+		payloadEscribir = data;
+		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
 	default:
 		exit(1);
