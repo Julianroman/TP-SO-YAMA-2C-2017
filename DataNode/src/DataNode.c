@@ -3,7 +3,7 @@
  /*
  ============================================================================
  Name        : DataNode.c
- Author      : 
+ Author      :
  Version     :
  Copyright   : Your copyright notice
  Description : Hello World in C, Ansi-style
@@ -49,8 +49,8 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket);
 void crearDataBin();
 
 void leerConfiguracion(){
-	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/src/nodo-config.cfg";
-	char* path = "nodo-config.cfg";
+	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
+	//char* path = "nodo-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoFs = config_get_int_value(archivo_configuracion, "PUERTO_FILESYSTEM");
 	printf("El puerto FS es: %i \n", puertoFs);
@@ -85,8 +85,8 @@ int main(void) {
 
 	crearDataBin();
 	/*char* lectura;
-	lectura = leerArchivo(TAMANIOBLOQUE, 3);
-	escribirArchivo(lectura, TAMANIOBLOQUE, 3);
+	lectura = leerArchivo(TAMANIOBLOQUE, 8);
+	//escribirArchivo(lectura, TAMANIOBLOQUE, 3);
 	free(lectura);*/
 	clienteDatanode(ipFs, puertoFs);
 	return EXIT_SUCCESS;
@@ -139,16 +139,22 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	switch(cabecera){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
-		bloque = malloc(payloadLeer->tamanio_bloque);
-		bloque = leerArchivo(payloadLeer->tamanio_bloque, payloadLeer->numero_bloque);
-		send_BLOQUE(socket, payloadLeer->tamanio_bloque, bloque, payloadLeer->numero_bloque);
+		log_trace(logger, "lectura del bloque %i, %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
+		bloque = malloc(payloadLeer->tam_bloque);
+		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
+		printf("Contenido: %s.",bloque);
+		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
 		free(bloque);
 		break;
 	case BLOQUE:
 		payloadEscribir = data;
+		log_trace(logger, "Escritura en el bloque %i, %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
+		printf("Contenido: %s.", payloadEscribir->contenido);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
-	default:
+	case FIN_COMUNICACION:
+		printf("Se desconecto el FS.");
+		log_trace(logger, "Se desconecto el FS.");
 		exit(1);
 		break;
 	}
@@ -185,4 +191,3 @@ char *leerArchivo(int size, int nroBloque){
 	printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	return lectura;
 }
-

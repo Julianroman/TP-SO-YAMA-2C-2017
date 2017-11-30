@@ -410,3 +410,85 @@
 [TRACE] 21:14:46:318 DataNode/(12332:12332): Leyendo configuracion
 [TRACE] 21:14:46:325 DataNode/(12332:12332): Configuracion leida
 [TRACE] 21:14:46:325 DataNode/(12332:12332): Archivo inexistente se crea.
+[TRACE] 20:16:32:327 DataNode/(7446:7446): Leyendo configuracion
+[TRACE] 20:16:32:327 DataNode/(7446:7446): Configuracion leida
+[TRACE] 20:17:00:995 DataNode/(7446:7446): Se desconecto el FS.
+[TRACE] 20:17:36:924 DataNode/(7506:7506): Leyendo configuracion
+[TRACE] 20:17:36:924 DataNode/(7506:7506): Configuracion leida
+[TRACE] 20:17:41:115 DataNode/(7506:7506): Se desconecto el FS.
+[TRACE] 20:17:57:785 DataNode/(7542:7542): Leyendo configuracion
+[TRACE] 20:17:57:785 DataNode/(7542:7542): Configuracion leida
+[TRACE] 20:18:10:964 DataNode/(7542:7542): Se desconecto el FS.
+[TRACE] 20:18:24:640 DataNode/(7581:7581): Leyendo configuracion
+[TRACE] 20:18:24:641 DataNode/(7581:7581): Configuracion leida
+[TRACE] 20:19:29:765 DataNode/(7581:7581): Se desconecto el FS.
+[TRACE] 20:19:52:688 DataNode/(7618:7618): Leyendo configuracion
+[TRACE] 20:19:52:688 DataNode/(7618:7618): Configuracion leida
+[TRACE] 20:19:56:742 DataNode/(7618:7618): Se desconecto el FS.
+[TRACE] 20:20:10:207 DataNode/(7655:7655): Leyendo configuracion
+[TRACE] 20:20:10:208 DataNode/(7655:7655): Configuracion leida
+[TRACE] 20:20:19:900 DataNode/(7655:7655): Se desconecto el FS.
+[TRACE] 20:20:31:264 DataNode/(7692:7692): Leyendo configuracion
+[TRACE] 20:20:31:264 DataNode/(7692:7692): Configuracion leida
+[TRACE] 20:20:40:347 DataNode/(7692:7692): Se desconecto el FS.
+[TRACE] 20:20:49:342 DataNode/(7730:7730): Leyendo configuracion
+[TRACE] 20:20:49:343 DataNode/(7730:7730): Configuracion leida
+[TRACE] 20:21:22:568 DataNode/(7730:7730): Se desconecto el FS.
+[TRACE] 20:21:43:446 DataNode/(7767:7767): Leyendo configuracion
+[TRACE] 20:21:43:446 DataNode/(7767:7767): Configuracion leida
+[TRACE] 20:22:15:850 DataNode/(7767:7767): Se desconecto el FS.
+[TRACE] 20:25:38:965 DataNode/(7813:7813): Leyendo configuracion
+[TRACE] 20:25:38:966 DataNode/(7813:7813): Configuracion leida
+[TRACE] 20:26:28:95 DataNode/(7813:7813): Se desconecto el FS.
+[TRACE] 20:27:00:668 DataNode/(7851:7851): Leyendo configuracion
+[TRACE] 20:27:00:668 DataNode/(7851:7851): Configuracion leida
+[TRACE] 20:27:10:548 DataNode/(7887:7887): Leyendo configuracion
+[TRACE] 20:27:10:548 DataNode/(7887:7887): Configuracion leida
+[TRACE] 20:29:37:907 DataNode/(7929:7929): Leyendo configuracion
+[TRACE] 20:29:37:907 DataNode/(7929:7929): Configuracion leida
+[TRACE] 20:33:42:728 DataNode/(7982:7982): Leyendo configuracion
+[TRACE] 20:33:42:728 DataNode/(7982:7982): Configuracion leida
+[TRACE] 20:43:52:433 DataNode/(8159:8159): Leyendo configuracion
+[TRACE] 20:43:52:433 DataNode/(8159:8159): Configuracion leida
+[TRACE] 20:43:52:433 DataNode/(8159:8159): Archivo inexistente se crea.
+[TRACE] 20:45:46:976 DataNode/(8253:8253): Leyendo configuracion
+[TRACE] 20:45:46:976 DataNode/(8253:8253): Configuracion leida
+[TRACE] 20:45:56:584 DataNode/(8292:8292): Leyendo configuracion
+[TRACE] 20:45:56:584 DataNode/(8292:8292): Configuracion leida
+[TRACE] 20:49:42:709 DataNode/(8450:8450): Leyendo configuracion
+[TRACE] 20:49:42:709 DataNode/(8450:8450): Configuracion leida
+[TRACE] 20:49:58:980 DataNode/(8489:8489): Leyendo configuracion
+[TRACE] 20:49:58:981 DataNode/(8489:8489): Configuracion leida
+[TRACE] 20:51:01:237 DataNode/(8572:8572): Leyendo configuracion
+[TRACE] 20:51:01:237 DataNode/(8572:8572): Configuracion leida
+[TRACE] 20:51:07:155 DataNode/(8610:8610): Leyendo configuracion
+[TRACE] 20:51:07:156 DataNode/(8610:8610): Configuracion leida
+[TRACE] 20:53:11:675 DataNode/(8696:8696): Leyendo configuracion
+[TRACE] 20:53:11:675 DataNode/(8696:8696): Configuracion leida
+[TRACE] 20:53:57:595 DataNode/(8751:8751): Leyendo configuracion
+[TRACE] 20:53:57:595 DataNode/(8751:8751): Configuracion leida
+[TRACE] 20:54:23:428 DataNode/(8751:8751): Escritura en el bloque 0, 1048576 bytes
+[TRACE] 20:54:27:847 DataNode/(8751:8751): Escritura completa en bloque 0 /Tamanio: 1048576
+[TRACE] 20:54:39:847 DataNode/(8751:8751): Escritura en el bloque 1, 1048576 bytes
+[TRACE] 20:54:40:620 DataNode/(8751:8751): Escritura completa en bloque 1 /Tamanio: 1048576
+[TRACE] 20:54:41:391 DataNode/(8751:8751): Escritura en el bloque 2, 1048576 bytes
+[TRACE] 20:54:42:353 DataNode/(8751:8751): Escritura completa en bloque 2 /Tamanio: 1048576
+[TRACE] 20:54:49:57 DataNode/(8751:8751): Escritura en el bloque 3, 1048576 bytes
+[TRACE] 20:54:49:931 DataNode/(8751:8751): Escritura completa en bloque 3 /Tamanio: 1048576
+[TRACE] 20:54:58:329 DataNode/(8751:8751): Escritura en el bloque 4, 1048576 bytes
+[TRACE] 20:54:58:965 DataNode/(8751:8751): Escritura completa en bloque 4 /Tamanio: 1048576
+[TRACE] 20:55:01:409 DataNode/(8751:8751): Escritura en el bloque 5, 1048576 bytes
+[TRACE] 20:55:02:154 DataNode/(8751:8751): Escritura completa en bloque 5 /Tamanio: 1048576
+[TRACE] 20:55:13:41 DataNode/(8751:8751): Escritura en el bloque 6, 1048576 bytes
+[TRACE] 20:55:13:952 DataNode/(8751:8751): Escritura completa en bloque 6 /Tamanio: 1048576
+[TRACE] 20:55:24:160 DataNode/(8751:8751): Escritura en el bloque 7, 1048576 bytes
+[TRACE] 20:55:25:90 DataNode/(8751:8751): Escritura completa en bloque 7 /Tamanio: 1048576
+[TRACE] 20:55:28:472 DataNode/(8751:8751): Escritura en el bloque 8, 456722 bytes
+[TRACE] 20:55:28:701 DataNode/(8751:8751): Escritura completa en bloque 8 /Tamanio: 456722
+[TRACE] 20:55:53:517 DataNode/(8751:8751): Se desconecto el FS.
+[TRACE] 20:56:24:977 DataNode/(8951:8951): Leyendo configuracion
+[TRACE] 20:56:24:977 DataNode/(8951:8951): Configuracion leida
+[TRACE] 20:57:14:730 DataNode/(9034:9034): Leyendo configuracion
+[TRACE] 20:57:14:730 DataNode/(9034:9034): Configuracion leida
+[TRACE] 20:57:24:556 DataNode/(9110:9110): Leyendo configuracion
+[TRACE] 20:57:24:557 DataNode/(9110:9110): Configuracion leida
