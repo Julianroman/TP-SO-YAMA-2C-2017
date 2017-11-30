@@ -87,11 +87,11 @@ typedef struct {
 } t_yama;
 
 void iniciarListaEstados();
-
-static t_list* TablaEstados;
+void leerConfiguracion();
+t_list* TablaEstados;
 t_list* MastersJobs;
-t_yama* leerConfiguracion();
-
 t_yama* configYAMA;
 t_log* logYAMA;
+
+
 #endif /* YAMA_H_ */

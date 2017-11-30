@@ -13,8 +13,8 @@
 #include "YAMA.h"
 
 
-t_yama* leerConfiguracion(){
-	char* path = "/home/git/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
+void leerConfiguracion(){
+	char* path = "/home/utnso/git/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	t_yama *configYAMA = malloc(sizeof(t_yama));
 	configYAMA->FS_PUERTO = config_get_int_value(archivo_configuracion, "FS_PUERTO");
@@ -37,9 +37,6 @@ t_yama* leerConfiguracion(){
 
 	configYAMA->base = config_get_int_value(archivo_configuracion, "BASE");
 	printf("La disponibilidad base es: %d \n", configYAMA->base);
-
-	config_destroy(archivo_configuracion);
-	return configYAMA;
 }
 
 void crearLog(){
@@ -50,7 +47,7 @@ int main(void) {
 	puts("Comienza el proceso YAMA");
 	crearLog();
 	log_trace(logYAMA, "Leyendo configuracion");
-	t_yama* configYAMA = leerConfiguracion();
+	leerConfiguracion();
 	log_trace(logYAMA, "Configuracion leida");
 	TablaEstados = list_create();
 	MastersJobs = list_create();

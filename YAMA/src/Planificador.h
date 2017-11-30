@@ -33,6 +33,8 @@ t_job *newJob();
 
 // UTILES
 
+char* castearTarea(Tarea tarea);
+char* castearEstado(YAMA_STATUS estado);
 Tarea etapaActiva(t_worker* nodo);
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster);
 char* getNombreArchivoTemporalRedLocal(int jobID, int nodoID);

@@ -180,16 +180,19 @@ t_list* cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 
 void realizarTransformacion(t_job_master* job_master){
 	t_list* nodosDisponibles = getNodosDeJob(job_master->job->id);
-	int i,j;
-	for(i=0; i<list_size(nodosDisponibles);i++){
+	int i,j, cantBloques;
+	int cantNodos = list_size(nodosDisponibles);
+	for(i=0; i<cantNodos;i++){
 		t_worker* nodo = list_get(nodosDisponibles, i);
 		nodoPasarAEtapa(nodo, TRANSFORMACION);
-		for(j=0; j<list_size(nodo->bloquesAEjecutar);j++){
+		cantBloques = list_size(nodo->bloquesAEjecutar);
+		for(j=0; j<cantBloques; j++){
 			t_infoBloque* bloque = list_get(nodo->bloquesAEjecutar,j);
 			char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloque->bloqueNodo, nodo->id);
 			send_INFO_TRANSFORMACION(job_master->master_socket, nodo->puerto, nodo->ip, bloque->bloqueNodo, 1048576, nombreArchivoTemporal);
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque->bloqueNodo, nombreArchivoTemporal);
 			aumentarCarga(nodo);
+			log_trace(logYAMA, "Enviadas todas las transformaciones a los nodos disponibles");
 		}
 	}
 }
@@ -257,11 +260,13 @@ void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master){
 	}
 	t_list* nodoConTransformacionTerminada = list_filter(TablaEstados, (void*)getRegistroEstadoTransformacion);
 	char* nombreTemporalReduccionLocal = getNombreArchivoTemporalRedLocal(job_master->job->id, nodo->id);
-	void realizarRedLocal(t_tablaEstados* registroEstado){
-		send_INFO_REDUCCIONLOCAL(job_master->master_socket, nodo->puerto, nodo->ip , registroEstado->archivoTemporal , nombreTemporalReduccionLocal);
+	int cantNodos = list_size(nodoConTransformacionTerminada);
+	int i;
+	for(i=0; i < cantNodos; i++){
+		t_tablaEstados* registro = list_get(nodoConTransformacionTerminada, i);
+		send_INFO_REDUCCIONLOCAL(job_master->master_socket, nodo->puerto, nodo->ip , registro->archivoTemporal , nombreTemporalReduccionLocal);
 		actualizarTablaEstadosConReduccion(job_master, nodo, nombreTemporalReduccionLocal, REDUCCION_LOCAL);
 	}
-	list_iterate(nodoConTransformacionTerminada, (void*)realizarRedLocal);
 	send_FIN_LISTA(job_master->master_socket);
 	nodoPasarAEtapa(nodo, REDUCCION_LOCAL);
 	aumentarCarga(nodo);
@@ -421,9 +426,9 @@ void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker*
 	registroEstado->estado = EN_EJECUCION;
 
 	list_add(TablaEstados, registroEstado);
-	log_trace(logYAMA, "Job %d - Master %d - Nodo %d - Bloque %d - Tarea %s - Archivo Temporal %s - Estado %s",
-			registroEstado->job->id, registroEstado->master, registroEstado->nodo->id, registroEstado->bloque, registroEstado->tarea,
-			registroEstado->archivoTemporal, registroEstado->estado);
+	char* tarea = castearTarea(registroEstado->tarea);
+	char* estado = castearEstado(registroEstado->estado);
+	log_trace(logYAMA, "Job %d - Nodo %d - Bloque %d - %s - %s", registroEstado->job->id, registroEstado->nodo->id, registroEstado->bloque, tarea, estado);
 }
 
 void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo, char* nombreArchivoTemporal, Tarea etapa){
@@ -436,9 +441,9 @@ void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo
 	registroEstado->estado = EN_EJECUCION;
 
 	list_add(TablaEstados, registroEstado);
-	log_trace(logYAMA, "Job %d - Master %d - Nodo %d - Tarea %s - Archivo Temporal %s - Estado %s",
-			registroEstado->job->id, registroEstado->master, registroEstado->nodo->id, registroEstado->tarea,
-			registroEstado->archivoTemporal, registroEstado->estado);
+	char* tarea = castearTarea(registroEstado->tarea);
+	char* estado = castearEstado(registroEstado->estado);
+	log_trace(logYAMA, "Job %d - Nodo %d - %s - %s", registroEstado->job->id, registroEstado->nodo->id, tarea, estado);
 }
 
 t_worker* getNodo(int nodoID, int jobID){
@@ -584,7 +589,7 @@ void planificacionWClock(t_job_master* job_master){
 
 int existeEn(t_list* listaBloques , int bloqueArchivo){
 	int existeBloque(t_infoBloque* infoBloque){
-		return infoBloque->bloqueArchivo = bloqueArchivo;
+		return infoBloque->bloqueArchivo == bloqueArchivo;
 	}
 	return list_any_satisfy(listaBloques, (void*) existeBloque);
 }
@@ -640,4 +645,28 @@ void aumentarTareasHistoricas(t_worker* worker){
 
 int estaActivo(t_worker* worker){
 	return worker->activo == 1;
+}
+
+char* castearTarea(Tarea tarea){
+	switch(tarea){
+	case TRANSFORMACION:
+		return "TRANSFORMACION";
+	case REDUCCION_LOCAL:
+		return "REDUCCION_LOCAL";
+	case REDUCCION_GLOBAL:
+		return "REDUCCION_GLOBAL";
+	case ALMACENAMIENTO:
+		return "ALMACENAMIENTO";
+	}
+}
+
+char* castearEstado(YAMA_STATUS estado){
+	switch(estado){
+	case EN_EJECUCION:
+		return "EN_EJECUCION";
+	case EXITO:
+		return "EXITO";
+	case ERROR:
+		return "ERROR";
+	}
 }
