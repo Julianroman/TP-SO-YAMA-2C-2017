@@ -28,6 +28,9 @@ void responder_ORDENES(int socket_cliente,HEADER_T tipoDeMensaje,void* data){
 	case ORDEN_ALMACENAMIENTO:
 		res_ORDEN_ALMACENAMIENTO(socket_cliente,tipoDeMensaje,data);
 		break;
+	case PETICION_TEMPORAL:
+		res_PETICION_TEMPORAL(socket_cliente,tipoDeMensaje,data);
+		break;
 	default:
 		log_warning(logger,"Mensaje desconocido");
 	}

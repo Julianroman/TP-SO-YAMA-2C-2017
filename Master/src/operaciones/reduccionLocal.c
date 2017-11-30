@@ -64,14 +64,25 @@ void* rutina_reduccionLocal(void* args){
 	HEADER_T header;
 	payload_INFO_REDUCCIONLOCAL* payload = args;
 
+
 	// Iniciar timer
 	time (&inicioEtapa);
+
+
+	// Guardo informacion reelevante para loggear luego
+	char* nombreReduccionLocal= malloc(strlen(payload -> nombreTemporal_ReduccionLocal)+1);
+	char* ipWorker = malloc(strlen(payload -> IP_Worker)+1);
+	strcpy(nombreReduccionLocal,payload -> nombreTemporal_ReduccionLocal);
+	strcpy(ipWorker,payload -> IP_Worker);
+	int puetoWorker = payload -> PUERTO_Worker;
+
 
 	// Enviar orden inicial
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
 	// Destruir lo que no uso
 	destroy_INFO_REDUCCIONLOCAL(payload);
+
 
 	// Recibir mas reducciones del mismo nodo
 	payload = receive(YAMAsocket,&header);
@@ -83,46 +94,53 @@ void* rutina_reduccionLocal(void* args){
 		// Repeat
 		payload = receive(YAMAsocket,&header);
 	}
-	// Destruir el fin de lista
-	if(header != FIN_LISTA){puts("FIN DE LISTA esperado"); exit(1);}
-	//destroy(FIN_LISTA,payload);
+
+	// Instruccion inesperada
+	if(header != FIN_LISTA){log_error(logger, "Fin de lista esperado, Cerrando Master ..."); exit(1);}
+
 
 	// Enviar fin de lista al Worker
 	send_FIN_LISTA(socketWorker);
 
+
 	// Indicar fin de recepcion
 	sem_post(&recepcionSem);
+
 
 	// Enviar script
 	send_SCRIPT(socketWorker,scriptReductor);
 
+
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_info(logger, "Redux local OK %s:%d // %s ---> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
+		log_info(logger, "Redux local OK %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,0);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		fallosReduxLocal ++;
-		// TODO Corregir la info del logger
-		//log_error(logger, "Redux local ERR %s:%d // %s -/-> %s",payload->IP_Worker,payload->PUERTO_Worker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
-		log_error(logger, "Redux local ERR ");
+		log_error(logger, "Redux local ERR %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,1);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");
 	}
 
-	close(socketWorker);
-	// TODO Destruir payload
 
-	// Parar timer y actualizar
-	time (&finEtapa);
-	tiempoReduxLocal += difftime(finEtapa,inicioEtapa);
+	// Libero recursos
+	close(socketWorker);
+	free(nombreReduccionLocal);
+	free(ipWorker);
+
 
 	// Verificacion para estadisticas
 	reduxLocalesEnProceso --;
 	paralelasEnProceso--;
+
+
+	// Parar timer y actualizar
+	time (&finEtapa);
+	tiempoReduxLocal += difftime(finEtapa,inicioEtapa);
 
 	pthread_exit(0);
 }

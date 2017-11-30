@@ -204,7 +204,6 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 
 			// Escribir al pipe
-			printf("%s",transformadoAEscribir-> lastLine);
 			write(pipe_padreAHijo[1],transformadoAEscribir->lastLine,strlen(transformadoAEscribir->lastLine));
 
 			// Sacar los archivos que ya completaron su contenido
@@ -230,12 +229,9 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 		// Leo de la pipe y escribo en el archivo
 		char bufferTemp;
-		puts("OUTPUT:\n");
 		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
 			putc(bufferTemp, fd);
-			printf("%c",bufferTemp);
 		}
-		puts("OUTPUT END\n");
 
 
 		// Cierro todo

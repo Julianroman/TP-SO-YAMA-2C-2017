@@ -24,23 +24,23 @@
 
 #include "serverWorker/serverWorker.h"
 
-#define PUERTOESCUCHA 8085
+#define PUERTOESCUCHA 9095
 
 
 t_log* logger;
 char* nodePath = "data.bin";
 
 int main(int argc, char **argv) {
-	// DEV-FEATURE
+	/* -------- DEV-FEATURE ---------------------------------------------- */
 	// Opcion de asignar puerto para multiples workers en el mismo ordenador
 	int puerto;
 	if (argc==2){
 		char* puertoString = argv[1];
 		puerto = atoi(puertoString);
 	} else{
-		puerto = 9095;
+		puerto = PUERTOESCUCHA;
 	}
-
+	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
 	// Creao carpetas (si no existen)
 	struct stat st = {0};

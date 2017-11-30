@@ -23,23 +23,29 @@ extern double tiempoReduxGlobal;
 extern int masterID;
 
 STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
+	log_trace(logger, "Reduccion global iniciada");
+
+
+	// Iniciar timer
 	time_t inicioEtapa,finEtapa;
 	time (&inicioEtapa);
-	log_trace(logger, "Reduccion global iniciada");
 	HEADER_T            header;
 	payload_INFO_REDUCCIONGLOBAL* payload   = data;
 	payload_INFO_REDUCCIONGLOBAL* payloadEncargado;
 
+
+	// Crear una cola para guardar las instrucciones a mandar
 	t_queue * colaDeInformaciones = queue_create();
 
 
+	// Separo al encargado
 	if(payload -> encargado == 0){
 		queue_push(colaDeInformaciones,payload);
 	}else if(payload -> encargado == 1){
 		payloadEncargado  = payload;
 	}
-	// TODO destruir payload
-	// Recibir mas informaciones
+
+	// Recibir mas instrucciones del yama
 	payload = receive(socketYAMA,&header);
 	while(header == INFO_REDUCCIONGLOBAL){
 		if(payload -> encargado == 0){
@@ -49,10 +55,23 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		}
 		payload = receive(socketYAMA,&header);
 	}
+	// Aseguro que termino la lista
+	if(header != FIN_LISTA){
+		log_error(logger,"Se esperaba un fin de lista");
+		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,0);
+		exit(1);
+	}
+	if (header == FIN_COMUNICACION){
+		log_error(logger,"El administrador se ha desconectado");
+		exit(1);
+	}
+
+
 
 	// Conectarse al encargado
 	int socketWorker = crear_conexion(payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadEncargado->PUERTO_Worker,payloadEncargado->IP_Worker,payloadEncargado->nombreTemporal_ReduccionLocal,payloadEncargado->nombreTemporal_ReduccionGlobal,payloadEncargado->encargado);
+
 
 	// Enviar nodos subordinados
 	int i;
@@ -64,8 +83,12 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	}
 	send_FIN_LISTA(socketWorker);
 
+
+	// Enviar script
 	send_SCRIPT(socketWorker,scriptReductor);
 
+
+	// Recibir respuesta y contactar al yama
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Reduccion global completada en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
@@ -81,11 +104,17 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		log_warning(logger,"No se reconoce la respuesta del worker");
 	}
 
+
+	// Liberar recursos
 	close(socketWorker);
 	queue_destroy(colaDeInformaciones);
 
+
+	// Parar timer
 	log_trace(logger, "Reduccion global finalizada");
 	time (&finEtapa);
 	tiempoReduxGlobal += difftime(finEtapa,inicioEtapa);
+
+
 	return EXITO;
 };
