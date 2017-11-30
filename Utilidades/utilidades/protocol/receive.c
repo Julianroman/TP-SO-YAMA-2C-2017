@@ -85,6 +85,12 @@ void* receive(int socket,HEADER_T* cabecera){
         case UBICACION_BLOQUE:
         payload = unpack_UBICACION_BLOQUE(socket);
         break;
+        case TEMPORAL:
+        payload = unpack_TEMPORAL(socket);
+        break;
+        case PETICION_TEMPORAL:
+        payload = unpack_PETICION_TEMPORAL(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;

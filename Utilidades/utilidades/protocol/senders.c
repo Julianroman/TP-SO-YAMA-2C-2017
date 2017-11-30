@@ -302,3 +302,25 @@ void send_UBICACION_BLOQUE(int socket , int numero_nodo , int bloque_nodo , int 
     free(paquete);
 };
 
+void send_TEMPORAL(int socket , char* contenido){
+    payload_TEMPORAL payload;
+    payload.tamanio_contenido = (strlen(contenido)+1)*sizeof(char);
+    payload.contenido = contenido; 
+
+    int tamanio_paquete;
+    char* paquete = pack_TEMPORAL(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
+void send_PETICION_TEMPORAL(int socket , char* nombre){
+    payload_PETICION_TEMPORAL payload;
+    payload.tamanio_nombre = (strlen(nombre)+1)*sizeof(char);
+    payload.nombre = nombre; 
+
+    int tamanio_paquete;
+    char* paquete = pack_PETICION_TEMPORAL(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+

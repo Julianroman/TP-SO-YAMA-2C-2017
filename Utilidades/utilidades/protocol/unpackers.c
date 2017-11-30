@@ -340,3 +340,29 @@ void* unpack_UBICACION_BLOQUE(int socket){
     return (void*)payload;
 };
 
+void* unpack_TEMPORAL(int socket){
+    payload_TEMPORAL *payload= malloc(sizeof(payload_TEMPORAL));
+
+    recv(socket,&(payload->tamanio_contenido),sizeof(int),0);
+    int  tamanio_contenido = payload->tamanio_contenido;
+
+    char* contenido = malloc(tamanio_contenido);
+    recv(socket,contenido,tamanio_contenido,0);
+    payload->contenido = contenido;
+
+    return (void*)payload;
+};
+
+void* unpack_PETICION_TEMPORAL(int socket){
+    payload_PETICION_TEMPORAL *payload= malloc(sizeof(payload_PETICION_TEMPORAL));
+
+    recv(socket,&(payload->tamanio_nombre),sizeof(int),0);
+    int  tamanio_nombre = payload->tamanio_nombre;
+
+    char* nombre = malloc(tamanio_nombre);
+    recv(socket,nombre,tamanio_nombre,0);
+    payload->nombre = nombre;
+
+    return (void*)payload;
+};
+

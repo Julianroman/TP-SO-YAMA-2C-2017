@@ -32,5 +32,7 @@ void destroy_FRACASO_OPERACION(payload_FRACASO_OPERACION* payload);
 void destroy_SCRIPT(payload_SCRIPT* payload);
 void destroy_PETICION_BLOQUE(payload_PETICION_BLOQUE* payload);
 void destroy_UBICACION_BLOQUE(payload_UBICACION_BLOQUE* payload);
+void destroy_TEMPORAL(payload_TEMPORAL* payload);
+void destroy_PETICION_TEMPORAL(payload_PETICION_TEMPORAL* payload);
 
 #endif /* UTILIDADES_PROTOCOL_DESTROY_H_ */
