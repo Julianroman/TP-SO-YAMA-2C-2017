@@ -49,8 +49,8 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket);
 void crearDataBin();
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
-	//char* path = "nodo-config.cfg";
+	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
+	char* path = "nodo-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoFs = config_get_int_value(archivo_configuracion, "PUERTO_FILESYSTEM");
 	printf("El puerto FS es: %i \n", puertoFs);

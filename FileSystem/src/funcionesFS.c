@@ -17,6 +17,11 @@ t_config *fileNodos;
 int socketYama;
 char *contenidoLeido;
 
+pthread_mutex_t mutexContenido;
+sem_t binaryContenidoServidor;
+sem_t binaryContenidoConsola;
+
+
 t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques) {
 	t_nodo *new = malloc(sizeof(t_nodo));
     new->nroNodo = nroNodo;
@@ -175,11 +180,15 @@ void servidorFs(int puerto){
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else if(cabecera == BLOQUE){
+								sem_wait(&binaryContenidoServidor);
 								payload_BLOQUE * payload = data;
-								printf("El DataNode %d dice: %s\n", payloadCliente->id_dataNode, payload->contenido);
 
+								pthread_mutex_lock(&mutexContenido);
 								string_append(&contenidoLeido, payload->contenido);
+								pthread_mutex_unlock(&mutexContenido);
+								printf("Leido OK bloque %i \n", payload->numero_bloque);
 
+								sem_post(&binaryContenidoConsola);
 							}
 							free(proceso);
 						}
@@ -711,7 +720,12 @@ char *leerContenidoArchivo(char *pathConNombre){
 		int tamanio;
 		tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
 
-		contenidoLeido = malloc(tamanio);
+		pthread_mutex_lock(&mutexContenido);
+
+		//contenidoLeido = malloc(tamanio);
+		contenidoLeido = string_new();
+
+		pthread_mutex_unlock(&mutexContenido);
 
 		char *tipo = string_new();
 		tipo = config_get_string_value(archivo_configuracion, "TIPO");
@@ -722,57 +736,45 @@ char *leerContenidoArchivo(char *pathConNombre){
 			else
 				cantidadDeBloques = tamanio/tamanioBloques;
 
-			char *propertyBloque;
 			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char *propertyBloqueCopia;
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
 			int i;
 			for( i=0; i < cantidadDeBloques; i++ ){
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				propertyBloque = string_new();
-				string_append(&propertyBloque, "BLOQUE");
-				string_append(&propertyBloque, string_itoa(i));
-				string_append(&propertyBloque, "COPIA0");
-
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
-
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 				// Pido el original
-				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
+				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
 				// TODO: Pedir a DataNode
 				int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 				if(socketOriginal != -1){
 					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
+					sem_post(&binaryContenidoServidor);
+					sem_wait(&binaryContenidoConsola);
 
 				}
 				else{
-					propertyBloqueCopia = string_new();
-					string_append(&propertyBloqueCopia, "BLOQUE");
-					string_append(&propertyBloqueCopia, string_itoa(i));
-					string_append(&propertyBloqueCopia, "COPIA1");
 
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					// Si no se pudo agarrar el original, pido la copia
-					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+					printf("Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 					// TODO: Pedir a DataNode
-					send_PETICION_BLOQUE(getSocketNodoByName(string_itoa(nodoYBloqueCopia[0])),string_itoa(nodoYBloqueCopia[1]), tamanioBloque);
+					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
+					if(socketCopia != -1){
+						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
+						sem_post(&binaryContenidoServidor);
+						sem_wait(&binaryContenidoConsola);
+					}
 
-					HEADER_T cabecera;
-					void* data;
-					data = receive(socketOriginal,&cabecera);
-					payload_BLOQUE * payload = data;
-
-					// TODO: Concatenarlo al contenido
-					//string_append(&contenido, payload->contenido);
 				}
 
 			}
 			free(nodoYBloque);
 			free(nodoYBloqueCopia);
-			free(propertyBloque);
-			free(propertyBloqueCopia);
-			free(tipo);
+
+
+
 		}else{
 			char **nodoYBloque = malloc(sizeof(char*)*2);
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
@@ -787,16 +789,11 @@ char *leerContenidoArchivo(char *pathConNombre){
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
 					// TODO: Pedir a DataNode
-					int socketOriginal = getSocketNodoByName(string_itoa(nodoYBloque[0]));
+					int socketOriginal = getSocketNodoByName(atoi(nodoYBloque[0]));
 					if(socketOriginal != -1){
-						send_PETICION_BLOQUE(socketOriginal,string_itoa(nodoYBloque[1]), tamanioBloque);
-
-						HEADER_T cabecera;
-						void* data;
-						data = receive(socketOriginal,&cabecera);
-						payload_BLOQUE * payload = data;
-
-						//string_append(&contenido, payload->contenido);
+						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
+						sem_post(&binaryContenidoServidor);
+						sem_wait(&binaryContenidoConsola);
 					}
 				}else{
 					ok = 0;
@@ -810,16 +807,11 @@ char *leerContenidoArchivo(char *pathConNombre){
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
 					// TODO: Pedir a DataNode
-					int socketCopia = getSocketNodoByName(string_itoa(nodoYBloqueCopia[0]));
+					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 					if(socketCopia != -1){
-						send_PETICION_BLOQUE(socketCopia,string_itoa(nodoYBloqueCopia[1]), tamanioBloque);
-
-						HEADER_T cabecera;
-						void* data;
-						data = receive(socketCopia,&cabecera);
-						payload_BLOQUE * payload = data;
-
-						//string_append(&contenido, payload->contenido);
+						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
+						sem_post(&binaryContenidoServidor);
+						sem_wait(&binaryContenidoConsola);
 					}
 				}else{
 					ok = 0;
@@ -828,10 +820,13 @@ char *leerContenidoArchivo(char *pathConNombre){
 				i++;
 			}
 		}
-
-		config_destroy(archivo_configuracion);
+		free(tipo);
+		//config_destroy(archivo_configuracion);
+		fclose(in);
 	}
+	pthread_mutex_lock(&mutexContenido);
 	return contenidoLeido;
+	pthread_mutex_unlock(&mutexContenido);
 }
 
 void initFS(){

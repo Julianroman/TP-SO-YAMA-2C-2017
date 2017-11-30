@@ -14,7 +14,6 @@
 #include <assert.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include <pthread.h>
 #include <sys/mman.h>
 #include <commons/bitarray.h>
 #include <commons/string.h>
@@ -25,6 +24,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <semaphore.h>
+#include <pthread.h>
+
 
 
 #define TOTALDIRECTORIOS 100

@@ -19,6 +19,10 @@ extern t_log *log;
 extern t_list *listaDeNodos;
 int miPuerto = 5040; // Puerto de conexion
 
+extern pthread_mutex_t mutexContenido;
+extern sem_t binaryContenidoServidor;
+extern sem_t binaryContenidoConsola;
+
 int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
@@ -37,6 +41,9 @@ int main(int arg, char** argv) {
 			printf("%d\n", archivo->padre);
 		}*/
 	}
+	sem_init(&binaryContenidoConsola, 0, 0);
+	sem_init(&binaryContenidoServidor, 0, 0);
+	pthread_mutex_init(&mutexContenido, NULL);
 
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
@@ -60,5 +67,6 @@ int main(int arg, char** argv) {
 	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoTexto.txt");
 
 	//cpfrom /home/utnso root/metadata archivoBinario bin
+	//cat /home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin
 	return EXIT_SUCCESS;
 }
