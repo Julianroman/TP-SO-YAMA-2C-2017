@@ -410,3 +410,11 @@
 [TRACE] 21:14:46:318 DataNode/(12332:12332): Leyendo configuracion
 [TRACE] 21:14:46:325 DataNode/(12332:12332): Configuracion leida
 [TRACE] 21:14:46:325 DataNode/(12332:12332): Archivo inexistente se crea.
+[TRACE] 18:50:59:802 DataNode/(3356:3356): Leyendo configuracion
+[TRACE] 18:51:52:857 DataNode/(3457:3457): Leyendo configuracion
+[TRACE] 18:51:52:896 DataNode/(3457:3457): Configuracion leida
+[TRACE] 18:51:52:896 DataNode/(3457:3457): Archivo inexistente se crea.
+[TRACE] 18:53:06:401 DataNode/(3520:3520): Leyendo configuracion
+[TRACE] 18:53:06:401 DataNode/(3520:3520): Configuracion leida
+[TRACE] 18:56:25:374 DataNode/(3615:3615): Leyendo configuracion
+[TRACE] 18:56:25:374 DataNode/(3615:3615): Configuracion leida

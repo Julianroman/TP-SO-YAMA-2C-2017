@@ -205,7 +205,7 @@ void send_ARCHIVO(int socket , int archivo_fd){
 };
 void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
 
-	HEADER_T header = BLOQUE;
+	/*HEADER_T header = BLOQUE;
 
 	char* paquete = malloc(sizeof(HEADER_T)+sizeof(int)+tamanio_bloque+sizeof(int));
 
@@ -225,6 +225,17 @@ void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
 	
 	enviar_paquete(socket,paquete,offset);
 
+	free(paquete);*/
+
+
+	payload_BLOQUE payload;
+	payload.tamanio_bloque = tamanio_bloque;
+	payload.contenido = bloque;
+	payload.numero_bloque = id_bloque;
+
+	int tamanio_paquete;
+	char* paquete = pack_BLOQUE(payload,&tamanio_paquete);
+	enviar_paquete(socket,paquete,tamanio_paquete);
 	free(paquete);
 
 };

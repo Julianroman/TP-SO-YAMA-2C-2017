@@ -139,9 +139,9 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	switch(cabecera){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
-		bloque = malloc(payloadLeer->tamanio_bloque);
-		bloque = leerArchivo(payloadLeer->tamanio_bloque, payloadLeer->numero_bloque);
-		send_BLOQUE(socket, payloadLeer->tamanio_bloque, bloque, payloadLeer->numero_bloque);
+		bloque = malloc(payloadLeer->tam_bloque);
+		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
+		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
 		free(bloque);
 		break;
 	case BLOQUE:
