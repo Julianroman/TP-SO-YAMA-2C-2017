@@ -91,6 +91,8 @@ int getSocketNodoByName(int nroNodo);
 
 char *leerContenidoArchivo(char *pathConNombre);
 
+void initFS();
+
 void formatear();
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo);
