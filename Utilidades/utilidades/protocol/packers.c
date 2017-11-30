@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
-#include <commons/string.h>
 
 char* pack_SOLICITUD_JOB(payload_SOLICITUD_JOB payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_nombreArchivo);
@@ -416,33 +415,6 @@ char* pack_FIN_COMUNICACION(payload_FIN_COMUNICACION payload,int* tamanio_paquet
     return paquete;
 };
 
-char* pack_BLOQUE(payload_BLOQUE payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + payload.tamanio_bloque + sizeof(int);
-    char* paquete = malloc(tamanio_total);
-
-    int offset = 0;
-    int tamanio_envio;
-    HEADER_T cabecera = BLOQUE;
-    tamanio_envio = (sizeof(HEADER_T));
-    memcpy(paquete+offset,&cabecera,tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = sizeof(int);
-    memcpy(paquete+offset,&(payload.tamanio_bloque),tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = (payload.tamanio_bloque);
-    memcpy(paquete+offset,(payload.contenido),tamanio_envio);
-    offset += tamanio_envio;
-
-    tamanio_envio = sizeof(int);
-    memcpy(paquete+offset,&(payload.numero_bloque),tamanio_envio);
-    offset += tamanio_envio;
-
-    (* tamanio_paquete) = tamanio_total;
-    return paquete;
-};
-
 char* pack_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + sizeof(int);
     char* paquete = malloc(tamanio_total);
@@ -627,3 +599,32 @@ char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquet
     return paquete;
 };
 
+char* pack_ARCHIVO(payload_ARCHIVO payload,int* tamanio_paquete){
+    return NULL;
+};
+char* pack_BLOQUE(payload_BLOQUE payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + payload.tamanio_bloque + sizeof(int);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = BLOQUE;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.tamanio_bloque),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_bloque);
+    memcpy(paquete+offset,(payload.contenido),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.numero_bloque),tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};

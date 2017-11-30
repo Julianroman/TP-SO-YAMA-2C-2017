@@ -124,7 +124,7 @@ typedef struct {
     int id_master; 
     int id_nodo; 
     int bloque; 
-    int estado; // 1 Correcto - 0 error
+    int estado; 
 }payload_RESPUESTA_MASTER;
 
 typedef struct { 

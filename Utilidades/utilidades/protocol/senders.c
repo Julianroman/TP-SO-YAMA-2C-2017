@@ -204,30 +204,6 @@ void send_ARCHIVO(int socket , int archivo_fd){
 
 };
 void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
-
-	/*HEADER_T header = BLOQUE;
-
-	char* paquete = malloc(sizeof(HEADER_T)+sizeof(int)+tamanio_bloque+sizeof(int));
-
-	int offset = 0;
-
-	memcpy(paquete+offset,&header,sizeof(HEADER_T));
-	offset += sizeof(HEADER_T);
-
-	memcpy(paquete+offset,&tamanio_bloque,sizeof(int));
-	offset += sizeof(int);
-
-	memcpy(paquete+offset,bloque,tamanio_bloque);
-	offset += tamanio_bloque;
-
-	memcpy(paquete+offset,&id_bloque,sizeof(int));
-	offset += sizeof(int);
-	
-	enviar_paquete(socket,paquete,offset);
-
-	free(paquete);*/
-
-
 	payload_BLOQUE payload;
 	payload.tamanio_bloque = tamanio_bloque;
 	payload.contenido = bloque;
@@ -237,7 +213,6 @@ void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
 	char* paquete = pack_BLOQUE(payload,&tamanio_paquete);
 	enviar_paquete(socket,paquete,tamanio_paquete);
 	free(paquete);
-
 };
 void send_PRESENTACION_DATANODE(int socket , int pid , int id_dataNode , int cantidad_bloques){
     payload_PRESENTACION_DATANODE payload;
