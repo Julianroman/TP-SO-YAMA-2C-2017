@@ -117,54 +117,58 @@ t_worker* newNodo(int id, int puerto, char* ip){
 
 void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 	HEADER_T header;
-	log_trace(logYAMA, "Tratando de conectar a FS");
 	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
 	send_PETICION_NODO(socketFS, nombreArchivo);
 
-	/*if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
-		//FD_CLR(socketFS,&master); // Eliminar de la lista
-		break;
-	}*/
+	while (1){
+		void* data = receive(socketFS,&header);
+		payload_UBICACION_BLOQUE* bloques = data;
 
-	payload_UBICACION_BLOQUE* bloques = receive(socketFS,&header);
-	log_trace(logYAMA, "RECIBI ALGO DE FS");
-	int nodoConID(t_worker* worker){
-		return worker->id == bloques->numero_nodo;
-	}
+		if(header == UBICACION_BLOQUE){
 
-	while (header != FIN_LISTA){
+			int nodoConID(t_worker* worker){
+				return worker->id == bloques->numero_nodo;
+			}
 
-		if(list_any_satisfy(nodosDisponibles, (void*)nodoConID)){ //SI YA LO TENGO AGREGO EL BLOQUE NUEVO
-			t_worker* nodo = getNodo(bloques->numero_nodo);
-			t_infoNodo* infoNodo = getInfoNodo(nodo, job);
+			if(list_any_satisfy(nodosDisponibles, (void*)nodoConID)){ //SI YA LO TENGO AGREGO EL BLOQUE NUEVO
+				t_worker* nodo = getNodo(bloques->numero_nodo);
+				t_infoNodo* infoNodo = getInfoNodo(nodo, job);
 
-			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
-			infoBloque->bloqueNodo = bloques->bloque_nodo;
-			infoBloque->bloqueArchivo = bloques->bloque_archivo;
-			infoBloque->copia = bloques->copia;
+				t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
+				infoBloque->bloqueNodo = bloques->bloque_nodo;
+				infoBloque->bloqueArchivo = bloques->bloque_archivo;
+				infoBloque->copia = bloques->copia;
 
-			list_add(infoNodo->infoBloques, infoBloque);
-			log_trace(logYAMA, "Se agregó al nodo %d bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+				list_add(infoNodo->infoBloques, infoBloque);
+				log_trace(logYAMA, "Se agregó al nodo %d bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+			}
+
+			else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
+				t_worker* nodo = newNodo(bloques->numero_nodo, bloques->puerto, bloques->ip);
+				t_infoNodo* nodoInfo = getInfoNodo(nodo, job);
+				list_add(nodo->infoNodos, nodoInfo);
+
+				t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
+				infoBloque->bloqueNodo = bloques->bloque_nodo;
+				infoBloque->bloqueArchivo = bloques->bloque_archivo;
+				infoBloque->copia = bloques->copia;
+
+				list_add(nodoInfo->infoBloques, infoBloque);
+				list_add(nodosDisponibles, nodo);
+				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+			}
 		}
 
-		else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
-			t_worker* nodo = newNodo(bloques->numero_nodo, bloques->puerto, bloques->ip);
-			t_infoNodo* nodoInfo = getInfoNodo(nodo, job);
-			list_add(nodo->infoNodos, nodoInfo);
-
-			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
-			infoBloque->bloqueNodo = bloques->bloque_nodo;
-			infoBloque->bloqueArchivo = bloques->bloque_archivo;
-			infoBloque->copia = bloques->copia;
-
-			list_add(nodoInfo->infoBloques, infoBloque);
-			list_add(nodosDisponibles, nodo);
-			log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+		if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
+			log_trace(logYAMA, "FS MURIO -> MUERO YO"); // Eliminar de la lista
 		}
 
-		payload_UBICACION_BLOQUE* bloques = receive(socketFS,&header);
+		if(header == FIN_LISTA){
+			log_trace(logYAMA, "Se cargaron los nodos correctamente");
+			break;
+		}
+		data = receive(socketFS,&header);
 	}
-	log_trace(logYAMA, "Se cargaron los nodos correctamente");
 }
 
 void realizarTransformacion(t_job_master* job_master){
@@ -485,65 +489,7 @@ int getTotalBloquesArchivo(int jobID){
 	return max+1;
 }
 
-/*int main(void) {
-	t_worker* worker1 = newNodo(1, 5041, "192.168.1");
-	t_worker* worker2 = newNodo(2, 5042, "192.168.2");
-	t_worker* worker3 = newNodo(3, 5043, "192.168.3");
-	t_worker* worker4 = newNodo(4, 5044, "192.168.4");
-
-	t_infoBloque* bloque1 = malloc(sizeof(t_infoBloque));
-	bloque1->bloqueNodo = 10;
-	bloque1->bloqueArchivo = 0;
-	bloque1->copia = 0;
-	t_infoBloque* bloque2 = malloc(sizeof(t_infoBloque));
-	bloque2->bloqueNodo = 14;
-	bloque2->bloqueArchivo = 0;
-	bloque2->copia = 1;
-
-	t_infoBloque* bloque3 = malloc(sizeof(t_infoBloque));
-	bloque3->bloqueNodo = 8;
-	bloque3->bloqueArchivo = 1;
-	bloque3->copia = 0;
-	t_infoBloque* bloque4 = malloc(sizeof(t_infoBloque));
-	bloque4->bloqueNodo = 4;
-	bloque4->bloqueArchivo = 1;
-	bloque4->copia =1;
-
-	t_infoBloque* bloque5 = malloc(sizeof(t_infoBloque));
-	bloque5->bloqueNodo = 3;
-	bloque5->bloqueArchivo = 2;
-	bloque5->copia = 1;
-	t_infoBloque* bloque6 = malloc(sizeof(t_infoBloque));
-	bloque6->bloqueNodo = 6;
-	bloque6->bloqueArchivo = 2;
-	bloque6->copia = 0;
-
-	t_infoBloque* bloque7 = malloc(sizeof(t_infoBloque));
-	bloque7->bloqueNodo = 20;
-	bloque7->bloqueArchivo = 3;
-	bloque7->copia = 0;
-	t_infoBloque* bloque8 = malloc(sizeof(t_infoBloque));
-	bloque8->bloqueNodo = 15;
-	bloque8->bloqueArchivo = 3;
-	bloque8->copia = 1;
-
-	list_add(worker1->infoBloques, bloque2);
-	list_add(worker1->infoBloques, bloque6);
-
-	list_add(worker2->infoBloques, bloque3);
-	list_add(worker2->infoBloques, bloque8);
-
-	list_add(worker3->infoBloques, bloque5);
-	list_add(worker3->infoBloques, bloque7);
-
-	list_add(worker4->infoBloques, bloque1);
-	list_add(worker4->infoBloques, bloque4);
-
-	return EXIT_SUCCESS;
-}*/
-
 void planificacionWClock(t_job_master* job_master){
-	int i;
 	int contador = 0;
 	int cantNodos = list_size(nodosDisponibles);
 
