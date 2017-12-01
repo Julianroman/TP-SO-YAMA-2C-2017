@@ -676,6 +676,9 @@ char *leerContenidoArchivo(char *pathConNombre){
 	//TODO
 	int cantidadDeBloques;
 
+	sem_init(&binaryContenidoConsola, 0, 0);
+	sem_init(&binaryContenidoServidor, 0, 0);
+
 	// Para leer la tabla de archivos
 	// Separo el path con las /
 
@@ -824,9 +827,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 		//config_destroy(archivo_configuracion);
 		fclose(in);
 	}
-	pthread_mutex_lock(&mutexContenido);
 	return contenidoLeido;
-	pthread_mutex_unlock(&mutexContenido);
 }
 
 void initFS(){
