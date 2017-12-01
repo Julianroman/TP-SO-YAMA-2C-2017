@@ -337,6 +337,8 @@ static t_list *cortar_modo_texto(FILE *in){
 			char* map;
 			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
 				log_error(log,"Error al mappear archivo\n");
+			}else{
+
 			}
 			int i = 0;
 			//map = strdup(map);
@@ -353,7 +355,7 @@ static t_list *cortar_modo_texto(FILE *in){
 				string_append(&textConcat, "\n");
 				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
 
-				if(size_concat < tamanioBloques){
+				if(size_concat <= tamanioBloques){
 					text = string_duplicate(textConcat);
 					tam += size_concat;
 
@@ -367,7 +369,12 @@ static t_list *cortar_modo_texto(FILE *in){
 
 
 					bloq ++;
+
+					free(text);
+					free(textConcat);
+
 					text = string_new();
+
 				}
 				i++;
 			}
@@ -381,11 +388,14 @@ static t_list *cortar_modo_texto(FILE *in){
 				list_add(retVal, nodo);
 
 				bloq ++;
+
+
+				free(text);
+				free(textConcat);
 			}
 			free(str1);
 			free(map);
-			free(text);
-			free(textConcat);
+
 		}
 
 
@@ -857,12 +867,9 @@ void formatear(){
 		//No se elimino
 	}
 
-	initTablaDeDirectorios();
-	createDirectory("metadata");
-	createDirectory("metadata/bitmaps");
-	createDirectory("metadata/archivos");
+	config_destroy(fileNodos);
 
-	initTablaDeNodos();
+	initFS();
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){
@@ -1062,7 +1069,7 @@ void actualizarTablaDeNodos(){
 
 		config_set_value(fileNodos, "TAMANIO", string_itoa(cantidadTotalBloques()));
 
-		config_save(fileNodos);
+		config_save_in_file(fileNodos, pathTablaNodos);
 	}
 }
 
@@ -1125,13 +1132,15 @@ void initTablaDeNodos(){
 	}
 
 	fclose(archivoNodos);
-	config_save(fileNodos);
+	config_save_in_file(fileNodos, pathTablaNodos);
 }
 
 void printLs(char* path){
 	char **padres = string_split(path, "/");
-	int cant;
-	cant = strlen(padres) / sizeof(char*);
+	int cant = 0;
+	while(padres[cant] != NULL ){
+		cant++;
+	}
 
 	int indice = findDirByname(padres[cant - 1]);
 	if(indice == -1){
@@ -1191,8 +1200,6 @@ void initTablaDeDirectorios(){
 			fclose(tabla);
 		}
 
-
-		//fwrite(tablaDeDirectorios, (sizeof(t_directory) * TOTALDIRECTORIOS), 1, tabla);
 	}
 	else{
 		//int fdDirectorios;
@@ -1242,8 +1249,13 @@ void createDirectory(char* path){
 				log_error(log, "La tabla de directorios esta completa");
 			}else{
 				char **padres = string_split(path, "/");
-				int cant;
-				cant = strlen(padres) / sizeof(char*); //Length de padres
+				//int cant;
+				//cant = strlen(padres) / sizeof(char*); //Length de padres
+				int cant = 0;
+				while(padres[cant] != NULL ){
+					cant++;
+				}
+
 
 				if(findDirByname(padres[cant-1]) == -1){ //Si es -1 no existe
 
@@ -1259,7 +1271,7 @@ void createDirectory(char* path){
 								tablaDeDirectorios[indiceDisponible].padre = 0;
 							}
 							else{
-								int32_t father;
+								int father;
 								if(strcmp(padres[cant-2], "root") == 0){
 									father = 0;
 								}else{
@@ -1307,8 +1319,10 @@ void deleteDirectory(char* path){
 			log_error(log, "El directorio no existe");
 		}else{ //Faltaria verificar que sea ese con el padre (Pueden haber dos directorios que se llamen igual)
 			char **padres = string_split(path, "/");
-			int cant;
-			cant = strlen(padres) / sizeof(char*);
+			int cant = 0;
+			while(padres[cant] != NULL ){
+				cant++;
+			}
 
 			int indice = findDirByname(padres[cant-1]);
 			tablaDeDirectorios[indice].indice = -1;
