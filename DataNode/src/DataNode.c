@@ -94,19 +94,19 @@ int main(void) {
 	crearDataBin();
 	/*char* lectura;
 	lectura = leerArchivo(TAMANIOBLOQUE, 8);
-	if(bloqueInvalido(20)){
+	if(bloqueInvalido(19)){
 		log_error(logger,"Bloque inexistente, no se puede escribir");
 		free(lectura);
 		exit(EXIT_FAILURE);
 	}
-	escribirArchivo(lectura, TAMANIOBLOQUE, 20);
+	escribirArchivo(lectura, TAMANIOBLOQUE, 19);
 	free(lectura);*/
 	clienteDatanode(ipFs, puertoFs);
 	return EXIT_SUCCESS;
 }
 
 void crearDataBin(){
-	int archivo;
+	FILE* archivo;
 	if (!(archivo = fopen(pathDataBin, "r"))){
 		log_trace(logger, "Archivo inexistente se crea.");
 		archivo = fopen(pathDataBin,"w");
@@ -136,10 +136,12 @@ void clienteDatanode(const char* ip, int puerto){
 	//------------------------------------------------------------
 
 	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
+
 	//Aca se queda escuchando para recibir bloques
+	HEADER_T cabecera;
+	void* data;
+
 	while (1) {
-			HEADER_T cabecera;
-			void* data;
 			data = receive(cliente,&cabecera);
 			realizarPeticion(data, cabecera, cliente);
 	}
@@ -152,10 +154,10 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	switch(cabecera){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
-		if(bloqueInvalido(payloadLeer->numero_bloque)){
+		/*if(bloqueInvalido(payloadLeer->numero_bloque) == 1){
 			log_error(logger,"Bloque inexistente, no se puede leer");
 			break;
-		}
+		}*/
 		log_trace(logger, "Lectura del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
@@ -163,10 +165,11 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 		break;
 	case BLOQUE:
 		payloadEscribir = data;
-		if(bloqueInvalido(payloadLeer->numero_bloque)){
+		/*if(bloqueInvalido(payloadLeer->numero_bloque)  == 1){
 			log_error(logger,"Bloque inexistente, no se puede escribir");
+			free(payloadLeer->contenido);
 			break;
-		}
+		}*/
 		log_trace(logger, "Escritura en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
@@ -178,7 +181,11 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 }
 
 int bloqueInvalido(int bloque){
-	return bloque < 0 || bloque > cantidadDeBloques - 1;
+	int exito = 0;
+	if(bloque < 0 || bloque > cantidadDeBloques - 1){
+		exito = 1;
+	}
+	return exito;
 }
 
 void escribirArchivo(char* data, int size, int nroBloque){
@@ -199,9 +206,7 @@ void escribirArchivo(char* data, int size, int nroBloque){
 	}
 	if (munmap(map, size) == -1)
 	{
-		close(archivo);
 		log_error(logger, "No se pudo liberar el map");
-		exit(EXIT_FAILURE);
 	}
 	close(archivo);
 	char* mensajeEscritura = string_from_format("Escritura completa en el bloque %i -- %i bytes",nroBloque,size);
@@ -225,9 +230,7 @@ char *leerArchivo(int size, int nroBloque){
 	memcpy(lectura, map, size);
 	if (munmap(map, size) == -1)
 	{
-		close(archivo);
 		log_error(logger, "No se pudo liberar el map");
-		exit(EXIT_FAILURE);
 	}
 	char* mensajeLectura = string_from_format("Lectura completa en el bloque %i -- %i bytes",nroBloque,size);
 	log_trace(logger, mensajeLectura);
