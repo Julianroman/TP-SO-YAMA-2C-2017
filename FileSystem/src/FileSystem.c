@@ -41,8 +41,7 @@ int main(int arg, char** argv) {
 			printf("%d\n", archivo->padre);
 		}*/
 	}
-	sem_init(&binaryContenidoConsola, 0, 0);
-	sem_init(&binaryContenidoServidor, 0, 0);
+
 	pthread_mutex_init(&mutexContenido, NULL);
 
 	pthread_t hiloConsola;
