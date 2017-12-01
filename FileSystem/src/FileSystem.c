@@ -63,7 +63,7 @@ int main(int arg, char** argv) {
 
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario","bin");
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");
-	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoTexto.txt");
+	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin");
 
 	//cpfrom /home/utnso root/metadata archivoBinario bin
 	//cat /home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin

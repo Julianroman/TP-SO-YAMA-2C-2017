@@ -23,7 +23,6 @@
 #include "serverYAMA.h"
 #include "../YAMA.h"
 
-extern t_log* logs;
 static int idUltimoMasterCreado = 1;
 
 #define BACKLOG       5
@@ -33,7 +32,7 @@ void agregarAListado(int idUltimoMasterCreado, int socket){
 	job_master->master_id = idUltimoMasterCreado;
 	job_master->master_socket = socket;
 	list_add(MastersJobs, job_master);
-	send_JOB(socket, idUltimoMasterCreado);
+	//send_JOB(socket, idUltimoMasterCreado);
 	idUltimoMasterCreado += 1;
 }
 
@@ -83,7 +82,9 @@ void init_serverYAMA(int puertoEscucha){
 							if (nuevoCliente > fdmax) {
 								fdmax = nuevoCliente;
 								}
-							agregarAListado(idUltimoMasterCreado, i);
+							log_trace(logYAMA, "Se conecto Master %d", idUltimoMasterCreado);
+							agregarAListado(idUltimoMasterCreado, nuevoCliente);
+
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);
