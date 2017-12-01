@@ -39,16 +39,14 @@ void leerConfiguracion(){
 	printf("La disponibilidad base es: %d \n", configYAMA->base);
 }
 
-void crearLog(){
-	logYAMA = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
-}
 
 int main(void) {
 	puts("Comienza el proceso YAMA");
-	crearLog();
+	logYAMA = log_create("yama.log", "YAMA", true, LOG_LEVEL_TRACE);
 	log_trace(logYAMA, "Leyendo configuracion");
 	leerConfiguracion();
 	log_trace(logYAMA, "Configuracion leida");
+
 	TablaEstados = list_create();
 	MastersJobs = list_create();
 

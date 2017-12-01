@@ -47,6 +47,13 @@ typedef struct {
 	int master_socket;
 }t_job_master;
 
+typedef struct {
+	t_job* job;
+	Tarea etapaNodo;
+	t_list* infoBloques;
+	t_list* bloquesAEjecutar;
+}t_infoNodo;
+
 typedef struct{
 	int bloqueNodo;
 	int bloqueArchivo;
@@ -58,12 +65,10 @@ typedef struct {
 	char *ip;
 	int puerto;
 	int carga;
-	t_list* infoBloques;
-	t_list* bloquesAEjecutar;
+	t_list* infoNodos;
 	int disponibilidad;
 	int cantTareasHistoricas;
 	int activo;
-	Tarea etapaActiva;
 } t_worker;
 
 typedef struct {
@@ -86,7 +91,6 @@ typedef struct {
 	int base;
 } t_yama;
 
-void iniciarListaEstados();
 void leerConfiguracion();
 void init_serverYAMA(int puertoYAMA);
 t_list* TablaEstados;
