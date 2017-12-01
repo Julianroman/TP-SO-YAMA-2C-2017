@@ -205,6 +205,7 @@ void destroy_PETICION_BLOQUE(payload_PETICION_BLOQUE* payload){
 }
 
 void destroy_UBICACION_BLOQUE(payload_UBICACION_BLOQUE* payload){
+	free(payload->ip);
 	free(payload);
 }
 

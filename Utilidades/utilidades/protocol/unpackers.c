@@ -329,7 +329,9 @@ void* unpack_PETICION_BLOQUE(int socket){
 void* unpack_UBICACION_BLOQUE(int socket){
     payload_UBICACION_BLOQUE *payload= malloc(sizeof(payload_UBICACION_BLOQUE));
 
-    recv(socket,&(payload->ip),sizeof(int),0);
+    char* ip = malloc(tamanio_ip);
+    recv(socket,ip,tamanio_ip,0);
+    payload->ip = ip;
 
     recv(socket,&(payload->puerto),sizeof(int),0);
 
