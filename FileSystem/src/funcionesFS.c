@@ -125,58 +125,39 @@ void servidorFs(int puerto){
 							fdmax = cliente;
 						}
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
-						proceso = malloc(16);
-						snprintf(proceso, 16, "%d", 0);
-						if(dictionary_get(diccionario, proceso) == 0){
-							dictionary_put(diccionario, proceso, cliente);
-						}
-						free(proceso);
 						//vector[cliente]= "0";
 						char* mensaje = "Bienvenido a FS!!";
 						send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
 					// gestionar datos de un cliente
-					proceso = malloc(16);
-					snprintf(proceso, 16, "%d", i);
-					payload_PRESENTACION_DATANODE * payloadCliente = dictionary_get(diccionario, proceso);
-					//if(vector[i] == "0"){
-
-					if(dictionary_get(diccionario, proceso) == 0){
 						HEADER_T cabecera;
 						void* data;
 						data = receive(i,&cabecera);
+
 						if(cabecera == PRESENTACION_DATANODE){
 							payload_PRESENTACION_DATANODE * payload = data;
 							//payload tiene toda la info
-							dictionary_put(diccionario, proceso, payload);
-							payloadCliente = dictionary_get(diccionario, proceso);
-							printf("Recibí una conexión de DataNode %d!!\n", payloadCliente->id_dataNode);
+							printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
-							inicializarNodo(payloadCliente->id_dataNode, i, payloadCliente->cantidad_bloques);
+							inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques);
 
-							free(proceso);
+
 						}else if(cabecera == PETICION_NODO){
 							// TODO:
 							payload_PETICION_NODO *payload = data;
 							socketYama = i;
 							leerArchivo(payload->nombreArchivo);
-						}
-
-						}else{
-							HEADER_T cabecera;
-							void* data;
-							data = receive(i,&cabecera);
-							if (cabecera == FIN_COMUNICACION) {
-								// error o conexión cerrada por el cliente
-								if(cabecera == PRESENTACION_DATANODE){
+						}else if (cabecera == FIN_COMUNICACION) {
+								// error o conexión cerrada por el cliente //TODO
+								/*if(cabecera == PRESENTACION_DATANODE){
+									payload_PRESENTACION_DATANODE * payload = data;
 									printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
 									desconectarNodo(payloadCliente->id_dataNode);
 								}else if(cabecera == PETICION_NODO){
 									// TODO:
 									printf("El YAMA %d se desconectó\n", payloadCliente->id_dataNode);
-								}
-								dictionary_remove(diccionario, proceso);
+								}*/
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							} else if(cabecera == BLOQUE){
@@ -190,8 +171,7 @@ void servidorFs(int puerto){
 
 								sem_post(&binaryContenidoConsola);
 							}
-							free(proceso);
-						}
+
 					} // Esto es ¡TAN FEO!
 				}
 			}
@@ -332,11 +312,11 @@ static t_list *cortar_modo_texto(FILE *in){
 			size_bytes = ftell(in);
 			rewind(in);
 
-			int cant_bloques = (size_bytes/tamanioBloques) + (size_bytes % tamanioBloques != 0);
 			int tam = 0;
 			char* map;
-			if((map = mmap(NULL, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
+			if((map = mmap((caddr_t)0, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
 				log_error(log,"Error al mappear archivo\n");
+				return 1;
 			}else{
 
 			}
@@ -348,6 +328,8 @@ static t_list *cortar_modo_texto(FILE *in){
 			char* textConcat = string_new();
 			int size_concat = 0;
 			int bloq = 1;
+
+			log_trace(log, "Comienza la separacion de los bloques");
 			while (str1[i] != NULL)
 			{
 				textConcat = string_duplicate(text);
@@ -360,6 +342,8 @@ static t_list *cortar_modo_texto(FILE *in){
 					tam += size_concat;
 
 				}else{
+					log_trace(log, "No entran mas renglones. Cierro bloque %i.", bloq);
+
 					size_concat = strlen(text) * sizeof(char);
 					t_pagina *nodo = malloc(sizeof(t_pagina));
 					nodo->tamanio = size_concat;
@@ -379,6 +363,7 @@ static t_list *cortar_modo_texto(FILE *in){
 				i++;
 			}
 			if(!string_is_empty(text)){
+				log_trace(log, "Cerrando ultimo bloque");
 				size_concat = strlen(text) * sizeof(char);
 
 				t_pagina *nodo = malloc(sizeof(t_pagina));
@@ -394,11 +379,13 @@ static t_list *cortar_modo_texto(FILE *in){
 				free(textConcat);
 			}
 			free(str1);
-			free(map);
+			if(munmap(map, size_bytes)==-1 ){
+				log_error(log, "No se pudo liberar el map");
+			}
 
 		}
 
-
+	log_trace(log, "El archivo se corto en bloques correctamente");
 	return retVal;
 }
 
@@ -538,7 +525,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia){
 	// TODO
-	//send_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+	send_UBICACION_BLOQUE(5042, "127.0.0.1,", socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
 }
 
 void leerArchivo(char *pathConNombre){
@@ -610,13 +597,13 @@ void leerArchivo(char *pathConNombre){
 				// Pido el original
 				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
 				// TODO: Enviar a YAMA
-				//enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(string_substring_from(nodoYBloque[1],4)), i, 0);
+				enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(nodoYBloque[1]), i, 0);
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					// Si no se pudo agarrar el original, pido la copia
 					printf("Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 					// TODO: Enviar a YAMA
-					//enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
+					enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(nodoYBloqueCopia[1]), i, 0);
 				}
 
 			}
@@ -654,7 +641,7 @@ void leerArchivo(char *pathConNombre){
 					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 
 					// TODO: Enviar a YAMA
-					enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
+					//enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
 
 				}else{
 					ok = 0;
@@ -792,9 +779,10 @@ char *leerContenidoArchivo(char *pathConNombre){
 		}else{
 			char **nodoYBloque = malloc(sizeof(char*)*2);
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-			int ok = 1;
+			int ok = 0;
 			int i = 0;
-			while(ok == 1){
+			while(ok == 0){
+				int leidoOriginal = 0;
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
@@ -803,17 +791,17 @@ char *leerContenidoArchivo(char *pathConNombre){
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
 					// TODO: Pedir a DataNode
-					int socketOriginal = getSocketNodoByName(atoi(nodoYBloque[0]));
+					int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 					if(socketOriginal != -1){
 						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
 						sem_post(&binaryContenidoServidor);
 						sem_wait(&binaryContenidoConsola);
+					}else{
+						leidoOriginal = 1;
 					}
-				}else{
-					ok = 0;
 				}
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				if(leidoOriginal == 1 && config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 
@@ -826,9 +814,13 @@ char *leerContenidoArchivo(char *pathConNombre){
 						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
 						sem_post(&binaryContenidoServidor);
 						sem_wait(&binaryContenidoConsola);
+					}else{
+						ok = 1;
 					}
 				}else{
-					ok = 0;
+					if(leidoOriginal == 1){
+						ok = 1;
+					}
 				}
 
 				i++;
