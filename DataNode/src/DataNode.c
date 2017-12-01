@@ -130,7 +130,7 @@ void clienteDatanode(const char* ip, int puerto){
 	//------------------------------------------------------------
 
 	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
-	//TODO: aca se queda escuchando para recibir bloques
+	//Aca se queda escuchando para recibir bloques
 	while (1) {
 			HEADER_T cabecera;
 			void* data;
@@ -147,7 +147,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
 		log_trace(logger, "lectura del bloque %i, %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
-		bloque = malloc(payloadLeer->tam_bloque);
+		//bloque = malloc(payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
 		//printf("Contenido: %s.",bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
@@ -158,6 +158,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 		log_trace(logger, "Escritura en el bloque %i, %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
 		printf("Contenido: %s.", payloadEscribir->contenido);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
+		//free(payloadEscribir->contenido);
 		break;
 	case FIN_COMUNICACION:
 		printf("Se desconecto el FS.");
@@ -180,6 +181,7 @@ void escribirArchivo(char* data, int size, int nroBloque){
 	char* mensajeEscritura = string_from_format("Escritura completa en bloque %d /Tamanio: %d",nroBloque,size);
 	log_trace(logger, mensajeEscritura);
 	free(mensajeEscritura);
+	free(data);
 }
 
 char *leerArchivo(int size, int nroBloque){
@@ -193,7 +195,7 @@ char *leerArchivo(int size, int nroBloque){
 	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
 	//Se guarda en lectura lo leido desde el offset
 	memcpy(lectura, map, size);
-	lectura[size] = '\0';
+	//lectura[size] = '\0';
 	close(archivo);
 	//printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	return lectura;
