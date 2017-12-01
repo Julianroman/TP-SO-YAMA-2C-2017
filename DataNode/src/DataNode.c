@@ -74,6 +74,13 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(logger, "Configuracion leida");
 
+	struct stat st = {0};
+	if (stat("metadata", &st) == -1) { //Si no existe el path, lo creo
+		if(mkdir("metadata", 0700) == 0){
+			log_info(logger,"Se creo el directorio metadata");
+		}
+	}
+
 	/* -------- DEV-FEATURE ---------------------------------------------- */
 	/* Opcion de asignar puerto para multiples nodos en el mismo ordenador */
 
@@ -142,7 +149,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 		log_trace(logger, "lectura del bloque %i, %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 		bloque = malloc(payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
-		printf("Contenido: %s.",bloque);
+		//printf("Contenido: %s.",bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
 		free(bloque);
 		break;
@@ -188,6 +195,6 @@ char *leerArchivo(int size, int nroBloque){
 	memcpy(lectura, map, size);
 	lectura[size] = '\0';
 	close(archivo);
-	printf("El bloque %d dice: %s \n", nroBloque, lectura);
+	//printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	return lectura;
 }
