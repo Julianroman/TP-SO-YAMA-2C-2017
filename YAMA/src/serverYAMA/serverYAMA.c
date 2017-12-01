@@ -32,7 +32,7 @@ void agregarAListado(int idUltimoMasterCreado, int socket){
 	job_master->master_id = idUltimoMasterCreado;
 	job_master->master_socket = socket;
 	list_add(MastersJobs, job_master);
-	//send_JOB(socket, idUltimoMasterCreado);
+	send_JOB(socket, idUltimoMasterCreado);
 	idUltimoMasterCreado += 1;
 }
 
