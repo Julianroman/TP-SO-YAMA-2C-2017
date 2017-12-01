@@ -291,6 +291,7 @@ void send_PETICION_BLOQUE(int socket , int numero_bloque , int tam_bloque){
 
 void send_UBICACION_BLOQUE(int socket , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia){
     payload_UBICACION_BLOQUE payload;
+    payload.tamanio_ip = (strlen(ip)+1)*sizeof(char);
     payload.ip = ip; 
     payload.puerto = puerto; 
     payload.numero_nodo = numero_nodo; 
