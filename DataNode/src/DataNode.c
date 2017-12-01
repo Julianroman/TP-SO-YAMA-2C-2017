@@ -42,11 +42,12 @@ int cantidadDeBloques;
 
 // Prototipos
 void leerConfiguracion();
+void crearDataBin();
 void clienteDatanode(const char* ip, int puerto);
+void realizarPeticion(void * data, HEADER_T cabecera, int socket);
+int bloqueInvalido(int bloque);
 void escribirArchivo(char* data, int size, int nroBloque);
 char *leerArchivo(int size, int nroBloque);
-void realizarPeticion(void * data, HEADER_T cabecera, int socket);
-void crearDataBin();
 
 void leerConfiguracion(){
 	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
@@ -93,7 +94,12 @@ int main(void) {
 	crearDataBin();
 	/*char* lectura;
 	lectura = leerArchivo(TAMANIOBLOQUE, 8);
-	//escribirArchivo(lectura, TAMANIOBLOQUE, 3);
+	if(bloqueInvalido(20)){
+		log_error(logger,"Bloque inexistente, no se puede escribir");
+		free(lectura);
+		exit(EXIT_FAILURE);
+	}
+	escribirArchivo(lectura, TAMANIOBLOQUE, 20);
 	free(lectura);*/
 	clienteDatanode(ipFs, puertoFs);
 	return EXIT_SUCCESS;
@@ -146,26 +152,33 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	switch(cabecera){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
-		log_trace(logger, "lectura del bloque %i, %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
-		//bloque = malloc(payloadLeer->tam_bloque);
+		if(bloqueInvalido(payloadLeer->numero_bloque)){
+			log_error(logger,"Bloque inexistente, no se puede leer");
+			break;
+		}
+		log_trace(logger, "Lectura del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
-		//printf("Contenido: %s.",bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
 		free(bloque);
 		break;
 	case BLOQUE:
 		payloadEscribir = data;
-		log_trace(logger, "Escritura en el bloque %i, %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
-		printf("Contenido: %s.", payloadEscribir->contenido);
+		if(bloqueInvalido(payloadLeer->numero_bloque)){
+			log_error(logger,"Bloque inexistente, no se puede escribir");
+			break;
+		}
+		log_trace(logger, "Escritura en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
-		//free(payloadEscribir->contenido);
 		break;
 	case FIN_COMUNICACION:
-		printf("Se desconecto el FS.");
-		log_trace(logger, "Se desconecto el FS.");
+		log_error(logger, "Se desconecto el FS.");
 		exit(1);
 		break;
 	}
+}
+
+int bloqueInvalido(int bloque){
+	return bloque < 0 || bloque > cantidadDeBloques - 1;
 }
 
 void escribirArchivo(char* data, int size, int nroBloque){
@@ -175,10 +188,23 @@ void escribirArchivo(char* data, int size, int nroBloque){
 		crearDataBin();
 	}
 	archivo = open(pathDataBin, O_RDWR);
-	char * map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset);
+	char * map;
+	if((map = mmap((caddr_t)0, size, PROT_WRITE, MAP_SHARED, archivo, offset)) == MAP_FAILED){
+		log_error(logger,"No se pudo mappear archivo");
+	}
 	memcpy(map, data, size);
+	if (msync(map, size, MS_SYNC) == -1)
+	{
+		log_error(logger, "No se pudo sincronizar el archivo en el disco.");
+	}
+	if (munmap(map, size) == -1)
+	{
+		close(archivo);
+		log_error(logger, "No se pudo liberar el map");
+		exit(EXIT_FAILURE);
+	}
 	close(archivo);
-	char* mensajeEscritura = string_from_format("Escritura completa en bloque %d /Tamanio: %d",nroBloque,size);
+	char* mensajeEscritura = string_from_format("Escritura completa en el bloque %i -- %i bytes",nroBloque,size);
 	log_trace(logger, mensajeEscritura);
 	free(mensajeEscritura);
 	free(data);
@@ -192,11 +218,21 @@ char *leerArchivo(int size, int nroBloque){
 	}
 	char* lectura = malloc(size);
 	archivo = open(pathDataBin, O_RDONLY);
-	char * map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset);
-	//Se guarda en lectura lo leido desde el offset
+	char * map;
+	if((map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset)) == MAP_FAILED){
+		log_error(logger,"No se pudo mappear archivo");
+	}
 	memcpy(lectura, map, size);
+	if (munmap(map, size) == -1)
+	{
+		close(archivo);
+		log_error(logger, "No se pudo liberar el map");
+		exit(EXIT_FAILURE);
+	}
+	char* mensajeLectura = string_from_format("Lectura completa en el bloque %i -- %i bytes",nroBloque,size);
+	log_trace(logger, mensajeLectura);
+	free(mensajeLectura);
 	//lectura[size] = '\0';
 	close(archivo);
-	//printf("El bloque %d dice: %s \n", nroBloque, lectura);
 	return lectura;
 }

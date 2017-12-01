@@ -251,7 +251,6 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 		// Leo de la pipe y escribo en el archivo
 		char bufferTemp;
 		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			putchar(bufferTemp);
 			putc(bufferTemp, fd);
 		}
 
