@@ -119,8 +119,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	char bufferTemp;
 		// Leo de la pipe y escribo en el archivo
     	while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			fputs(&bufferTemp,fd);
-    		//printf("%s\n",buffer);
+			fputc(bufferTemp,fd);
     	}
 
     	// Cierro todo
