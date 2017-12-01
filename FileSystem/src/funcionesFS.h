@@ -33,7 +33,7 @@
 #define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
 #define PATHBITMAP "root/metadata/bitmaps/"
 
-
+t_log *log; // Log file
 
 typedef struct {
     int32_t nroNodo;

@@ -1,5 +1,7 @@
 Nodo2Libres=11
-NODOS=[Nodo2]
+NODOS=[Nodo1]
 TAMANIO=20
-LIBRE=11
+Nodo1Libres=20
+Nodo1Total=20
+LIBRE=20
 Nodo2Total=20

@@ -1,6 +1,6 @@
 #include "funcionesFS.h"
 
-t_log *log; // Log file
+
 
 int tamanioBloques = 1048576; // tamaño bloques 1MB
 
@@ -339,12 +339,12 @@ static t_list *cortar_modo_texto(FILE *in){
 				log_error(log,"Error al mappear archivo\n");
 			}
 			int i = 0;
-			map = strdup(map);
+			//map = strdup(map);
 			//split de \n al map y le mando cada cosa al datanode
 			char **str1 = string_split(map, "\n");
 			char* text = string_new();
 			char* textConcat = string_new();
-			int32_t size_concat = 0;
+			int size_concat = 0;
 			int bloq = 1;
 			while (str1[i] != NULL)
 			{
@@ -528,13 +528,12 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia){
 	// TODO
-	send_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+	//send_UBICACION_BLOQUE(socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
 }
 
 void leerArchivo(char *pathConNombre){
 	//TODO
 	int cantidadDeBloques;
-
 	// Para leer la tabla de archivos
 	// Separo el path con las /
 
@@ -569,15 +568,17 @@ void leerArchivo(char *pathConNombre){
 	char *pathArchivoConfig = string_new();
 	string_append(&pathArchivoConfig, directorioRaiz);
 	string_append(&pathArchivoConfig, indicePath);
-
+	contenidoLeido = string_new();
 	FILE *in;
 	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
 		log_error(log, "No se encontro el archivo");
+		contenidoLeido = "Error";
 	}else{
 		t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
 		int tamanio;
 		tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
+
 
 		char *tipo = string_new();
 		tipo = config_get_string_value(archivo_configuracion, "TIPO");
@@ -588,44 +589,30 @@ void leerArchivo(char *pathConNombre){
 			else
 				cantidadDeBloques = tamanio/tamanioBloques;
 
-			char *propertyBloque;
 			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char *propertyBloqueCopia;
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
 			int i;
 			for( i=0; i < cantidadDeBloques; i++ ){
-				//
-				propertyBloque = string_new();
-				string_append(&propertyBloque, "BLOQUE");
-				string_append(&propertyBloque, string_itoa(i));
-				string_append(&propertyBloque, "COPIA0");
+				// Agarro el tamanio del bloque
+				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloque));
-
-				// Envio el original
-				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+				// Pido el original
+				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
 				// TODO: Enviar a YAMA
-				enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
-
-				propertyBloqueCopia = string_new();
-				string_append(&propertyBloqueCopia, "BLOQUE");
-				string_append(&propertyBloqueCopia, string_itoa(i));
-				string_append(&propertyBloqueCopia, "COPIA1");
-
-				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, propertyBloqueCopia));
-				// Envio la copia
-				printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-				// TODO: Enviar a YAMA
-				enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 1);
+				//enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(string_substring_from(nodoYBloque[1],4)), i, 0);
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+					// Si no se pudo agarrar el original, pido la copia
+					printf("Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+					// TODO: Enviar a YAMA
+					//enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
+				}
 
 			}
-			send_FIN_LISTA(socketYama);
-
 			free(nodoYBloque);
 			free(nodoYBloqueCopia);
-			free(propertyBloque);
-			free(propertyBloqueCopia);
-			free(tipo);
+
 		}else{
 			char **nodoYBloque = malloc(sizeof(char*)*2);
 			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
@@ -635,8 +622,13 @@ void leerArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
 					// TODO: Enviar a YAMA
-					enviarAYama(string_itoa(nodoYBloque[0]), string_itoa(nodoYBloque[1]), i, 0);
+					//enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(string_substring_from(nodoYBloque[1],4)), i, 0);
+
 				}else{
 					ok = 0;
 				}
@@ -644,19 +636,27 @@ void leerArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
+					// TODO: Pedir a DataNode
+					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
+
 					// TODO: Enviar a YAMA
-					enviarAYama(string_itoa(nodoYBloqueCopia[0]), string_itoa(nodoYBloqueCopia[1]), i, 0);
+					enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
+
 				}else{
 					ok = 0;
 				}
 
 				i++;
 			}
-			send_FIN_LISTA(socketYama);
-			}
-		config_destroy(archivo_configuracion);
+		}
+		free(tipo);
+		//config_destroy(archivo_configuracion);
+		fclose(in);
 	}
-
 }
 
 int getSocketNodoByName(int nroNodo){
@@ -713,10 +713,11 @@ char *leerContenidoArchivo(char *pathConNombre){
 	char *pathArchivoConfig = string_new();
 	string_append(&pathArchivoConfig, directorioRaiz);
 	string_append(&pathArchivoConfig, indicePath);
-
+	contenidoLeido = string_new();
 	FILE *in;
 	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
 		log_error(log, "No se encontro el archivo");
+		contenidoLeido = "Error";
 	}else{
 		t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
@@ -726,7 +727,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 		pthread_mutex_lock(&mutexContenido);
 
 		//contenidoLeido = malloc(tamanio);
-		contenidoLeido = string_new();
+
 
 		pthread_mutex_unlock(&mutexContenido);
 
