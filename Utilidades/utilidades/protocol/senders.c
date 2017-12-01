@@ -289,8 +289,10 @@ void send_PETICION_BLOQUE(int socket , int numero_bloque , int tam_bloque){
     free(paquete);
 };
 
-void send_UBICACION_BLOQUE(int socket , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia){
+void send_UBICACION_BLOQUE(int socket , int ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia){
     payload_UBICACION_BLOQUE payload;
+    payload.ip = ip; 
+    payload.puerto = puerto; 
     payload.numero_nodo = numero_nodo; 
     payload.bloque_nodo = bloque_nodo; 
     payload.bloque_archivo = bloque_archivo; 
