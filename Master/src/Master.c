@@ -139,6 +139,10 @@ int main(int argc, char **argv) {
 				almacenamiento (socketYAMA, data);
 				jobTerminado = 1;
 				break;
+			case FIN_COMUNICACION:
+				log_error(logger, "El administrador de ha desconectado, Cerrando master ...\n");
+				exit(1);
+				break;
 			default:
 				log_warning(logger, "No se reconoce la instruccion del administrador.\n");
 				break;

@@ -32,6 +32,7 @@ typedef struct{
 
 void t_transformado_destroyer(void* victima){
 	t_transformado* transformado = victima;
+
 	fclose(transformado -> file);
 	free(transformado -> lastLine);
 }
@@ -234,7 +235,7 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 		}
 
 
-		// Cierro todo
+		// Cierro todito
 		close(pipe_hijoAPadre[0]);
 		fclose(fd);
 		remove(scriptPath);

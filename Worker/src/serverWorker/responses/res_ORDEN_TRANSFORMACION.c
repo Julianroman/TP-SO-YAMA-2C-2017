@@ -126,7 +126,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	// Cierro todo
     	close(pipe_hijoAPadre[0]);
 		fclose(fd);
-	    remove(scriptPath);
+	    //remove(scriptPath);
 
 	    // Ordeno el archivo
 	    char* sortCommand = string_from_format("sort %s -o %s",temporalPath,temporalPath);

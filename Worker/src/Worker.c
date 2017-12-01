@@ -24,7 +24,7 @@
 
 #include "serverWorker/serverWorker.h"
 
-#define PUERTOESCUCHA 9095
+#define PUERTOESCUCHA 5042
 
 
 t_log* logger;

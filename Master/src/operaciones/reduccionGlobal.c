@@ -101,7 +101,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,1);
 	}
 	else{
-		log_warning(logger,"No se reconoce la respuesta del worker");
+		log_warning(logger,"No se reconoce la respuesta del worker, HEADER DESCONOCIDO: %d",header);
 	}
 
 

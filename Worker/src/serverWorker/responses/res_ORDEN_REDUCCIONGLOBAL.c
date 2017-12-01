@@ -18,6 +18,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/wait.h>
+
 
 extern t_log* logger;
 
@@ -38,6 +40,16 @@ char* temporalToChar(char* path){
 	return file_contents;
 }
 
+typedef struct{
+	char** array;
+	int index;
+} t_temporal;
+
+void t_temporal_destroyer(void* victima){
+	t_temporal* temporal = victima;
+	free(temporal -> array);
+	free(temporal);
+}
 
 void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
@@ -48,14 +60,17 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	pid_t pid = getpid();
 	int socketSubordinado;
 	t_list* listaTemporales = list_create();
+	char* nombreReduccionGlobal = orden -> nombreTemporal_ReduccionGlobal;
 
 	// Cargar el temporal local
 	char* temporalPath = string_from_format("tmp/%s",orden -> nombreTemporal_ReduccionLocal);
 	char* temporalContents = temporalToChar(temporalPath);
 	free(temporalPath);
 
-	char** splitedTemporal = string_split(temporalContents, "\n");
-	list_add(listaTemporales,splitedTemporal);
+	t_temporal* temporal = malloc(sizeof(t_temporal));
+	temporal -> array = string_split(temporalContents, "\n");
+	temporal -> index = 0;
+	list_add(listaTemporales,temporal);
 
 
 	// Recibir todas las instrucciones
@@ -68,16 +83,20 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 		send_PETICION_TEMPORAL(socketSubordinado, orden ->nombreTemporal_ReduccionLocal);
 
 		// Recibir
-		temporalPayload = receive(socket_cliente,&header);
+		temporalPayload = receive(socketSubordinado,&header);
+		temporal = malloc(sizeof(t_temporal));
+		temporal -> index = 0;
 
 		// Dividir
-		splitedTemporal = string_split(temporalPayload -> contenido, "\n");
+		temporal -> array = string_split(temporalPayload -> contenido, "\n");
 
 		// Destruir payload
-		destroy_TEMPORAL(temporalPayload);
+		//destroy_TEMPORAL(temporalPayload);
+
+		log_info(logger, "Temporal recibido");
 
 		//Guardar
-		list_add(listaTemporales,splitedTemporal);
+		list_add(listaTemporales,temporal);
 
 		// Repeat
 		orden = receive(socket_cliente,&header);
@@ -122,17 +141,133 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
     system(chmodComand);
     free(chmodComand);
 
-    // Ejecutar
-    char* comando = string_from_format("./%s", path);
-    system(comando);
-    free(comando);
 
-    // Borro el script
-    remove(path);
-    srand((unsigned)time(NULL));
-    int random = rand() % 3;
-    sleep(random);
-	send_EXITO_OPERACION(socket_cliente);
-	exit(EXIT_SUCCESS);
+    //PIPEO INTENSIFIES!!!
+	int pipe_padreAHijo[2];
+	int pipe_hijoAPadre[2];
+
+	pipe(pipe_padreAHijo);
+	pipe(pipe_hijoAPadre);
+
+	int status;
+
+
+	if ((pid=fork()) == 0 ){
+		// ************* HIJO ************* //
+
+
+		// Copio las pipes que necesito a stdin y stdout
+		dup2(pipe_padreAHijo[0],STDIN_FILENO);
+		dup2(pipe_hijoAPadre[1],STDOUT_FILENO);
+
+
+		// Ciello lo que no necesito
+		close( pipe_padreAHijo[1]);
+		close( pipe_hijoAPadre[0]);
+		close( pipe_hijoAPadre[1]);
+		close( pipe_padreAHijo[0]);
+
+
+		// Ejecuto el script
+		char *argv[] = {NULL};
+		char *envp[] = {NULL};
+		execve(path, argv, envp);
+		exit(1);
+
+
+		// *********** END HIJO ************ //
+	}else{
+		// ************* PADRE ************* //
+
+
+		// Cierro lo que no necesito
+		close( pipe_padreAHijo[0] );
+		close( pipe_hijoAPadre[1] );
+
+
+		// APAREO & ESCRITURA
+		int running = 1;
+		int comparaciones;
+		int i;
+		t_temporal* proximaEscritura;
+		t_temporal* retador;
+		char* retadorString;
+		char* proximaEscrituraString;
+		int indiceProximaEscritura;
+
+		while (running){
+			comparaciones = list_size(listaTemporales);
+			// Si ya agotamos todos los archivos termina el apareo/escritura
+			if(comparaciones == 0){running = 0;break;}
+
+			// Selecciono el proximo a escribir
+			for(i = 0; i < comparaciones ; i++){
+				// Primero queda como proxima escritura
+				if(i==0){
+					proximaEscritura = list_get(listaTemporales,i);
+					indiceProximaEscritura = i;
+					break;
+				}
+
+				// Buscar el menor
+				retador = list_get(listaTemporales,i);
+				retadorString = (retador -> array)[retador -> index];
+				proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
+				if(strcmp(retadorString,proximaEscrituraString) <= 0){
+					proximaEscritura = retador;
+					indiceProximaEscritura = i;
+				}
+			}
+
+
+			// Escribir al pipe
+			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
+			write(pipe_padreAHijo[1],proximaEscrituraString,strlen(proximaEscrituraString));
+
+			// Sacar los archivos que ya completaron su contenido
+			proximaEscritura -> index = (proximaEscritura -> index) + 1;
+			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
+			if(proximaEscrituraString == NULL){
+				list_remove_and_destroy_element(listaTemporales, indiceProximaEscritura,t_temporal_destroyer);
+			}
+
+		}
+
+
+		// Cierro pipe
+		close( pipe_padreAHijo[1]);
+
+
+		// Espero al hijo
+		waitpid(pid,&status,0);
+
+
+		// Creo un archivo
+		char* temporalPath = string_from_format("tmp/%s",nombreReduccionGlobal);
+		FILE* fd = fopen(temporalPath,"w+");
+		free(temporalPath);
+
+
+		// Leo de la pipe y escribo en el archivo
+		char bufferTemp;
+		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
+			putchar(bufferTemp);
+			putc(bufferTemp, fd);
+		}
+
+
+		// Cierro todito
+		close(pipe_hijoAPadre[0]);
+		fclose(fd);
+		remove(path);
+
+
+		// Esito
+		send_EXITO_OPERACION(socket_cliente);
+		exit(EXIT_SUCCESS);
+
+		// ********** END PADRE ************ //
+	}
+
 
 };
