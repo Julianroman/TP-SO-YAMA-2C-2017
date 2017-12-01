@@ -88,6 +88,7 @@ typedef struct {
 
 void iniciarListaEstados();
 void leerConfiguracion();
+void init_serverYAMA(int puertoYAMA);
 t_list* TablaEstados;
 t_list* MastersJobs;
 t_yama* configYAMA;

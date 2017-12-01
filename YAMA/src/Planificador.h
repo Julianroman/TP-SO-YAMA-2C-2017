@@ -13,6 +13,7 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/socket_utils.h>
 
+extern t_yama* configYAMA;
 t_dictionary* diccionarioJobNodos; //JOB ID - Lista nodos para ese JOB
 
 // FUNCIONES DE PLANIFICADOR
