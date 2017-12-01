@@ -10,6 +10,6 @@
 // Inicia un servidor para atender las solicitudes de los procesos Master
 //  en el puerto pasasdo por parametro (int)
 void init_serverYAMA(int puerto);
-void agregarADListado(int idUltimoMasterCreado, int socket);
-
+void agregarAListado(int idUltimoMasterCreado, int socket);
+extern t_yama* configYAMA;
 #endif /* SERVERMASTER_H_ */

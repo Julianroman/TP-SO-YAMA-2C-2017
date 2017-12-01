@@ -14,9 +14,9 @@
 
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/git/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
+	char* path = "/home/utnso/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
-	t_yama *configYAMA = malloc(sizeof(t_yama));
+	configYAMA = malloc(sizeof(t_yama));
 	configYAMA->FS_PUERTO = config_get_int_value(archivo_configuracion, "FS_PUERTO");
 	printf("El puerto FS es: %d \n", configYAMA->FS_PUERTO);
 
@@ -53,7 +53,7 @@ int main(void) {
 	MastersJobs = list_create();
 
 	log_trace(logYAMA, "Iniciando servidor YAMA");
-	init_serverYAMA((int)configYAMA->puertoYAMA);
+	init_serverYAMA(configYAMA->puertoYAMA);
 
 	return EXIT_SUCCESS;
 }

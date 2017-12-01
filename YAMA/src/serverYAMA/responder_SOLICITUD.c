@@ -24,7 +24,7 @@ void res_SOLICITUD_JOB(int socket,void*  data){
 	int buscarJob(t_job_master* job_master){
 		return job_master->master_socket == socket;
 	}
-	t_job_master* job_master = list_get(MastersJobs, (void*)buscarJob);
+	t_job_master* job_master = list_find(MastersJobs, (void*)buscarJob);
 	//MANDAR A PLANIFICAR
 	iniciarPlanificacion(payload->nombreArchivo, job_master);
 }
@@ -34,7 +34,7 @@ void res_RECIBIR_INFO(int socket, void* data){
 	int buscarJob(t_job_master* job_master){
 			return job_master->master_socket == socket;
 		}
-	t_job_master* job_master = list_get(MastersJobs, (void*)buscarJob);
+	t_job_master* job_master = list_find(MastersJobs, (void*)buscarJob);
 	if(job_master->master_id == infoMaster->id_master){
 		log_trace(logYAMA, "Informacion de master recibida. Actualizando estados\n");
 		responderSolicitudMaster(infoMaster, job_master);

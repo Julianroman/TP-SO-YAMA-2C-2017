@@ -18,7 +18,7 @@ int base = 2;
 
 
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
-	usleep(configYAMA->retardoPlanificacion);
+	//usleep(configYAMA->retardoPlanificacion);
 	inicializarPlanificador(job_master, nombreArchivo);
 	planificacionWClock(job_master);
 }
@@ -88,6 +88,7 @@ void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
 		ESTAINICIALIZADO++;
 	}
 	job_master->job = newJob();
+	log_trace(logYAMA, "inicie planificador");
 	t_list* nodosDisponibles = cargarNodosParaPlanificacion(nombreArchivo, job_master->job->id);
 	agregarListaNodosAJob(nodosDisponibles, job_master->job->id);
 }
@@ -127,19 +128,18 @@ t_list* getNodosDeJob(int jobID){
 
 t_list* cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 	HEADER_T header;
+	t_list* nodosDisponibles = list_create();
+	log_trace(logYAMA, "Entrando a conectar a FS");
 	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
 	send_PETICION_NODO(socketFS, nombreArchivo);
-
-	t_list* nodosDisponibles = list_create();
 
 	/*if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 		//FD_CLR(socketFS,&master); // Eliminar de la lista
 		break;
 	}*/
 
-	void* data = receive(socketFS,&header);
-	payload_UBICACION_BLOQUE* bloques = data;
-
+	payload_UBICACION_BLOQUE* bloques = receive(socketFS,&header);
+	log_trace(logYAMA, "RECIBI ALGO DE FS");
 	int nodoConID(t_worker* worker){
 		return worker->id == bloques->numero_nodo;
 	}
@@ -159,7 +159,7 @@ t_list* cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 		}
 
 		else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
-			t_worker* nodo = newNodo(bloques->numero_nodo, bloques->ip, bloques->puerto);
+			t_worker* nodo = newNodo(bloques->numero_nodo, bloques->puerto, bloques->ip);
 
 			t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
 			infoBloque->bloqueNodo = bloques->bloque_nodo;
@@ -171,8 +171,7 @@ t_list* cargarNodosParaPlanificacion(char* nombreArchivo, int jobID){
 			log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
 		}
 
-		void* data = receive(socketFS,&header);
-		payload_UBICACION_BLOQUE* bloques = data;
+		payload_UBICACION_BLOQUE* bloques = receive(socketFS,&header);
 	}
 	log_trace(logYAMA, "Se cargaron los nodos correctamente");
 	return nodosDisponibles;
@@ -583,8 +582,9 @@ void planificacionWClock(t_job_master* job_master){
 			}
 		}
 	}
-	realizarTransformacion(job_master);
 	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
+	realizarTransformacion(job_master);
+
 }
 
 int existeEn(t_list* listaBloques , int bloqueArchivo){
