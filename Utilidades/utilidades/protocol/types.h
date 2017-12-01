@@ -144,6 +144,8 @@ typedef struct {
 }payload_PETICION_BLOQUE;
 
 typedef struct { 
+    int ip; 
+    int puerto; 
     int numero_nodo; 
     int bloque_nodo; 
     int bloque_archivo; 
