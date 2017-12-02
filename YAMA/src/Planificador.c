@@ -119,13 +119,11 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 	HEADER_T header;
 	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
 	send_PETICION_NODO(socketFS, nombreArchivo);
+	void* data = receive(socketFS,&header);
 
-	while (1){
-		void* data = receive(socketFS,&header);
-		payload_UBICACION_BLOQUE* bloques = data;
+	while (header == UBICACION_BLOQUE){
 
-		if(header == UBICACION_BLOQUE){
-
+			payload_UBICACION_BLOQUE* bloques = data;
 			int nodoConID(t_worker* worker){
 				return worker->id == bloques->numero_nodo;
 			}
@@ -157,17 +155,14 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 				list_add(nodosDisponibles, nodo);
 				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
 			}
-		}
-
-		if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
-			log_trace(logYAMA, "FS MURIO -> MUERO YO"); // Eliminar de la lista
-		}
-
-		if(header == FIN_LISTA){
-			log_trace(logYAMA, "Se cargaron los nodos correctamente");
-			break;
-		}
 		data = receive(socketFS,&header);
+	}
+	if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
+		log_trace(logYAMA, "FS MURIO -> MUERO YO"); // Eliminar de la lista
+	}
+
+	if(header == FIN_LISTA){
+		log_trace(logYAMA, "Se cargaron los nodos correctamente");
 	}
 }
 
