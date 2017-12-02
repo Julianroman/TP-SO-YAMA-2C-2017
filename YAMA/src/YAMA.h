@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <semaphore.h>
 #include <pthread.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -97,6 +98,8 @@ t_list* TablaEstados;
 t_list* MastersJobs;
 t_yama* configYAMA;
 t_log* logYAMA;
+void clienteFS();
+void servidorYAMA();
 
 
 #endif /* YAMA_H_ */
