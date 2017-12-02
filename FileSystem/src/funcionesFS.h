@@ -41,9 +41,10 @@ typedef struct {
     t_bitarray* bitmap;
     int32_t socket;
     int32_t cantidadBloques;
+    char *ipNodo;
 } t_nodo;
 
-t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques);
+t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques, char *ip);
 
 void nodo_destroy(t_nodo *self);
 
@@ -86,7 +87,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
-void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia);
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode);
 
 void leerArchivo(char *pathConNombre);
 
@@ -126,7 +127,7 @@ char* listaDeNodosAsArray();
 
 void agregarNodoATabla(t_nodo *unNodo);
 
-void inicializarNodo(int nroNodo, int socket, int cantidadBloques);
+void inicializarNodo(int nroNodo, int socket, int cantidadBloques,char *ipNodo);
 
 void initTablaDeNodos();
 
@@ -144,6 +145,8 @@ void createDirectory(char* path);
 
 void deleteDirectory(char* path);
 
+int getIndiceNodoBySocket(int socket);
 
+char *getIpNodoByName(int name);
 
 #endif /* FUNCIONESFS_H_ */
