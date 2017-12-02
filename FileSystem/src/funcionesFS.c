@@ -635,10 +635,8 @@ void leerArchivo(char *pathConNombre){
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
 					// TODO: Enviar a YAMA
-					//enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(string_substring_from(nodoYBloque[1],4)), i, 0);
+					enviarAYama(atoi(string_substring_from(nodoYBloque[0],4)), atoi(nodoYBloque[1]), i, 0);
 
-				}else{
-					ok = 0;
 				}
 
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
@@ -652,16 +650,17 @@ void leerArchivo(char *pathConNombre){
 					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 
 					// TODO: Enviar a YAMA
-					//enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(string_substring_from(nodoYBloqueCopia[1],4)), i, 0);
+					enviarAYama(atoi(string_substring_from(nodoYBloqueCopia[0],4)), atoi(nodoYBloqueCopia[1]), i, 0);
 
-				}else{
+				}
+
+				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 					ok = 0;
 				}
 
 				i++;
 			}
 		}
-		send_FIN_LISTA(socketYama);
 
 		free(tipo);
 		//config_destroy(archivo_configuracion);
@@ -878,6 +877,30 @@ void nodosARestaurar(){
 							printf("%s\n", archivos->d_name);
 
 							// TODO por cada archivo agarrar los nodos que tienen algo
+							t_config* currFile = config_create(string_from_format("%s%s%s/%s", directorioRaiz, pathArchivos, dir->d_name, archivos->d_name));
+
+							int ok = 1;
+							int i = 0;
+							while(ok == 1){
+								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i))){
+									printf("Bloque %i copia 0\n", i);
+
+								}
+
+								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){
+									printf("Bloque %i copia 1\n", i);
+								}
+
+								if(!config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){
+									ok = 0;
+								}
+
+								i++;
+							}
+
+
+							config_destroy(currFile);
+
 
 						}
 					}
