@@ -1,7 +1,5 @@
 #include "funcionesFS.h"
 
-
-
 int tamanioBloques = 1048576; // tamaño bloques 1MB
 
 
@@ -20,6 +18,9 @@ char *contenidoLeido;
 pthread_mutex_t mutexContenido;
 sem_t binaryContenidoServidor;
 sem_t binaryContenidoConsola;
+
+
+int estadoEstable = 1;
 
 
 t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques) {
@@ -61,7 +62,6 @@ void servidorFs(int puerto){
 	fd_set master, masterAux; // conjunto maestro de descriptores de fichero y uno auxiliar para el select()
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&masterAux);
-	t_dictionary* diccionario= dictionary_create();
 
 	// obtener socket a la escucha
 	int servidor = socket(AF_INET, SOCK_STREAM, 0);
@@ -100,7 +100,6 @@ void servidorFs(int puerto){
 	int fdmax = servidor; // por ahora es éste
 	struct sockaddr_in direccionCliente; // dirección del cliente
 	char* buffer = malloc(1000);
-	char* proceso;
 	// bucle principal
 	while(1) {
 		masterAux = master; // cópialo
@@ -149,28 +148,41 @@ void servidorFs(int puerto){
 							socketYama = i;
 							leerArchivo(payload->nombreArchivo);
 						}else if (cabecera == FIN_COMUNICACION) {
-								// error o conexión cerrada por el cliente //TODO
-								/*if(cabecera == PRESENTACION_DATANODE){
-									payload_PRESENTACION_DATANODE * payload = data;
-									printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
-									desconectarNodo(payloadCliente->id_dataNode);
-								}else if(cabecera == PETICION_NODO){
-									// TODO:
-									printf("El YAMA %d se desconectó\n", payloadCliente->id_dataNode);
-								}*/
-								close(i); // bye!
-								FD_CLR(i, &master); // eliminar del conjunto maestro
-							} else if(cabecera == BLOQUE){
-								sem_wait(&binaryContenidoServidor);
-								payload_BLOQUE * payload = data;
 
-								pthread_mutex_lock(&mutexContenido);
-								string_append(&contenidoLeido, payload->contenido);
-								pthread_mutex_unlock(&mutexContenido);
-								printf("Leido OK bloque %i \n", payload->numero_bloque);
+							int indiceNodo = getIndiceNodoBySocket(i);
 
-								sem_post(&binaryContenidoConsola);
+							if(indiceNodo != -1){
+								t_nodo *nodoEncontrado = list_get(listaDeNodos, indiceNodo);
+
+								log_trace(log, "Se desconecto el nodo %i", nodoEncontrado->nroNodo);
+								desconectarNodo(nodoEncontrado->nroNodo);
+							}else if(i == socketYama){
+								log_trace(log, "Se desconecto el YAMA");
 							}
+
+
+							// error o conexión cerrada por el cliente //TODO
+							/*if(cabecera == PRESENTACION_DATANODE){
+								payload_PRESENTACION_DATANODE * payload = data;
+								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
+								desconectarNodo(payloadCliente->id_dataNode);
+							}else if(cabecera == PETICION_NODO){
+								// TODO:
+								printf("El YAMA %d se desconectó\n", payloadCliente->id_dataNode);
+							}*/
+							close(i); // bye!
+							FD_CLR(i, &master); // eliminar del conjunto maestro
+						} else if(cabecera == BLOQUE){
+							sem_wait(&binaryContenidoServidor);
+							payload_BLOQUE * payload = data;
+
+							pthread_mutex_lock(&mutexContenido);
+							string_append(&contenidoLeido, payload->contenido);
+							pthread_mutex_unlock(&mutexContenido);
+							printf("Leido OK bloque %i \n", payload->numero_bloque);
+
+							sem_post(&binaryContenidoConsola);
+						}
 
 					} // Esto es ¡TAN FEO!
 				}
@@ -525,11 +537,10 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia){
 	// TODO
-	send_UBICACION_BLOQUE(5042, "127.0.0.1,", socketYama, numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+	send_UBICACION_BLOQUE(socketYama, "127.0.0.1", 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
 }
 
 void leerArchivo(char *pathConNombre){
-	//TODO
 	int cantidadDeBloques;
 	// Para leer la tabla de archivos
 	// Separo el path con las /
@@ -650,10 +661,27 @@ void leerArchivo(char *pathConNombre){
 				i++;
 			}
 		}
+		send_FIN_LISTA(socketYama);
+
 		free(tipo);
 		//config_destroy(archivo_configuracion);
 		fclose(in);
 	}
+	send_FIN_LISTA(socketYama);
+}
+
+int getIndiceNodoBySocket(int nroSocket){
+	int indice = -1;
+
+	int i;
+	for (i = 0; i < list_size(listaDeNodos); i ++){
+		t_nodo *unNodo;
+		unNodo = list_get(listaDeNodos, i);
+		if ( unNodo->socket == nroSocket ){
+			indice = i;
+		}
+	}
+	return indice;
 }
 
 int getSocketNodoByName(int nroNodo){
@@ -670,7 +698,6 @@ int getSocketNodoByName(int nroNodo){
 }
 
 char *leerContenidoArchivo(char *pathConNombre){
-	//TODO
 	int cantidadDeBloques;
 
 	sem_init(&binaryContenidoConsola, 0, 0);
@@ -747,7 +774,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 				// Pido el original
 				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
-				// TODO: Pedir a DataNode
+
 				int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 				if(socketOriginal != -1){
 					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
@@ -760,7 +787,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 					// Si no se pudo agarrar el original, pido la copia
 					printf("Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-					// TODO: Pedir a DataNode
+
 					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 					if(socketCopia != -1){
 						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
@@ -790,7 +817,6 @@ char *leerContenidoArchivo(char *pathConNombre){
 					// Agarro el tamanio del bloque
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-					// TODO: Pedir a DataNode
 					int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 					if(socketOriginal != -1){
 						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
@@ -808,7 +834,6 @@ char *leerContenidoArchivo(char *pathConNombre){
 					// Agarro el tamanio del bloque
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-					// TODO: Pedir a DataNode
 					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 					if(socketCopia != -1){
 						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
@@ -831,6 +856,67 @@ char *leerContenidoArchivo(char *pathConNombre){
 		fclose(in);
 	}
 	return contenidoLeido;
+}
+
+void nodosARestaurar(){
+	DIR *d;
+	struct dirent *dir;
+	d = opendir(string_from_format("%s%s", directorioRaiz, pathArchivos));
+	if (d){
+		while ((dir = readdir(d)) != NULL)
+		{
+			if(!string_equals_ignore_case(dir->d_name, ".") && !string_equals_ignore_case(dir->d_name, "..")){
+				//printf("%s\n", dir->d_name);
+				//Es un directorio que contiene archivos
+
+				DIR *arch;
+				struct dirent *archivos;
+				arch = opendir(string_from_format("%s%s%s", directorioRaiz, pathArchivos, dir->d_name));
+				if (arch){
+					while ((archivos = readdir(arch)) != NULL){
+						if(!string_equals_ignore_case(archivos->d_name, ".") && !string_equals_ignore_case(archivos->d_name, "..")){
+							printf("%s\n", archivos->d_name);
+
+							// TODO por cada archivo agarrar los nodos que tienen algo
+
+						}
+					}
+					closedir(arch);
+				}
+
+			}
+
+		}
+
+		closedir(d);
+	}
+}
+
+int existeEstadoAnterior(){
+	struct stat st = {0};
+	if (stat(PATHDIRECTORIOS, &st) == -1) { //Si no existe el path
+		log_info(log, "No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
+		return 1;
+	}
+	else if(stat(pathTablaNodos, &st) == -1){
+		log_info(log, "No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
+		return 1;
+	}
+	else{
+		return 0;
+	}
+
+}
+
+void initOrRestoreFS(){
+	if(existeEstadoAnterior() == 1){
+		estadoEstable = 1;
+		formatear();
+	}else{
+		estadoEstable = 0;
+		initFS();
+		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
+	}
 }
 
 void initFS(){
@@ -857,9 +943,10 @@ void formatear(){
 
 	if(remove(PATHDIRECTORIOS) == -1){
 		//No se elimino
+		log_error(log,"No se pudo eliminar la tabla de archivos");
 	}
 
-	config_destroy(fileNodos);
+	//config_destroy(fileNodos);
 
 	initFS();
 }
@@ -875,7 +962,6 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 	FILE* archivoBitmap;
 	archivoBitmap = fopen(pathNewBitmap,"wb");
 
-	//TODO
 	if (archivoBitmap != NULL) {
 		fwrite(&(unNodo->bitmap->size),sizeof(size_t),1,archivoBitmap);
 		fwrite(unNodo->bitmap->bitarray,sizeof(char),unNodo->bitmap->size,archivoBitmap);
@@ -884,7 +970,7 @@ void almacenarBitmapEnArchivo(t_nodo *unNodo){
 
 	log_trace(log, "El bitmap fue almacenado en: %s", pathNewBitmap);
 
-	fclose(archivoBitmap); // TODO: Rompe
+	fclose(archivoBitmap);
 
 	free(pathNewBitmap);
 }
@@ -894,7 +980,7 @@ int bloquesLibresEnNodo(t_nodo* unNodo){
 
 	int j;
 	for (j = 0; j < unNodo->cantidadBloques; j++) {
-		bool a = bitarray_test_bit(unNodo->bitmap, j); //TODO rompe
+		bool a = bitarray_test_bit(unNodo->bitmap, j);
 		if(a == 0){
 			cantidad ++;
 		}
@@ -1013,7 +1099,6 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 		unBitarray = malloc(sizeof(t_bitarray));
 		bitmap= fopen(pathNewBitmap, "rb");
 		if (bitmap != NULL) {
-			// TODO
 			fread(&(unBitarray->size),sizeof(size_t),1,bitmap);
 
 			unBitarray->bitarray = (char*) malloc(unBitarray->size * sizeof(char));
@@ -1045,24 +1130,31 @@ char* listaDeNodosAsArray(){
 }
 
 void actualizarTablaDeNodos(){
-	int i = 0;
-	for(i=0; i < list_size(listaDeNodos); i++){
-		t_nodo *unNodo;
-		unNodo = list_get(listaDeNodos, i);
+	if(list_size(listaDeNodos) == 0){
+		config_destroy(fileNodos);
+		fileNodos = config_create(pathTablaNodos);
+	}else{
+		int i = 0;
+		for(i=0; i < list_size(listaDeNodos); i++){
+			t_nodo *unNodo;
+			unNodo = list_get(listaDeNodos, i);
 
-		config_set_value(fileNodos, string_from_format("Nodo%dTotal", unNodo->nroNodo), string_itoa(unNodo->cantidadBloques));
+			config_set_value(fileNodos, string_from_format("Nodo%dTotal", unNodo->nroNodo), string_itoa(unNodo->cantidadBloques));
 
-		int cantLibres = bloquesLibresEnNodo(unNodo);
-		config_set_value(fileNodos, string_from_format("Nodo%dLibres", unNodo->nroNodo), string_itoa(cantLibres));
+			int cantLibres = bloquesLibresEnNodo(unNodo);
+			config_set_value(fileNodos, string_from_format("Nodo%dLibres", unNodo->nroNodo), string_itoa(cantLibres));
 
-		config_set_value(fileNodos, "LIBRE", string_itoa(cantidadTotalBloquesLibres()));
+			config_set_value(fileNodos, "LIBRE", string_itoa(cantidadTotalBloquesLibres()));
 
-		config_set_value(fileNodos, "NODOS", listaDeNodosAsArray());
+			config_set_value(fileNodos, "NODOS", listaDeNodosAsArray());
 
-		config_set_value(fileNodos, "TAMANIO", string_itoa(cantidadTotalBloques()));
+			config_set_value(fileNodos, "TAMANIO", string_itoa(cantidadTotalBloques()));
 
-		config_save_in_file(fileNodos, pathTablaNodos);
+		}
 	}
+
+	config_save_in_file(fileNodos, pathTablaNodos);
+
 }
 
 void actualizarNodoEnTabla(t_nodo *unNodo){

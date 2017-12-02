@@ -26,6 +26,7 @@
 #include <arpa/inet.h>
 #include <semaphore.h>
 #include <pthread.h>
+#include <dirent.h>
 
 
 
@@ -92,6 +93,10 @@ void leerArchivo(char *pathConNombre);
 int getSocketNodoByName(int nroNodo);
 
 char *leerContenidoArchivo(char *pathConNombre);
+
+int existeEstadoAnterior();
+
+void initOrRestoreFS();
 
 void initFS();
 
