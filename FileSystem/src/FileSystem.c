@@ -35,7 +35,7 @@ int main(int arg, char** argv) {
 		initOrRestoreFS();
 	}
 
-	pthread_mutex_init(&mutexContenido, NULL);
+	/*pthread_mutex_init(&mutexContenido, NULL);
 
 	pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
@@ -44,9 +44,9 @@ int main(int arg, char** argv) {
 	pthread_create(&hiloServidor, NULL, (void*) servidorFs, miPuerto);
 
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	pthread_join(hiloServidor, NULL);*/
 
-	//nodosARestaurar();
+	nodosARestaurar();
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//No permita conexiones de Workers o YAMA
