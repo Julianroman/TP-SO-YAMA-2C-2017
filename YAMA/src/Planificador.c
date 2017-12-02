@@ -139,7 +139,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 				infoBloque->copia = bloques->copia;
 
 				list_add(infoNodo->infoBloques, infoBloque);
-				log_trace(logYAMA, "Se agregó al nodo %d bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+				log_trace(logYAMA, "Se agregó al nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, bloques->ip);
 			}
 
 			else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
@@ -154,13 +154,14 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
 				list_add(nodoInfo->infoBloques, infoBloque);
 				list_add(nodosDisponibles, nodo);
-				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d, copia %d  y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia,  infoBloque->copia, bloques->ip);
 			}
 		data = receive(SocketFSGlobal,&header);
 	}
 
 	if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
-		log_trace(logYAMA, "FS MURIO -> MUERO YO"); // Eliminar de la lista
+		log_error(logYAMA, "Se desconecto el FS.");
+				exit(1);
 	}
 
 	if(header == FIN_LISTA){
