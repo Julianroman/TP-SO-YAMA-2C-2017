@@ -437,19 +437,23 @@ t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job){
 		return infoNodo->job->id == job->id;
 	}
 
-	if(list_any_satisfy(nodo->infoNodos, (void*)buscarInfo)){
-		t_infoNodo* info = list_find(nodo->infoNodos, (void*)buscarInfo);
-		return info;
+	if(list_size(nodo->infoNodos) > 0){
+		if(list_any_satisfy(nodo->infoNodos, (void*)buscarInfo)){
+				t_infoNodo* info = list_find(nodo->infoNodos, (void*)buscarInfo);
+				return info;
+			}
+			else {
+				t_infoNodo* info = malloc(sizeof(t_infoNodo));
+				info->job = job;
+				info->infoBloques = list_create();
+				info->bloquesAEjecutar = list_create();
+				info->etapaNodo = TRANSFORMACION;
+				return info;
+			}
 	}
-	else {
-		t_infoNodo* info = malloc(sizeof(t_infoNodo));
-		info->job = job;
-		info->infoBloques = list_create();
-		info->bloquesAEjecutar = list_create();
-		info->etapaNodo = TRANSFORMACION;
-		return info;
+	else{
+		log_error(logYAMA, "No hay nodos en la lista");
 	}
-
 }
 
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster){
