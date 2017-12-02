@@ -14,6 +14,8 @@
 #include <utilidades/socket_utils.h>
 
 extern t_yama* configYAMA;
+extern sem_t binarioSocketFS;
+extern int SocketFSGlobal;
 t_list* nodosDisponibles;
 
 // FUNCIONES DE PLANIFICADOR

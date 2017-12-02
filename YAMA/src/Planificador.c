@@ -117,9 +117,10 @@ t_worker* newNodo(int id, int puerto, char* ip){
 
 void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 	HEADER_T header;
-	int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
-	send_PETICION_NODO(socketFS, nombreArchivo);
-	void* data = receive(socketFS,&header);
+	//int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
+	//sem_wait(&binarioSocketFS);
+	send_PETICION_NODO(SocketFSGlobal, nombreArchivo);
+	void* data = receive(SocketFSGlobal,&header);
 
 	while (header == UBICACION_BLOQUE){
 
@@ -155,8 +156,9 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 				list_add(nodosDisponibles, nodo);
 				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d y copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
 			}
-		data = receive(socketFS,&header);
+		data = receive(SocketFSGlobal,&header);
 	}
+
 	if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 		log_trace(logYAMA, "FS MURIO -> MUERO YO"); // Eliminar de la lista
 	}
@@ -437,7 +439,7 @@ t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job){
 		return infoNodo->job->id == job->id;
 	}
 
-	if(list_size(nodo->infoNodos) > 0){
+	//if(list_size(nodo->infoNodos) > 0){
 		if(list_any_satisfy(nodo->infoNodos, (void*)buscarInfo)){
 				t_infoNodo* info = list_find(nodo->infoNodos, (void*)buscarInfo);
 				return info;
@@ -450,10 +452,10 @@ t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job){
 				info->etapaNodo = TRANSFORMACION;
 				return info;
 			}
-	}
+	/*}
 	else{
 		log_error(logYAMA, "No hay nodos en la lista");
-	}
+	}*/
 }
 
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster){
