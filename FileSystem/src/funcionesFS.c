@@ -425,120 +425,126 @@ static t_list *cortar_modo_binario(FILE *in){
 }
 
 int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
-	// Concateno el path del origen con el nombre y el tipo
-	char *pathOrigenCompleto = string_new();
-	pathOrigenCompleto = string_duplicate(location);
-	if(!string_ends_with(location, "/"))
-		string_append(&pathOrigenCompleto, "/");
+	if(list_size(listaDeNodos) == 0){
+		log_error(log, "No hay nodos conectados");
+	}else{
+		// Concateno el path del origen con el nombre y el tipo
+		char *pathOrigenCompleto = string_new();
+		pathOrigenCompleto = string_duplicate(location);
+		if(!string_ends_with(location, "/"))
+			string_append(&pathOrigenCompleto, "/");
 
-	string_append(&pathOrigenCompleto, name);
-	string_append(&pathOrigenCompleto, ".");
-	string_append(&pathOrigenCompleto, tipo);
+		string_append(&pathOrigenCompleto, name);
+		string_append(&pathOrigenCompleto, ".");
+		string_append(&pathOrigenCompleto, tipo);
 
 
-	// Agarro el path destino y le concateno el nombre
+		// Agarro el path destino y le concateno el nombre
 
-	char *pathDestinoCompleto = string_new();
-	pathDestinoCompleto = string_duplicate(pathDestino);
-	if(!string_ends_with(pathDestino, "/"))
-		string_append(&pathDestinoCompleto, "/");
+		char *pathDestinoCompleto = string_new();
+		pathDestinoCompleto = string_duplicate(pathDestino);
+		if(!string_ends_with(pathDestino, "/"))
+			string_append(&pathDestinoCompleto, "/");
 
-	string_append(&pathDestinoCompleto, name);
+		string_append(&pathDestinoCompleto, name);
 
-	char **arrayDestino = string_split(pathDestinoCompleto, "/");
-	int cant = 0;
-	while(arrayDestino[cant] != NULL ){
-		cant++;
-	}
-
-	// Busco el indice de la carpeta de destino
-	int indice = findDirByname(arrayDestino[cant - 2]);
-	// Concateno el path con el indice y el path de los archivos
-	char *indicePath = string_new();
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
-	// Creo el directorio de nombre:  numero de indice (Si no existe)
-	createDirectory(indicePath);
-
-	// Concateno el path con el nombre del archivo
-	string_append(&indicePath, "/");
-	string_append(&indicePath, name);
-
-	// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
-	// Seria la tabla de archivos
-	char *pathArchivoConfig = string_new();
-	string_append(&pathArchivoConfig, directorioRaiz);
-	string_append(&pathArchivoConfig, indicePath);
-
-	FILE *archivo = fopen(pathArchivoConfig, "w");
-
-	t_config *fileExport = config_create(pathArchivoConfig);
-	//config_set_value(fileExport, "FILE", destino);
-	if(strcmp(tipo, "txt") == 0)
-		config_set_value(fileExport, "TIPO", "TEXTO");
-	else
-		config_set_value(fileExport, "TIPO", "BINARIO");
-
-	// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
-	// Refleja el archivo leido
-	// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
-	// En el caso de texto, cada bloque mide 1MB o menos
-
-	FILE *in;
-
-	t_list *lista_de_paginas;
-
-	if ( strcmp(tipo,"txt") == 0 ) {
-		if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
-			printf("No se encontro el archivo");
-			return 1;
+		char **arrayDestino = string_split(pathDestinoCompleto, "/");
+		int cant = 0;
+		while(arrayDestino[cant] != NULL ){
+			cant++;
 		}
 
-		lista_de_paginas = cortar_modo_texto(in);
+		// Busco el indice de la carpeta de destino
+		int indice = findDirByname(arrayDestino[cant - 2]);
+		// Concateno el path con el indice y el path de los archivos
+		char *indicePath = string_new();
+		string_append(&indicePath, pathArchivos);
+		string_append(&indicePath, string_itoa(indice));
+		// Creo el directorio de nombre:  numero de indice (Si no existe)
+		createDirectory(indicePath);
 
-	}
-	else{
-		if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
-			printf("No se encontro el archivo");
-			return 1;
+		// Concateno el path con el nombre del archivo
+		string_append(&indicePath, "/");
+		string_append(&indicePath, name);
+
+		// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
+		// Seria la tabla de archivos
+		char *pathArchivoConfig = string_new();
+		string_append(&pathArchivoConfig, directorioRaiz);
+		string_append(&pathArchivoConfig, indicePath);
+
+		FILE *archivo = fopen(pathArchivoConfig, "w");
+
+		t_config *fileExport = config_create(pathArchivoConfig);
+		//config_set_value(fileExport, "FILE", destino);
+		if(strcmp(tipo, "txt") == 0)
+			config_set_value(fileExport, "TIPO", "TEXTO");
+		else
+			config_set_value(fileExport, "TIPO", "BINARIO");
+
+		// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
+		// Refleja el archivo leido
+		// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
+		// En el caso de texto, cada bloque mide 1MB o menos
+
+		FILE *in;
+
+		t_list *lista_de_paginas;
+
+		if ( strcmp(tipo,"txt") == 0 ) {
+			if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
+				printf("No se encontro el archivo");
+				return 1;
+			}
+
+			lista_de_paginas = cortar_modo_texto(in);
+
 		}
-		lista_de_paginas = cortar_modo_binario(in);
+		else{
+			if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
+				printf("No se encontro el archivo");
+				return 1;
+			}
+			lista_de_paginas = cortar_modo_binario(in);
+		}
+
+		// Tamanio del archivo
+		int size_bytes;
+		fseek(in,0,SEEK_END);
+		size_bytes = ftell(in);
+		rewind(in);
+		config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
+
+		int i;
+		// Itero entre las paginas de la lista y se las mando a dataNode
+		for ( i=0; i<list_size(lista_de_paginas); i++){
+			t_pagina *pagina = list_get(lista_de_paginas, i);
+			char* bloqueNro = string_new();
+			string_append(&bloqueNro, "BLOQUE");
+			string_append(&bloqueNro, string_itoa(i));
+			string_append(&bloqueNro, "BYTES");
+			config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
+			enviarADataNode(pagina, fileExport, i);
+			free(pagina->contenido);
+			free(pagina);
+			//free(bloqueNro);
+
+		}
+
+
+		config_save(fileExport);
+		config_save_in_file(fileExport, indicePath);
+
+		fclose(archivo);
+		config_destroy(fileExport);
+		free(pathOrigenCompleto);
+		free(indicePath);
+		free(arrayDestino);
+
+		fclose(in);
 	}
 
-	// Tamanio del archivo
-	int size_bytes;
-	fseek(in,0,SEEK_END);
-	size_bytes = ftell(in);
-	rewind(in);
-	config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
 
-	int i;
-	// Itero entre las paginas de la lista y se las mando a dataNode
-	for ( i=0; i<list_size(lista_de_paginas); i++){
-		t_pagina *pagina = list_get(lista_de_paginas, i);
-		char* bloqueNro = string_new();
-		string_append(&bloqueNro, "BLOQUE");
-		string_append(&bloqueNro, string_itoa(i));
-		string_append(&bloqueNro, "BYTES");
-		config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
-		enviarADataNode(pagina, fileExport, i);
-		free(pagina->contenido);
-		free(pagina);
-		//free(bloqueNro);
-
-	}
-
-
-	config_save(fileExport);
-	config_save_in_file(fileExport, indicePath);
-
-	fclose(archivo);
-	config_destroy(fileExport);
-	free(pathOrigenCompleto);
-	free(indicePath);
-	free(arrayDestino);
-
-	fclose(in);
 	return 0;
 }
 
@@ -843,12 +849,13 @@ char *leerContenidoArchivo(char *pathConNombre){
 void nodosARestaurar(){
 	DIR *d;
 	struct dirent *dir;
+	// Abro el directorio que contiene todos los directorios de los archivos
 	d = opendir(string_from_format("%s%s", directorioRaiz, pathArchivos));
 	if (d){
 		while ((dir = readdir(d)) != NULL)
 		{
+			// Por cada directorio que contenga archivos
 			if(!string_equals_ignore_case(dir->d_name, ".") && !string_equals_ignore_case(dir->d_name, "..")){
-				//printf("%s\n", dir->d_name);
 				//Es un directorio que contiene archivos
 
 				DIR *arch;
@@ -856,22 +863,35 @@ void nodosARestaurar(){
 				arch = opendir(string_from_format("%s%s%s", directorioRaiz, pathArchivos, dir->d_name));
 				if (arch){
 					while ((archivos = readdir(arch)) != NULL){
+						// Por cada archivo del directorio tengo que agarrar los nodos necesarios para la copia 0 y la 1
 						if(!string_equals_ignore_case(archivos->d_name, ".") && !string_equals_ignore_case(archivos->d_name, "..")){
 							printf("%s\n", archivos->d_name);
 
-							// TODO por cada archivo agarrar los nodos que tienen algo
 							t_config* currFile = config_create(string_from_format("%s%s%s/%s", directorioRaiz, pathArchivos, dir->d_name, archivos->d_name));
 
 							int ok = 1;
 							int i = 0;
 							while(ok == 1){
 								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i))){
-									printf("Bloque %i copia 0\n", i);
+									char **nodoYBloque = malloc(sizeof(char*)*2);
+									nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, string_from_format("BLOQUE%iCOPIA0", i)));
+
+									printf("Necesito nodo %i para la copia 0 \n", atoi(string_substring_from(nodoYBloque[0],4)));
+									//TODO agregarlo a la struct o a la lista
+
+									free(nodoYBloque);
 
 								}
 
 								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){
-									printf("Bloque %i copia 1\n", i);
+									char **nodoYBloque = malloc(sizeof(char*)*2);
+									nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, string_from_format("BLOQUE%iCOPIA1", i)));
+
+									printf("Necesito nodo %i para la copia 1 \n", atoi(string_substring_from(nodoYBloque[0],4)));
+
+									// TODO agregarlo a la struct
+
+									free(nodoYBloque);
 								}
 
 								if(!config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){

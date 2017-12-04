@@ -37,23 +37,23 @@ int main(int arg, char** argv) {
 
 	pthread_mutex_init(&mutexContenido, NULL);
 
-	pthread_t hiloConsola;
+	/*pthread_t hiloConsola;
 	pthread_create(&hiloConsola, NULL, (void*) init_consola, NULL);
 
 	pthread_t hiloServidor;
 	pthread_create(&hiloServidor, NULL, (void*) servidorFs, miPuerto);
 
 	pthread_join(hiloConsola, NULL);
-	pthread_join(hiloServidor, NULL);
+	pthread_join(hiloServidor, NULL);*/
 
-	//nodosARestaurar();
+	nodosARestaurar();
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//No permita conexiones de Workers o YAMA
 
-	/*inicializarNodo(1,5,20);
-	inicializarNodo(2,5,40);
-	inicializarNodo(3,5,60);*/
+	/*inicializarNodo(1,5,20, "127.0.0.1");
+	inicializarNodo(2,5,20, "127.0.0.1");
+	inicializarNodo(3,5,20, "127.0.0.1");*/
 
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario","bin");
 	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");

@@ -95,6 +95,8 @@ int getSocketNodoByName(int nroNodo);
 
 char *leerContenidoArchivo(char *pathConNombre);
 
+void nodosARestaurar(); // TODO: Tipo
+
 int existeEstadoAnterior();
 
 void initOrRestoreFS();
