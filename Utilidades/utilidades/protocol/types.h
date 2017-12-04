@@ -111,7 +111,7 @@ typedef struct {
 }payload_BLOQUE;
 
 typedef struct { 
-    int pid; 
+    char* ipDatanode;
     int id_dataNode; 
     int cantidad_bloques; 
 }payload_PRESENTACION_DATANODE;

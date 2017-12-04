@@ -22,7 +22,7 @@ void send_FIN_LISTA(int socket );
 void send_FIN_COMUNICACION(int socket );
 void send_ARCHIVO(int socket , int archivo_fd);
 void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque);
-void send_PRESENTACION_DATANODE(int socket  , int pid , int id_dataNode , int cantidad_bloques);
+void send_PRESENTACION_DATANODE(int socket , int id_dataNode , int cantidad_bloques, char* ipDatanode);
 void send_JOB(int socket  , int id_master);
 void send_RESPUESTA_MASTER(int socket  , int id_master , int id_nodo , int bloque , int estado);
 void send_EXITO_OPERACION(int socket );

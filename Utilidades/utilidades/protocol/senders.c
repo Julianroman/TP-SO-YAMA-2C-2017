@@ -214,9 +214,9 @@ void send_BLOQUE(int socket, int tamanio_bloque, char* bloque, int id_bloque){
 	enviar_paquete(socket,paquete,tamanio_paquete);
 	free(paquete);
 };
-void send_PRESENTACION_DATANODE(int socket , int pid , int id_dataNode , int cantidad_bloques){
+void send_PRESENTACION_DATANODE(int socket , int id_dataNode , int cantidad_bloques, char* ipDatanode){
     payload_PRESENTACION_DATANODE payload;
-    payload.pid = pid; 
+    payload.ipDatanode = ipDatanode;
     payload.id_dataNode = id_dataNode; 
     payload.cantidad_bloques = cantidad_bloques; 
 
