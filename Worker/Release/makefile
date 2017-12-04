@@ -28,13 +28,13 @@ endif
 all: Worker
 
 dependents:
-	-cd /home/utnso/Escritorio/YAMA/Utilidades/Debug && $(MAKE) clean all
+	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug && $(MAKE) all
 
 # Tool invocations
-Worker: $(OBJS) $(USER_OBJS) /home/utnso/Escritorio/YAMA/Utilidades/Debug/libUtilidades.so
+Worker: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/Escritorio/YAMA/Utilidades/Debug" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -45,6 +45,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/Escritorio/YAMA/Utilidades/Debug/libUtilidades.so:
+/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so:
 
 -include ../makefile.targets
