@@ -154,7 +154,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
 				list_add(nodoInfo->infoBloques, infoBloque);
 				list_add(nodosDisponibles, nodo);
-				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d, copia %d  y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia,  infoBloque->copia, bloques->ip);
+				log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d, copia %d  y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, bloques->ip);
 			}
 		data = receive(SocketFSGlobal,&header);
 	}
@@ -358,8 +358,9 @@ char* getNombreArchivoTemporalRedGlobal(int jobID, int masterID){
 }
 
 t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID){
+	//TODO el list find no devuelve nada, osea vuelve roto. :-( :-(
 	int registroEspecifico(t_tablaEstados* registroEstado){
-		return registroEstado->nodo->id == infoMaster->id_nodo &&
+		return registroEstado->nodo->id == infoMaster->id_nodo && // TODO: Esta mal infoMaster->id_nodo ---> Siempre devuelve cero
 				registroEstado->bloque == infoMaster->bloque &&
 				registroEstado->estado == EN_EJECUCION &&
 				registroEstado->master == infoMaster->id_master &&
@@ -378,6 +379,7 @@ void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_m
 }
 
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
+	// TODO Muere cada vez q asigna, entra a la funcion
 	t_tablaEstados* registroEstado = getRegistro(infoMaster, job_master->job->id);
 	if(infoMaster->estado){
 		registroEstado->estado = EXITO;
@@ -523,7 +525,7 @@ void planificacionWClock(t_job_master* job_master){
 					list_add(infoNodo->bloquesAEjecutar, infoBloque);
 					aumentarCarga(workerActual);
 					disminuirDisponibilidad(workerActual);
-
+					log_trace(logYAMA, "Al worker de IP: %s, se le asigno el bloque %i",workerActual->ip ,bloqueArchivo);
 					pasarASiguiente();
 					break;
 				}
