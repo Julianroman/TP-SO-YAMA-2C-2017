@@ -86,7 +86,7 @@ void desconectarNodo(int id_dataNode);
 
 void servidorFs(int puerto);
 
-static t_bloque_libre *traerBloquesLibres();
+t_bloque_libre *traerBloquesLibres();
 
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
@@ -100,7 +100,11 @@ int getSocketNodoByName(int nroNodo);
 
 char *leerContenidoArchivo(char *pathConNombre);
 
+void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo);
+
 void nodosARestaurar(); // TODO: Tipo
+
+int esEstadoEstable();
 
 int existeEstadoAnterior();
 

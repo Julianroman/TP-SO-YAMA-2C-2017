@@ -21,8 +21,6 @@ sem_t binaryContenidoServidor;
 sem_t binaryContenidoConsola;
 
 
-int estadoEstable = 1;
-
 
 t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques, char *ip) {
 	t_nodo *new = malloc(sizeof(t_nodo));
@@ -36,6 +34,7 @@ t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t
 
 void nodo_destroy(t_nodo *self) {
     free(self->bitmap);
+    free(self->ipNodo);
     free(self);
 }
 
@@ -141,13 +140,11 @@ void servidorFs(int puerto){
 							//payload tiene toda la info
 							printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
-							struct sockaddr_in addr;
-							socklen_t addr_size = sizeof(struct sockaddr_in);
-							int res = getpeername(i, (struct sockaddr *)&addr, &addr_size);
-							//char *clientip = string_new();
-							//strcpy(clientip, inet_ntoa(addr.sin_addr));
+							char *puntero = malloc(payload->tamanio_ipDatanode);
+							memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
 
-							inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, inet_ntoa(addr.sin_addr));
+
+							inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, puntero);
 
 
 						}else if(cabecera == PETICION_NODO){
@@ -202,7 +199,7 @@ void servidorFs(int puerto){
 // Trae 2 bloques para original y copia
 // La idea es lograr que la tabla de nodos este lo mas balanceada posible
 // O sea, traer siempre los bloques con mayor cantidad de bloques libres
-static t_bloque_libre *traerBloquesLibres() {
+t_bloque_libre *traerBloquesLibres() {
 
 	t_bloque_libre *retVal = (t_bloque_libre *)malloc(sizeof(t_bloque_libre)*2);
 
@@ -612,7 +609,7 @@ void leerArchivo(char *pathConNombre){
 
 				// TODO: Enviar a YAMA
 				int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
-				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo));
+				enviarAYama(nroNodo, atoi(nodoYBloque[0]), i, 0, getIpNodoByName(nroNodo));
 			}
 
 			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
@@ -627,7 +624,7 @@ void leerArchivo(char *pathConNombre){
 
 				// TODO: Enviar a YAMA
 				int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
-				enviarAYama(nroNodoCopia, atoi(nodoYBloqueCopia[1]), i, 0, nroNodoCopia);
+				enviarAYama(nroNodoCopia, atoi(nodoYBloque[1]), i, 1, getIpNodoByName(nroNodoCopia));
 			}
 
 			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
@@ -863,6 +860,38 @@ void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo){
 	}
 }
 
+int esEstadoEstable(){ // TODO
+	// Se fija si todos los nodos estan conectados
+	// Devuelve 0 si no estan todos
+	// Devuelve 1 si esta estable
+
+	int estable = 1;
+
+	char *stringNodosConectados = string_new();
+	stringNodosConectados = listaDeNodosAsArray();
+
+	//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
+
+	/*int i;
+	for(i=0; i < list_size(nodosParaEstable); i++){
+		t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
+		int todosParaOriginal = 0;
+		int todosParaCopia = 0;
+
+		int j;
+		for(j=0; j < list_size(nodosNecesarios); j++){
+			if(string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
+
+			}
+		}
+
+
+	}*/
+
+
+	return estable;
+}
+
 void nodosARestaurar(){
 
 	nodosParaEstable = list_create();
@@ -967,10 +996,8 @@ int existeEstadoAnterior(){
 
 void initOrRestoreFS(){
 	if(existeEstadoAnterior() == 1){
-		estadoEstable = 1;
 		formatear();
 	}else{
-		estadoEstable = 0;
 		initFS();
 		nodosARestaurar();
 		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
