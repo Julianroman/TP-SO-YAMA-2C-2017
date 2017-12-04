@@ -46,7 +46,6 @@ int main(int arg, char** argv) {
 	pthread_join(hiloConsola, NULL);
 	pthread_join(hiloServidor, NULL);*/
 
-	nodosARestaurar();
 
 	//Para las conexiones, mas adelante falta agregar que si
 	//No permita conexiones de Workers o YAMA

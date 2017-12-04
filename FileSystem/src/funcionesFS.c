@@ -5,6 +5,7 @@ int tamanioBloques = 1048576; // tamaño bloques 1MB
 
 t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
+t_list *nodosParaEstable; // Lista de t_nodos_por_archivo para restaurar estado estable
 
 static char *directorioRaiz = "root/";
 static char *pathArchivos = "metadata/archivos/";
@@ -846,7 +847,26 @@ char *leerContenidoArchivo(char *pathConNombre){
 	return contenidoLeido;
 }
 
+void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo){
+	int existe = 0;
+
+	int i;
+	for(i = 0; i < list_size(lista); i++){
+		char *a = list_get(lista, i);
+		if(string_equals_ignore_case(a,nodo)){
+			existe = -1;
+		}
+	}
+
+	if(existe != -1 || list_size(lista) == 0){
+		list_add(lista, nodo);
+	}
+}
+
 void nodosARestaurar(){
+
+	nodosParaEstable = list_create();
+
 	DIR *d;
 	struct dirent *dir;
 	// Abro el directorio que contiene todos los directorios de los archivos
@@ -864,6 +884,11 @@ void nodosARestaurar(){
 				if (arch){
 					while ((archivos = readdir(arch)) != NULL){
 						// Por cada archivo del directorio tengo que agarrar los nodos necesarios para la copia 0 y la 1
+
+						t_nodos_por_archivo *nodosNecesarios = malloc(sizeof(t_nodos_por_archivo));
+						t_list *nodosParaOriginal = list_create();
+						t_list *nodosParaCopia = list_create();
+
 						if(!string_equals_ignore_case(archivos->d_name, ".") && !string_equals_ignore_case(archivos->d_name, "..")){
 							printf("%s\n", archivos->d_name);
 
@@ -879,6 +904,9 @@ void nodosARestaurar(){
 									printf("Necesito nodo %i para la copia 0 \n", atoi(string_substring_from(nodoYBloque[0],4)));
 									//TODO agregarlo a la struct o a la lista
 
+									agregarNodoAListaSiNoExiste(nodosParaOriginal, string_duplicate(nodoYBloque[0]));
+
+
 									free(nodoYBloque);
 
 								}
@@ -889,7 +917,7 @@ void nodosARestaurar(){
 
 									printf("Necesito nodo %i para la copia 1 \n", atoi(string_substring_from(nodoYBloque[0],4)));
 
-									// TODO agregarlo a la struct
+									agregarNodoAListaSiNoExiste(nodosParaCopia, string_duplicate(nodoYBloque[0]));
 
 									free(nodoYBloque);
 								}
@@ -901,7 +929,10 @@ void nodosARestaurar(){
 								i++;
 							}
 
+							nodosNecesarios->nodosOriginal = nodosParaOriginal;
+							nodosNecesarios->nodosCopia = nodosParaCopia;
 
+							list_add(nodosParaEstable, nodosNecesarios);
 							config_destroy(currFile);
 
 
@@ -941,6 +972,7 @@ void initOrRestoreFS(){
 	}else{
 		estadoEstable = 0;
 		initFS();
+		nodosARestaurar();
 		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
 	}
 }
