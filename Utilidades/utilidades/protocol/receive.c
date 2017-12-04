@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "types.h"
@@ -11,7 +10,7 @@
 void* receive(int socket,HEADER_T* cabecera){
     void* payload;
     HEADER_T header;
-    int status = recv(socket,&header,sizeof(HEADER_T), MSG_WAITALL);
+    int status = recv(socket,&header,sizeof(HEADER_T),0);
     if(!status){
          (*cabecera) = FIN_COMUNICACION;
          return NULL;

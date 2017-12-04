@@ -111,9 +111,10 @@ typedef struct {
 }payload_BLOQUE;
 
 typedef struct { 
-    char* ipDatanode;
     int id_dataNode; 
     int cantidad_bloques; 
+    int tamanio_ipDatanode; 
+    char* ipDatanode; 
 }payload_PRESENTACION_DATANODE;
 
 typedef struct { 

@@ -176,6 +176,7 @@ void destroy_BLOQUE(payload_BLOQUE* payload){
 }
 
 void destroy_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE* payload){
+	free(payload->ipDatanode);
 	free(payload);
 }
 
