@@ -36,6 +36,7 @@
 int puertoFs;
 int id;
 char* ipFs = "";
+char* ipDatanode = "";
 char* pathDataBin = "";
 t_log* logger;
 int cantidadDeBloques;
@@ -63,6 +64,8 @@ void leerConfiguracion(){
 	printf("La cantidad de bloques es: %i \n", cantidadDeBloques);
 	id = config_get_int_value(archivo_configuracion, "NUMERO_NODO");
 	printf("El numero del nodo es: %i \n", id);
+	ipDatanode = config_get_string_value(archivo_configuracion, "IP_DATANODE");
+	printf("La IP Datanode es: %s \n", ipDatanode);
 
 }
 
@@ -135,7 +138,7 @@ void clienteDatanode(const char* ip, int puerto){
 	free(buffer);
 	//------------------------------------------------------------
 
-	send_PRESENTACION_DATANODE(cliente, 1, id, cantidadDeBloques);
+	send_PRESENTACION_DATANODE(cliente, id, cantidadDeBloques, ipDatanode);
 
 	//Aca se queda escuchando para recibir bloques
 	HEADER_T cabecera;
@@ -176,6 +179,8 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	case FIN_COMUNICACION:
 		log_error(logger, "Se desconecto el FS.");
 		exit(1);
+		break;
+	default:
 		break;
 	}
 }

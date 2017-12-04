@@ -416,7 +416,7 @@ char* pack_FIN_COMUNICACION(payload_FIN_COMUNICACION payload,int* tamanio_paquet
 };
 
 char* pack_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + sizeof(int);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(char)*strlen(payload.ipDatanode) + sizeof(int) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -426,8 +426,8 @@ char* pack_PRESENTACION_DATANODE(payload_PRESENTACION_DATANODE payload,int* tama
     memcpy(paquete+offset,&cabecera,tamanio_envio);
     offset += tamanio_envio;
 
-    tamanio_envio = sizeof(int);
-    memcpy(paquete+offset,&(payload.pid),tamanio_envio);
+    tamanio_envio = sizeof(char)*strlen(payload.ipDatanode);
+    memcpy(paquete+offset,&(payload.ipDatanode),tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(int);

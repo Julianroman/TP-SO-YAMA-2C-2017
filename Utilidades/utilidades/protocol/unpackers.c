@@ -269,10 +269,11 @@ void* unpack_BLOQUE(int socket){
 
     return (void*)payload;
 };
+
 void* unpack_PRESENTACION_DATANODE(int socket){
     payload_PRESENTACION_DATANODE *payload= malloc(sizeof(payload_PRESENTACION_DATANODE));
 
-    recv(socket,&(payload->pid),sizeof(int),0);
+    recv(socket,&(payload->ipDatanode),sizeof(char)*strlen(payload->ipDatanode),0);
 
     recv(socket,&(payload->id_dataNode),sizeof(int),0);
 
