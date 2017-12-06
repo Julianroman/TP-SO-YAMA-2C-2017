@@ -54,11 +54,11 @@ int main(int arg, char** argv) {
 	inicializarNodo(2,5,20, "127.0.0.1");
 	inicializarNodo(3,5,20, "127.0.0.1");*/
 
-	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario","bin");
-	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto","txt");
+	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoBinario.bin","bin");
+	//almacenarArchivo("/home/utnso","root/metadata" ,"archivoTexto.txt","txt");
 	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin");
 
-	//cpfrom /home/utnso root/metadata archivoBinario bin
+	//cpfrom /home/utnso root/metadata archivoBinario.bin bin
 	//cat /home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin
 	return EXIT_SUCCESS;
 }

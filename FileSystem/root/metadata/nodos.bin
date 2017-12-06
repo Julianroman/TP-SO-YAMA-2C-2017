@@ -1,9 +1,13 @@
+Nodo2Libres=10
 Nodo7Total=20
 Nodo15Total=20
-NODOS=[Nodo15, Nodo1, Nodo7]
+NODOS=[Nodo1, Nodo2, Nodo3]
 TAMANIO=60
+Nodo3Total=20
 Nodo15Libres=14
-Nodo1Libres=14
-Nodo1Total=20
+Nodo1Libres=10
 Nodo7Libres=14
-LIBRE=42
+Nodo1Total=20
+Nodo3Libres=10
+LIBRE=30
+Nodo2Total=20

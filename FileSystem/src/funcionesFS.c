@@ -315,95 +315,74 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 
 }
 
-
 static t_list *cortar_modo_texto(FILE *in){
 	t_list *retVal = list_create();
 
-		if (!(in)){
-			log_error(log, "El archivo no existe o no se pudo abrir");
-		}
-		else{
-			//validar si el destino es valido
-			int size_bytes;
-			fseek(in,0,SEEK_END);
-			size_bytes = ftell(in);
-			rewind(in);
+	char* text = string_new();
+	int size_concat = 0;
+	int bloq = 1;
+	int tamBloque = 0;
 
-			int tam = 0;
-			char* map;
-			if((map = mmap((caddr_t)0, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
-				log_error(log,"Error al mappear archivo\n");
-				return 1;
-			}else{
+	if ( in != NULL ) {
+		char* linea;
+		while ( (linea = getLine(in)) != NULL ) {
 
-			}
-			int i = 0;
-			//map = strdup(map);
-			//split de \n al map y le mando cada cosa al datanode
-			char **str1 = string_split(map, "\n");
-			char* text = string_new();
-			char* textConcat = string_new();
-			int size_concat = 0;
-			int bloq = 1;
-
-			log_trace(log, "Comienza la separacion de los bloques");
-			while (str1[i] != NULL)
-			{
-				textConcat = string_duplicate(text);
-				string_append(&textConcat, str1[i]);
-				string_append(&textConcat, "\n");
-				size_concat = strlen(textConcat) * sizeof(char); //Tamaño en bytes
+				size_concat = (strlen(text)+strlen(linea))*sizeof(char);
 
 				if(size_concat <= tamanioBloques){
-					text = string_duplicate(textConcat);
-					tam += size_concat;
-
+					string_append(&text, linea);
+					tamBloque = size_concat;
 				}else{
-					log_trace(log, "No entran mas renglones. Cierro bloque %i.", bloq);
-
-					size_concat = strlen(text) * sizeof(char);
 					t_pagina *nodo = malloc(sizeof(t_pagina));
-					nodo->tamanio = size_concat;
-					nodo->contenido = malloc(size_concat);
-					memcpy(nodo->contenido,text,size_concat);
+					nodo->tamanio = tamBloque;
+					nodo->contenido = malloc(tamBloque);
+					memcpy(nodo->contenido,text,tamBloque);
 					list_add(retVal, nodo);
 
-
 					bloq ++;
-
 					free(text);
-					free(textConcat);
-
 					text = string_new();
-
+					string_append(&text, linea);
+					tamBloque = 0;
 				}
-				i++;
-			}
-			if(!string_is_empty(text)){
-				log_trace(log, "Cerrando ultimo bloque");
-				size_concat = strlen(text) * sizeof(char);
-
-				t_pagina *nodo = malloc(sizeof(t_pagina));
-				nodo->tamanio = size_concat;
-				nodo->contenido = malloc(size_concat);
-				memcpy(nodo->contenido,text,size_concat);
-				list_add(retVal, nodo);
-
-				bloq ++;
-
-
-				free(text);
-				free(textConcat);
-			}
-			free(str1);
-			if(munmap(map, size_bytes)==-1 ){
-				log_error(log, "No se pudo liberar el map");
-			}
 
 		}
 
-	log_trace(log, "El archivo se corto en bloques correctamente");
+		if(!string_is_empty(text)){
+			t_pagina *nodo = malloc(sizeof(t_pagina));
+			nodo->tamanio = tamBloque;
+			nodo->contenido = malloc(tamBloque);
+			memcpy(nodo->contenido,text,tamBloque);
+			list_add(retVal, nodo);
+
+		}
+
+		free(text);
+
+		log_trace(log, "Fin corte archivo de texto. Total: %i bloques", bloq);
+
+		//fclose(in);
+	}
 	return retVal;
+}
+
+/*
+ * Funcion getLine
+ * Objetivo     : traer las lineas del archivo de entrada, hasta un maximo de 1M por linea
+ * Entrada      : el archivo del cual leer
+ * Salida       : el string (terminado con \0) o NULL en caso de fin de archivo o error
+ * Observaciones: el string INCLUYE el fin de linea (n)
+ *                abrir y cerrar el archivo es responsabilidad del llamador
+*/
+static char* getLine(FILE* in) {
+        // El Buffer para recibir el archivo
+        char currline[tamanioBloques+1];
+
+        if ( fgets(currline,tamanioBloques+1,in) == NULL )
+                return NULL;
+        else
+                // Pido memoria, copio y devuelvo
+                return strdup(currline);
 }
 
 static t_list *cortar_modo_binario(FILE *in){
@@ -433,8 +412,8 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 			string_append(&pathOrigenCompleto, "/");
 
 		string_append(&pathOrigenCompleto, name);
-		string_append(&pathOrigenCompleto, ".");
-		string_append(&pathOrigenCompleto, tipo);
+		//string_append(&pathOrigenCompleto, ".");
+		//string_append(&pathOrigenCompleto, tipo);
 
 
 		// Agarro el path destino y le concateno el nombre
