@@ -104,7 +104,7 @@ char *leerContenidoArchivo(char *pathConNombre);
 
 void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo);
 
-void nodosARestaurar(); // TODO: Tipo
+void nodosARestaurar();
 
 int esEstadoEstable();
 

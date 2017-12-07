@@ -851,23 +851,32 @@ int esEstadoEstable(){ // TODO
 
 	//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
 
-	/*int i;
+	int i;
 	for(i=0; i < list_size(nodosParaEstable); i++){
 		t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
 		int todosParaOriginal = 0;
 		int todosParaCopia = 0;
 
 		int j;
-		for(j=0; j < list_size(nodosNecesarios); j++){
-			if(string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
-
+		for(j=0; j < list_size(nodosNecesarios->nodosOriginal); j++){
+			if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
+				todosParaOriginal = -1;
 			}
 		}
 
+		int k;
+		for(k=0; k < list_size(nodosNecesarios->nodosCopia); k++){
+			if(string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosCopia, k))){
+				todosParaCopia = -1;
+			}
+		}
 
-	}*/
+		if(todosParaOriginal == -1 && todosParaCopia == -1){
+			estable = 0;
+		}
+	}
 
-
+	log_trace(log, "Estado estable: %i", estable);
 	return estable;
 }
 

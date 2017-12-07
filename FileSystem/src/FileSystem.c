@@ -33,6 +33,7 @@ int main(int arg, char** argv) {
 		log_info(log,"Se intentara iniciar el Filesystem reestableciendo desde estado anterior");
 
 		initOrRestoreFS();
+		esEstadoEstable();
 	}
 
 	pthread_mutex_init(&mutexContenido, NULL);
