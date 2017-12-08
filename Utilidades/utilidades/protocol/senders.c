@@ -294,7 +294,7 @@ void send_PETICION_BLOQUE(int socket , int numero_bloque , int tam_bloque){
     free(paquete);
 };
 
-void send_UBICACION_BLOQUE(int socket , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia , int bloque_archivo){
+void send_UBICACION_BLOQUE(int socket , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia , int tam_bloque){
     payload_UBICACION_BLOQUE payload;
     payload.tamanio_ip = (strlen(ip)+1)*sizeof(char);
     payload.ip = ip; 
@@ -303,7 +303,7 @@ void send_UBICACION_BLOQUE(int socket , char* ip , int puerto , int numero_nodo 
     payload.bloque_nodo = bloque_nodo; 
     payload.bloque_archivo = bloque_archivo; 
     payload.copia = copia; 
-    payload.bloque_archivo = bloque_archivo; 
+    payload.tam_bloque = tam_bloque; 
 
     int tamanio_paquete;
     char* paquete = pack_UBICACION_BLOQUE(payload,&tamanio_paquete);

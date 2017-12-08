@@ -628,7 +628,7 @@ char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquet
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(int);
-    memcpy(paquete+offset,&(payload.bloque_archivo),tamanio_envio);
+    memcpy(paquete+offset,&(payload.tam_bloque),tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;

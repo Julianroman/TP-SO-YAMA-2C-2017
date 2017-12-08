@@ -156,7 +156,7 @@ typedef struct {
     int bloque_nodo; 
     int bloque_archivo; 
     int copia; 
-    int bloque_archivo; 
+    int tam_bloque; 
 }payload_UBICACION_BLOQUE;
 
 typedef struct { 
