@@ -391,7 +391,7 @@ static t_list *cortar_modo_texto(FILE *in){
  * Observaciones: el string INCLUYE el fin de linea (n)
  *                abrir y cerrar el archivo es responsabilidad del llamador
 */
-static char* getLine(FILE* in) {
+char* getLine(FILE* in) {
         // El Buffer para recibir el archivo
         char currline[tamanioBloques+1];
 

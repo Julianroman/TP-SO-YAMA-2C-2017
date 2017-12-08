@@ -81,7 +81,7 @@ t_bloque_libre *traerBloquesLibres();
 
 int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque);
 
-static char* getLine(FILE* in);
+char* getLine(FILE* in);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
