@@ -62,7 +62,6 @@ void disminuirCarga(t_worker* nodo);
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);
 t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID);
-void actualizarLog(payload_RESPUESTA_MASTER* infoMaster);
 void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker* nodo, int bloque, char* nombreArchivoTemporal);
 void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo, char* nombreArchivoTemporal, Tarea etapa);
 

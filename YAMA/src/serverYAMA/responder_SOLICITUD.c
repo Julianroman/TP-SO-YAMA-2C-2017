@@ -36,7 +36,6 @@ void res_RECIBIR_INFO(int socket, void* data){
 		}
 	t_job_master* job_master = list_find(MastersJobs, (void*)buscarJob);
 	if(job_master->master_id == infoMaster->id_master){
-		log_trace(logYAMA, "Informacion de master recibida. Actualizando estados\n");
 		responderSolicitudMaster(infoMaster, job_master);
 	}
 	else{

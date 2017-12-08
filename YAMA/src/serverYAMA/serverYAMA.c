@@ -90,7 +90,7 @@ void init_serverYAMA(int puertoEscucha){
 						void* data = receive(i,&header);
 						if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 							FD_CLR(i,&master); // Eliminar de la lista
-							log_trace(logYAMA, "Se desconecto Master %d", idUltimoMasterCreado);
+							log_error(logYAMA, "Se desconecto Master %d", idUltimoMasterCreado);
 							break;
 						}
 						else{
