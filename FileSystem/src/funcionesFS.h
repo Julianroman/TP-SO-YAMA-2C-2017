@@ -66,15 +66,6 @@ typedef struct{
 	t_list *nodosCopia;
 }t_nodos_por_archivo;
 
-/*static t_directory *directory_create(int32_t index, char* nombre, int32_t padre) {
-	t_directory *new = malloc(sizeof(t_directory));
-    new->indice = index;
-    new->nombre = nombre;
-    new->padre = padre;
-
-    return new;
-}*/
-
 typedef struct {
 	t_nodo *nodo;
 	int bloque;

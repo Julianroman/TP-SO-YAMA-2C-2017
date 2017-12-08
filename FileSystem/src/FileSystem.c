@@ -24,7 +24,6 @@ int main(int arg, char** argv) {
 	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
 
-
 	if (arg > 1 && string_equals_ignore_case(argv[1], "--clean")){
 		log_info(log,"Se inicia el Filesystem ignorando y eliminando estado anterior");
 		formatear();
@@ -61,5 +60,6 @@ int main(int arg, char** argv) {
 
 	//cpfrom /home/utnso root/metadata archivoBinario.bin bin
 	//cat /home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin
+	///home/utnso/testers
 	return EXIT_SUCCESS;
 }

@@ -2,6 +2,7 @@
 
 int tamanioBloques = 1048576; // tamaño bloques 1MB
 
+int formateado = 0;
 
 t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
@@ -136,22 +137,38 @@ void servidorFs(int puerto){
 						data = receive(i,&cabecera);
 
 						if(cabecera == PRESENTACION_DATANODE){
-							payload_PRESENTACION_DATANODE * payload = data;
-							//payload tiene toda la info
-							printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
+							//if(esEstadoEstable() == 1){
+								payload_PRESENTACION_DATANODE * payload = data;
+								//payload tiene toda la info
+								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
-							char *puntero = malloc(payload->tamanio_ipDatanode);
-							memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
+								char *puntero = malloc(payload->tamanio_ipDatanode);
+								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
 
 
-							inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, puntero);
+								inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, puntero);
+							//}else{
+								//TODO eliminar si no es nodo necesario para estado estable
+
+							//}
+
 
 
 						}else if(cabecera == PETICION_NODO){
 							// TODO:
-							payload_PETICION_NODO *payload = data;
-							socketYama = i;
-							leerArchivo(payload->nombreArchivo);
+							//if(esEstadoEstable() == 1){
+								payload_PETICION_NODO *payload = data;
+								socketYama = i;
+								leerArchivo(payload->nombreArchivo);
+							/*}else{
+								char* mensaje = "No es estable. Se desconectara.";
+								send(i, mensaje, strlen(mensaje), 0);
+								close(i); // bye!
+								FD_CLR(i, &master); // eliminar del conjunto maestro
+								log_trace(log, "Se desconecto el YAMA");
+
+							}*/
+
 						}else if (cabecera == FIN_COMUNICACION) {
 
 							int indiceNodo = getIndiceNodoBySocket(i);
@@ -526,7 +543,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 }
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode){
-	// TODO
+	// TODO enviar tamanio
 	send_UBICACION_BLOQUE(socketYama, ipDatanode , 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
 }
 
@@ -544,9 +561,9 @@ void leerArchivo(char *pathConNombre){
 	char *name = string_new();
 	name = arrayPath[cant - 1];
 
-	if(string_contains(name, ".")){
+	/*if(string_contains(name, ".")){
 		name = string_substring_until(name, strlen(name) - 4);
-	}
+	}*/
 
 	// Busco el indice de la carpeta de destino
 	int indice = findDirByname(arrayPath[cant - 2]);
@@ -588,7 +605,7 @@ void leerArchivo(char *pathConNombre){
 
 				// TODO: Enviar a YAMA
 				int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
-				enviarAYama(nroNodo, atoi(nodoYBloque[0]), i, 0, getIpNodoByName(nroNodo));
+				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo));
 			}
 
 			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
@@ -597,9 +614,6 @@ void leerArchivo(char *pathConNombre){
 
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-				// TODO: Pedir a DataNode
-				int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 
 				// TODO: Enviar a YAMA
 				int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
@@ -681,9 +695,9 @@ char *leerContenidoArchivo(char *pathConNombre){
 	char *name = string_new();
 	name = arrayPath[cant - 1];
 
-	if(string_contains(name, ".")){
+	/*if(string_contains(name, ".")){
 		name = string_substring_until(name, strlen(name) - 4);
-	}
+	}*/
 
 	// Busco el indice de la carpeta de destino
 	int indice = findDirByname(arrayPath[cant - 2]);
@@ -844,40 +858,51 @@ int esEstadoEstable(){ // TODO
 	// Devuelve 0 si no estan todos
 	// Devuelve 1 si esta estable
 
-	int estable = 1;
+	if(formateado == 1){
+		//Si recien esta formateado esta estable
+		return 1;
+	}else{
+		int estable = 1;
 
-	char *stringNodosConectados = string_new();
-	stringNodosConectados = listaDeNodosAsArray();
+		char *stringNodosConectados = string_new();
+		stringNodosConectados = listaDeNodosAsArray();
 
-	//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
+		//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
 
-	int i;
-	for(i=0; i < list_size(nodosParaEstable); i++){
-		t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
-		int todosParaOriginal = 0;
-		int todosParaCopia = 0;
+		int i;
+		for(i=0; i < list_size(nodosParaEstable); i++){
+			t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
+			int todosParaOriginal = 0;
+			int todosParaCopia = 0;
 
-		int j;
-		for(j=0; j < list_size(nodosNecesarios->nodosOriginal); j++){
-			if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
-				todosParaOriginal = -1;
+			int j;
+			for(j=0; j < list_size(nodosNecesarios->nodosOriginal); j++){
+				if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
+					todosParaOriginal = -1;
+				}
+			}
+
+			int k;
+			for(k=0; k < list_size(nodosNecesarios->nodosCopia); k++){
+				if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosCopia, k))){
+					todosParaCopia = -1;
+				}
+			}
+
+			if(todosParaOriginal == -1 && todosParaCopia == -1){
+				estable = 0;
 			}
 		}
 
-		int k;
-		for(k=0; k < list_size(nodosNecesarios->nodosCopia); k++){
-			if(string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosCopia, k))){
-				todosParaCopia = -1;
-			}
-		}
+		if(estable == 1)
+			log_trace(log, "El sistema se encuentra en estado ESTABLE");
+		else
+			log_trace(log, "El sistema se encuentra en estado NO ESTABLE");
 
-		if(todosParaOriginal == -1 && todosParaCopia == -1){
-			estable = 0;
-		}
+		return estable;
 	}
 
-	log_trace(log, "Estado estable: %i", estable);
-	return estable;
+
 }
 
 void nodosARestaurar(){
@@ -1022,6 +1047,8 @@ void formatear(){
 	//config_destroy(fileNodos);
 
 	initFS();
+
+	formateado = 1;
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){
