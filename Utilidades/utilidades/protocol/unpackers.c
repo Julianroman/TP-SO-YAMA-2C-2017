@@ -123,6 +123,8 @@ void* unpack_INFO_TRANSFORMACION(int socket){
     recv(socket,nombreArchivoTemporal,tamanio_nombreArchivoTemporal,0);
     payload->nombreArchivoTemporal = nombreArchivoTemporal;
 
+    recv(socket,&(payload->ID_Nodo),sizeof(int),0);
+
     return (void*)payload;
 };
 
@@ -151,6 +153,8 @@ void* unpack_INFO_REDUCCIONLOCAL(int socket){
     char* nombreTemporal_ReduccionLocal = malloc(tamanio_nombreTemporal_ReduccionLocal);
     recv(socket,nombreTemporal_ReduccionLocal,tamanio_nombreTemporal_ReduccionLocal,0);
     payload->nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal;
+
+    recv(socket,&(payload->ID_Nodo),sizeof(int),0);
 
     return (void*)payload;
 };
@@ -183,6 +187,8 @@ void* unpack_INFO_REDUCCIONGLOBAL(int socket){
 
     recv(socket,&(payload->encargado),sizeof(int),0);
 
+    recv(socket,&(payload->ID_Nodo),sizeof(int),0);
+
     return (void*)payload;
 };
 
@@ -204,6 +210,8 @@ void* unpack_INFO_ALMACENAMIENTO(int socket){
     char* nombreTemporal_ReduccionGlobal = malloc(tamanio_nombreTemporal_ReduccionGlobal);
     recv(socket,nombreTemporal_ReduccionGlobal,tamanio_nombreTemporal_ReduccionGlobal,0);
     payload->nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal;
+
+    recv(socket,&(payload->ID_Nodo),sizeof(int),0);
 
     return (void*)payload;
 };

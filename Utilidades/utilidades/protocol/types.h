@@ -49,6 +49,7 @@ typedef struct {
     int bytesocupados; 
     int tamanio_nombreArchivoTemporal; 
     char* nombreArchivoTemporal; 
+    int ID_Nodo; 
 }payload_INFO_TRANSFORMACION;
 
 typedef struct { 
@@ -59,6 +60,7 @@ typedef struct {
     char* nombreTemporal_Transformacion; 
     int tamanio_nombreTemporal_ReduccionLocal; 
     char* nombreTemporal_ReduccionLocal; 
+    int ID_Nodo; 
 }payload_INFO_REDUCCIONLOCAL;
 
 typedef struct { 
@@ -70,6 +72,7 @@ typedef struct {
     int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
     int encargado; 
+    int ID_Nodo; 
 }payload_INFO_REDUCCIONGLOBAL;
 
 typedef struct { 
@@ -78,6 +81,7 @@ typedef struct {
     char* IP_Worker; 
     int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
+    int ID_Nodo; 
 }payload_INFO_ALMACENAMIENTO;
 
 typedef struct { 

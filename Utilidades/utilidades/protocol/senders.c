@@ -76,7 +76,7 @@ void send_ORDEN_ALMACENAMIENTO(int socket , char* nombreTemporal_ReduccionGlobal
     free(paquete);
 };
 
-void send_INFO_TRANSFORMACION(int socket , int PUERTO_Worker , char* IP_Worker , int bloque , int bytesocupados , char* nombreArchivoTemporal){
+void send_INFO_TRANSFORMACION(int socket , int PUERTO_Worker , char* IP_Worker , int bloque , int bytesocupados , char* nombreArchivoTemporal , int ID_Nodo){
     payload_INFO_TRANSFORMACION payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -85,6 +85,7 @@ void send_INFO_TRANSFORMACION(int socket , int PUERTO_Worker , char* IP_Worker ,
     payload.bytesocupados = bytesocupados; 
     payload.tamanio_nombreArchivoTemporal = (strlen(nombreArchivoTemporal)+1)*sizeof(char);
     payload.nombreArchivoTemporal = nombreArchivoTemporal; 
+    payload.ID_Nodo = ID_Nodo; 
 
     int tamanio_paquete;
     char* paquete = pack_INFO_TRANSFORMACION(payload,&tamanio_paquete);
@@ -92,7 +93,7 @@ void send_INFO_TRANSFORMACION(int socket , int PUERTO_Worker , char* IP_Worker ,
     free(paquete);
 };
 
-void send_INFO_REDUCCIONLOCAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal){
+void send_INFO_REDUCCIONLOCAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal , int ID_Nodo){
     payload_INFO_REDUCCIONLOCAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -101,6 +102,7 @@ void send_INFO_REDUCCIONLOCAL(int socket , int PUERTO_Worker , char* IP_Worker ,
     payload.nombreTemporal_Transformacion = nombreTemporal_Transformacion; 
     payload.tamanio_nombreTemporal_ReduccionLocal = (strlen(nombreTemporal_ReduccionLocal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionLocal = nombreTemporal_ReduccionLocal; 
+    payload.ID_Nodo = ID_Nodo; 
 
     int tamanio_paquete;
     char* paquete = pack_INFO_REDUCCIONLOCAL(payload,&tamanio_paquete);
@@ -108,7 +110,7 @@ void send_INFO_REDUCCIONLOCAL(int socket , int PUERTO_Worker , char* IP_Worker ,
     free(paquete);
 };
 
-void send_INFO_REDUCCIONGLOBAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado){
+void send_INFO_REDUCCIONGLOBAL(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado , int ID_Nodo){
     payload_INFO_REDUCCIONGLOBAL payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
@@ -118,6 +120,7 @@ void send_INFO_REDUCCIONGLOBAL(int socket , int PUERTO_Worker , char* IP_Worker 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal; 
     payload.encargado = encargado; 
+    payload.ID_Nodo = ID_Nodo; 
 
     int tamanio_paquete;
     char* paquete = pack_INFO_REDUCCIONGLOBAL(payload,&tamanio_paquete);
@@ -125,13 +128,14 @@ void send_INFO_REDUCCIONGLOBAL(int socket , int PUERTO_Worker , char* IP_Worker 
     free(paquete);
 };
 
-void send_INFO_ALMACENAMIENTO(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal){
+void send_INFO_ALMACENAMIENTO(int socket , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionGlobal , int ID_Nodo){
     payload_INFO_ALMACENAMIENTO payload;
     payload.PUERTO_Worker = PUERTO_Worker; 
     payload.tamanio_IP_Worker = (strlen(IP_Worker)+1)*sizeof(char);
     payload.IP_Worker = IP_Worker; 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal; 
+    payload.ID_Nodo = ID_Nodo; 
 
     int tamanio_paquete;
     char* paquete = pack_INFO_ALMACENAMIENTO(payload,&tamanio_paquete);

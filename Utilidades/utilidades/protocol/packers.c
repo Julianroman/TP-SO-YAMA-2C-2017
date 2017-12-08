@@ -160,7 +160,7 @@ char* pack_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO payload,int* tamani
 };
 
 char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + sizeof(int) + sizeof(int) + (payload.tamanio_nombreArchivoTemporal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + sizeof(int) + sizeof(int) + (payload.tamanio_nombreArchivoTemporal) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -198,12 +198,16 @@ char* pack_INFO_TRANSFORMACION(payload_INFO_TRANSFORMACION payload,int* tamanio_
     memcpy(paquete+offset,payload.nombreArchivoTemporal,tamanio_envio);
     offset += tamanio_envio;
 
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.ID_Nodo),tamanio_envio);
+    offset += tamanio_envio;
+
     (* tamanio_paquete) = tamanio_total;
     return paquete;
 };
 
 char* pack_INFO_REDUCCIONLOCAL(payload_INFO_REDUCCIONLOCAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_Transformacion) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionLocal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_Transformacion) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -241,12 +245,16 @@ char* pack_INFO_REDUCCIONLOCAL(payload_INFO_REDUCCIONLOCAL payload,int* tamanio_
     memcpy(paquete+offset,payload.nombreTemporal_ReduccionLocal,tamanio_envio);
     offset += tamanio_envio;
 
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.ID_Nodo),tamanio_envio);
+    offset += tamanio_envio;
+
     (* tamanio_paquete) = tamanio_total;
     return paquete;
 };
 
 char* pack_INFO_REDUCCIONGLOBAL(payload_INFO_REDUCCIONGLOBAL payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(int);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionLocal) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(int) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -288,12 +296,16 @@ char* pack_INFO_REDUCCIONGLOBAL(payload_INFO_REDUCCIONGLOBAL payload,int* tamani
     memcpy(paquete+offset,&(payload.encargado),tamanio_envio);
     offset += tamanio_envio;
 
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.ID_Nodo),tamanio_envio);
+    offset += tamanio_envio;
+
     (* tamanio_paquete) = tamanio_total;
     return paquete;
 };
 
 char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + sizeof(int) + (payload.tamanio_IP_Worker) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -321,6 +333,10 @@ char* pack_INFO_ALMACENAMIENTO(payload_INFO_ALMACENAMIENTO payload,int* tamanio_
 
     tamanio_envio = (payload.tamanio_nombreTemporal_ReduccionGlobal);
     memcpy(paquete+offset,payload.nombreTemporal_ReduccionGlobal,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.ID_Nodo),tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;
