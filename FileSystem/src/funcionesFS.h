@@ -85,7 +85,7 @@ static char* getLine(FILE* in);
 
 int almacenarArchivo(char *location, char* pathDestino, char *name, char *tipo);
 
-void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode);
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode, int tamanioBloque);
 
 void leerArchivo(char *pathConNombre);
 

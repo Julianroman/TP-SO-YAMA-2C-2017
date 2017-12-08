@@ -542,9 +542,9 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	return 0;
 }
 
-void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode){
+void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode, int tamanioBloque){
 	// TODO enviar tamanio
-	send_UBICACION_BLOQUE(socketYama, ipDatanode , 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia);
+	send_UBICACION_BLOQUE(socketYama, ipDatanode , 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia, tamanioBloque);
 }
 
 void leerArchivo(char *pathConNombre){
@@ -605,7 +605,7 @@ void leerArchivo(char *pathConNombre){
 
 				// TODO: Enviar a YAMA
 				int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
-				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo));
+				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
 			}
 
 			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
@@ -617,7 +617,7 @@ void leerArchivo(char *pathConNombre){
 
 				// TODO: Enviar a YAMA
 				int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
-				enviarAYama(nroNodoCopia, atoi(nodoYBloque[1]), i, 1, getIpNodoByName(nroNodoCopia));
+				enviarAYama(nroNodoCopia, atoi(nodoYBloque[1]), i, 1, getIpNodoByName(nroNodoCopia), tamanioBloque);
 			}
 
 			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
