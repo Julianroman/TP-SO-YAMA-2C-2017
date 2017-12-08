@@ -359,6 +359,8 @@ void* unpack_UBICACION_BLOQUE(int socket){
 
     recv(socket,&(payload->copia),sizeof(int),0);
 
+    recv(socket,&(payload->bloque_archivo),sizeof(int),0);
+
     return (void*)payload;
 };
 

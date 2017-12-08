@@ -29,7 +29,7 @@ void send_EXITO_OPERACION(int socket );
 void send_FRACASO_OPERACION(int socket );
 void send_SCRIPT(int socket  , char* contenido);
 void send_PETICION_BLOQUE(int socket  , int numero_bloque , int tam_bloque);
-void send_UBICACION_BLOQUE(int socket  , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia);
+void send_UBICACION_BLOQUE(int socket  , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia , int bloque_archivo);
 void send_TEMPORAL(int socket  , char* contenido);
 void send_PETICION_TEMPORAL(int socket  , char* nombre);
 

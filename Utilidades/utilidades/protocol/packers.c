@@ -589,7 +589,7 @@ char* pack_PETICION_BLOQUE(payload_PETICION_BLOQUE payload,int* tamanio_paquete)
 };
 
 char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_ip) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_ip) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -625,6 +625,10 @@ char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquet
 
     tamanio_envio = sizeof(int);
     memcpy(paquete+offset,&(payload.copia),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.bloque_archivo),tamanio_envio);
     offset += tamanio_envio;
 
     (* tamanio_paquete) = tamanio_total;
