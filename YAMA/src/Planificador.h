@@ -23,11 +23,14 @@ void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master);
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo);
 void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job);
-t_worker* elegirEncargadoRedGlobal(int jobID);
+t_worker* elegirEncargadoRedGlobal(t_job* job);
+void realizarAlmacenadoFinal(t_job_master* job_master);
 void realizarReduccionGlobal(t_job_master* job_master);
 void realizarTransformacion(t_job_master* job_master);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
 void replanificar(t_job_master* job_master, t_worker* nodoFallido);
+t_worker* getEncargado(t_job* job);
+int terminoRedGlobal(t_job_master* job_master);
 
 //FUNCIONES DE JOB
 t_job *newJob();
