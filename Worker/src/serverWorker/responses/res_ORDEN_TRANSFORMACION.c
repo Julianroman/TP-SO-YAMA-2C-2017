@@ -20,7 +20,7 @@
 #include <sys/wait.h>
 
 #define BUFFERSIZE 1024
-
+#define UNMB 1045576;
 
 extern t_log* logger;
 extern char* nodePath;
@@ -54,19 +54,25 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     // Le otorgo permisos de ejecucion
     char* chmodComand = string_from_format("chmod +x %s", scriptPath);
     system(chmodComand);
+    log_info(logger,"Transformador cargado");
 
 
     // Cargar archivo a procesar
-    off_t offset = 0;// Posible seleccion de bloque
+
+    off_t offset = (orden->bloque) * UNMB;// Seleccion de bloque
 
     // Abrir archivo y conocer sus propiedades
     int nodeFD = open(nodePath,O_RDWR);
     struct stat nodeStats;
     fstat(nodeFD, &nodeStats);
-    size_t nodeLenght = nodeStats.st_size;
+    //size_t nodeLenght = nodeStats.st_size;
 
     // Cargarlo en memoria
-    void * node = mmap(NULL,nodeLenght, PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,offset);
+    void * node = mmap(NULL,(orden -> bytesocupados), PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,offset);
+    if(node == NULL){
+    	exit(1);
+    }
+    log_info(logger,"Nodo cargado");
 
     //PIPEO INTENSIFIES!!!
     int pipe_padreAHijo[2];
@@ -78,8 +84,10 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     int status;
     // Un buffer para leer
 
-
+    printf("\tDEBUG: size: %d\n",(orden->bytesocupados));
     if ((pid=fork()) == 0 ){
+    	 printf("\tDEBUG: size: %d\n",(orden->bytesocupados));
+    	log_info(logger,"Transformanding...");
     	//Hijo
     	// Copio las pipes que necesito a stdin y stdout
       	dup2(pipe_padreAHijo[0],STDIN_FILENO);
@@ -99,18 +107,25 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
         free(scriptPath);
         exit(1);
     }else{
+    	size_t lenght = (orden -> bytesocupados);
+    	log_info(logger,"Padre continua");
     	//Padre
     	// Cierro lo que no necesito
     	close( pipe_padreAHijo[0] );
     	close( pipe_hijoAPadre[1] );
 
+
+    	printf("\tDEBUG: size: %d\n",lenght);
     	// Escribo
-    	write( pipe_padreAHijo[1],node,nodeLenght);// De cebado le mando to do el contenido pero en cuanto tenga un nodo particionado lo pongo como corresponde
+		write(pipe_padreAHijo[1],node,6000);
+
     	// Cierro pipe
     	close( pipe_padreAHijo[1]);
+
     	// Espero al hijo
     	waitpid(pid,&status,0);
 
+    	log_info(logger,"Escribiendo...");
     	// Creo un archivo
     	char* temporalPath = string_from_format("tmp/%s",orden->nombreArchivoTemporal);
 		FILE* fd = fopen(temporalPath,"w+");
@@ -119,10 +134,12 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	char bufferTemp;
 		// Leo de la pipe y escribo en el archivo
     	while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
+    		putchar(bufferTemp);
 			fputc(bufferTemp,fd);
     	}
 
-    	// Cierro todo
+    	log_info(logger,"Finalizando...");
+    	// Cierro todito
     	close(pipe_hijoAPadre[0]);
 		fclose(fd);
 	    //remove(scriptPath);
@@ -132,6 +149,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	    system(sortCommand);
 	    free(sortCommand);
 		free(temporalPath);
+		log_info(logger,"Transformacion exitosa");
 
 	    // Esito
 		send_EXITO_OPERACION(socket_cliente);
