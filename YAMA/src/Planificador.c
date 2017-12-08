@@ -47,8 +47,9 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 			}
 			break;
 		case REDUCCION_GLOBAL:
-			//QUE SE HACE?
-			// Realizar almacenamiento final
+			if(terminoRedGlobal(job_master)){
+				realizarAlmacenadoFinal(job_master);
+			}
 			break;
 		case ALMACENAMIENTO:
 			// QUE SE HACE?
@@ -261,7 +262,7 @@ void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master){
 }
 
 void realizarReduccionGlobal(t_job_master* job_master){
-	t_worker* encargado = elegirEncargadoRedGlobal(job_master->job->id);
+	t_worker* encargado = elegirEncargadoRedGlobal(job_master->job);
 
 	int getRegistroEstadoRedLocal(t_tablaEstados* registroEstado){
 		return registroEstado->tarea == REDUCCION_LOCAL &&
@@ -281,7 +282,7 @@ void realizarReduccionGlobal(t_job_master* job_master){
 	list_destroy(nodosConRedLocalTerminada);
 }
 
-t_worker* elegirEncargadoRedGlobal(int jobID){
+t_worker* elegirEncargadoRedGlobal(t_job* job){
 	int ordenar(t_worker* nodo1, t_worker* nodo2){
 		if(nodo1->carga == nodo2->carga){
 			return nodo1->cantTareasHistoricas < nodo2->cantTareasHistoricas;
@@ -292,8 +293,47 @@ t_worker* elegirEncargadoRedGlobal(int jobID){
 	}
 	list_sort(nodosDisponibles, (void*)ordenar);
 	t_worker* worker = list_get(nodosDisponibles, 0);
+	t_infoNodo* infoNodo = getInfoNodo(worker, job);
+	infoNodo->encargado = 1;
 	return worker;
 }
+
+int terminoRedGlobal(t_job_master* job_master){
+
+	int nodoConRedGlobal(t_tablaEstados* registroEstado){
+		return registroEstado->tarea == REDUCCION_GLOBAL &&
+				registroEstado->job->id == job_master->job->id;
+	}
+	t_list* nodosConRedGlobal = list_filter(TablaEstados, (void*)nodoConRedGlobal);
+
+	int termino =  list_all_satisfy(nodosConRedGlobal, (void*)registroTerminoExitosamente);
+	list_destroy(nodosConRedGlobal);
+	return termino;
+}
+
+void realizarAlmacenadoFinal(t_job_master* job_master){
+	int getRegistroEstadoRedLocal(t_tablaEstados* registroEstado){
+			return registroEstado->tarea == REDUCCION_GLOBAL &&
+					registroEstado->estado == EXITO &&
+					registroEstado->job->id == job_master->job->id;
+		}
+	t_tablaEstados* algunNodoConRedGlobalTerminada = list_find(TablaEstados, (void*)getRegistroEstadoRedLocal);
+	t_worker* encargado = getEncargado(job_master->job);
+	send_INFO_ALMACENAMIENTO(job_master->master_socket, encargado->puerto, encargado->ip, algunNodoConRedGlobalTerminada->archivoTemporal);
+}
+
+t_worker* getEncargado(t_job* job){
+	int getInfoNodoConJob(t_infoNodo* info){
+		return info->job->id = job->id;
+	}
+	int buscarEncargadoDeJob(t_worker* worker){
+		t_infoNodo* infoNodo = list_find(worker->infoNodos, (void*)getInfoNodoConJob);
+		return infoNodo->encargado == 1;
+	}
+	t_worker* encargado = list_find(nodosDisponibles, (void*)buscarEncargadoDeJob);
+	return encargado;
+}
+
 
 int registroTerminoExitosamente(t_tablaEstados* registroEstado){
 	return registroEstado->estado == EXITO;

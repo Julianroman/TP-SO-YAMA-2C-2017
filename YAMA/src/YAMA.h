@@ -53,10 +53,12 @@ typedef struct {
 	Tarea etapaNodo;
 	t_list* infoBloques;
 	t_list* bloquesAEjecutar;
+	int encargado;
 }t_infoNodo;
 
 typedef struct{
 	int bloqueNodo;
+	int tamanioBloque;
 	int bloqueArchivo;
 	int copia;
 } t_infoBloque;
