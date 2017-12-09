@@ -33,11 +33,11 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Almacenamiento de <%s> completado por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
-		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,0);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,1);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
-		send_RESPUESTA_MASTER(socketYAMA,masterID,-1,-1,1);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");

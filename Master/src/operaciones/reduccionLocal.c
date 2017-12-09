@@ -63,6 +63,7 @@ void* rutina_reduccionLocal(void* args){
 	time_t inicioEtapa,finEtapa;
 	HEADER_T header;
 	payload_INFO_REDUCCIONLOCAL* payload = args;
+	int idNodo = payload -> ID_Nodo;
 
 
 	// Iniciar timer
@@ -115,12 +116,12 @@ void* rutina_reduccionLocal(void* args){
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Redux local OK %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
-		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,1);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,1);
 	}
 	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
 		fallosReduxLocal ++;
 		log_error(logger, "Redux local ERR %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
-		send_RESPUESTA_MASTER(YAMAsocket,masterID,-1,-1,0);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,0);
 	}
 	else{
 		log_warning(logger,"No se reconoce la respuesta del worker");
