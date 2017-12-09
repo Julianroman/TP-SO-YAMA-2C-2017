@@ -105,10 +105,18 @@ void liberarMemoria(t_job* job){
 	list_destroy(registrosDeJob);
 
 	// BORRANDO INFO DEL PLANIFICADOR
-	/*void liberarNodo(t_worker* nodo){
-		list_find
+	void liberarInfo(t_infoBloque* infoBloque){
+		free(infoBloque);
 	}
-	list_iterate(nodosDisponibles, (void*)liberarNodo);*/
+	int getInfo(t_infoNodo* info){
+		return info->job->id = job->id;
+	}
+	void liberarNodo(t_worker* nodo){
+		t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
+		list_clean_and_destroy_elements(infoNodo->bloquesAEjecutar, (void*)liberarInfo);
+		list_clean_and_destroy_elements(infoNodo->infoBloques, (void*)liberarInfo);
+	}
+	list_iterate(nodosDisponibles, (void*)liberarNodo);
 }
 
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
