@@ -47,6 +47,7 @@ char* getNombreArchivoTemporalRedGlobal(int jobID, int masterID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 void liberarMemoria(t_job* job);
+int existeEnLista(int nodoID);
 
 // FUNCIONES DE NODO
 t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job);

@@ -24,49 +24,62 @@ void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
 
-	actualizarEstados(infoMaster, job_master);
+	if(existeEnLista(infoMaster->id_nodo)){
 
-	t_worker* nodo = getNodo(infoMaster->id_nodo);
+		actualizarEstados(infoMaster, job_master);
 
-	if(infoMaster->estado){ //SI LA OPERACION FUE EXITOSA
+		t_worker* nodo = getNodo(infoMaster->id_nodo);
 
-		switch(etapaActiva(nodo, job_master->job)){
-		case TRANSFORMACION:
-			if(nodoTerminoTransformacion(infoMaster->id_nodo, job_master->job->id)){
-				log_trace(logYAMA, "Nodo %d finalizo transformacion en todos sus bloques.", infoMaster->id_nodo);
-				realizarReduccionLocal(nodo, job_master);
+		if(infoMaster->estado){ //SI LA OPERACION FUE EXITOSA
+
+			switch(etapaActiva(nodo, job_master->job)){
+			case TRANSFORMACION:
+				if(nodoTerminoTransformacion(infoMaster->id_nodo, job_master->job->id)){
+					log_trace(logYAMA, "Nodo %d finalizo transformacion en todos sus bloques.", infoMaster->id_nodo);
+					realizarReduccionLocal(nodo, job_master);
+				}
+				break;
+			case REDUCCION_LOCAL:
+				if(todosLosNodosTerminaronReduccionLocal(job_master->job->id)){
+					job_master->job->etapa = REDUCCION_GLOBAL; //Recien acá sé exactamente que el job está por la etapa de reduccion global
+					realizarReduccionGlobal(job_master);
+				}
+				break;
+			case REDUCCION_GLOBAL:
+				if(terminoRedGlobal(job_master)){
+					job_master->job->etapa = ALMACENAMIENTO;
+					realizarAlmacenadoFinal(job_master);
+				}
+				break;
+			case ALMACENAMIENTO:
+				log_trace(logYAMA, "ENCARGADO %d ALMACENAMIENTO FINAL EXITO", infoMaster->id_nodo);
+				log_trace(logYAMA, "Finalizando JOB");
+				finalizarCorrectamente(job_master->job);
+				break;
 			}
-			break;
-		case REDUCCION_LOCAL:
-			if(todosLosNodosTerminaronReduccionLocal(job_master->job->id)){
-				job_master->job->etapa = REDUCCION_GLOBAL; //Recien acá sé exactamente que el job está por la etapa de reduccion global
-				realizarReduccionGlobal(job_master);
+		}
+
+		else { // SI LA OPERACION FUE ERROR
+			if(etapaActiva(nodo, job_master->job) == TRANSFORMACION){
+				log_trace(logYAMA, "Replanificando transformacion del Nodo %d ", infoMaster->id_nodo);
+				replanificar(job_master, nodo);
 			}
-			break;
-		case REDUCCION_GLOBAL:
-			if(terminoRedGlobal(job_master)){
-				job_master->job->etapa = ALMACENAMIENTO;
-				realizarAlmacenadoFinal(job_master);
+			else {
+				log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE - Abortando JOB");
+				abortarJob(job_master->job);
 			}
-			break;
-		case ALMACENAMIENTO:
-			log_trace(logYAMA, "ENCARGADO %d ALMACENAMIENTO FINAL EXITO", infoMaster->id_nodo);
-			log_trace(logYAMA, "Finalizando JOB");
-			finalizarCorrectamente(job_master->job);
-			break;
 		}
 	}
-
-	else { // SI LA OPERACION FUE ERROR
-		if(etapaActiva(nodo, job_master->job) == TRANSFORMACION){
-			log_trace(logYAMA, "Replanificando transformacion del Nodo %d ", infoMaster->id_nodo);
-			replanificar(job_master, nodo);
-		}
-		else {
-			log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE - Abortando JOB");
-			abortarJob(job_master->job);
-		}
+	else {
+		log_error(logYAMA, "LLEGO INFO DEL NODO %d QUE NO ESTOY TENIENDO EN CUENTA", infoMaster->id_nodo);
 	}
+}
+
+int existeEnLista(int nodoID){
+	int existe(t_worker* worker){
+		return worker->id == nodoID;
+	}
+	return list_any_satisfy(nodosDisponibles, (void*)existe);
 }
 
 Tarea etapaActiva(t_worker* nodo, t_job* job){
