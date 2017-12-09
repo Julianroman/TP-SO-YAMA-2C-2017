@@ -587,6 +587,7 @@ void leerArchivo(char *pathConNombre){
 	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
 		log_error(log, "No se encontro el archivo");
 		contenidoLeido = "Error";
+		send_FRACASO_OPERACION(socketYama);
 	}else{
 		t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
@@ -631,8 +632,8 @@ void leerArchivo(char *pathConNombre){
 		free(nodoYBloqueCopia);
 		free(archivo_configuracion);
 		fclose(in);
+		send_FIN_LISTA(socketYama);
 	}
-	send_FIN_LISTA(socketYama);
 }
 
 char *getIpNodoByName(int name){

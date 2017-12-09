@@ -81,7 +81,9 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	log_info(logger, "Enviando instrucciones al encargado...");
 	int i;
 	payload_INFO_REDUCCIONGLOBAL*  payloadSubordinado;
-	for(i = 0; i < queue_size(colaDeInformaciones);i++){
+	int cantidadNodos = queue_size(colaDeInformaciones);
+	//log_trace(logger, cantidadNodos);
+	for(i = 0; i < cantidadNodos;i++){
 		payloadSubordinado = queue_pop(colaDeInformaciones);
 		send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadSubordinado->PUERTO_Worker,payloadSubordinado->IP_Worker,payloadSubordinado->nombreTemporal_ReduccionLocal,payloadSubordinado->nombreTemporal_ReduccionGlobal,payloadSubordinado->encargado);
 		// TODO destruir payload
