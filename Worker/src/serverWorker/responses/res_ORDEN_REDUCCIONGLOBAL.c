@@ -73,6 +73,7 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	list_add(listaTemporales,temporal);
 
 
+	orden = receive(socket_cliente,&header);
 	// Recibir todas las instrucciones
 	// Hasta que termine la lista
 	while(header == ORDEN_REDUCCIONGLOBAL){
