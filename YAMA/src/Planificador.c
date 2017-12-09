@@ -108,6 +108,9 @@ void liberarMemoria(t_job* job){
 	void liberarInfo(t_infoBloque* infoBloque){
 		free(infoBloque);
 	}
+	void liberarJob(t_job* job){
+		free(job);
+	}
 	int getInfo(t_infoNodo* info){
 		return info->job->id = job->id;
 	}
@@ -115,6 +118,8 @@ void liberarMemoria(t_job* job){
 		t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
 		list_clean_and_destroy_elements(infoNodo->bloquesAEjecutar, (void*)liberarInfo);
 		list_clean_and_destroy_elements(infoNodo->infoBloques, (void*)liberarInfo);
+		list_clean_and_destroy_elements(infoNodo->job, (void*)liberarJob);
+		list_destroy(infoNodo);
 	}
 	list_iterate(nodosDisponibles, (void*)liberarNodo);
 }
