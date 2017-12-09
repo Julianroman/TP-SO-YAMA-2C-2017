@@ -20,8 +20,8 @@
 #include <sys/wait.h>
 
 #define BUFFERSIZE 1024
-#define UNMB 1045576;
-int TAMANIOBLOQUE = 1045576;
+#define UNMB 1048576;
+int TAMANIOBLOQUE = 1048576;
 
 extern t_log* logger;
 extern char* nodePath;
