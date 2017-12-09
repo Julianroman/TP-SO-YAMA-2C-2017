@@ -21,18 +21,16 @@
 
 #define BUFFERSIZE 1024
 #define UNMB 1045576;
+int TAMANIOBLOQUE = 1045576;
 
 extern t_log* logger;
 extern char* nodePath;
 
-char *leerArchivo(int size, int nroBloque){
+char *leerArchivo(int size, int nroBloque, int nodeFD){
 	int offset = TAMANIOBLOQUE * nroBloque;
 	int archivo;
-	if (!(archivo = fopen(pathDataBin, "r"))){
-		crearDataBin();
-	}
 	char* lectura = malloc(size);
-	archivo = open(pathDataBin, O_RDONLY);
+	archivo = nodeFD;
 	char * map;
 	if((map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset)) == MAP_FAILED){
 		log_error(logger,"No se pudo mappear archivo");
@@ -83,7 +81,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 
     // Cargar archivo a procesar
 
-    off_t offset = (orden->bloque) * UNMB;// Seleccion de bloque
+    //off_t offset = (orden->bloque) * UNMB;// Seleccion de bloque
 
     // Abrir archivo y conocer sus propiedades
     int nodeFD = open(nodePath,O_RDWR);
@@ -93,7 +91,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 
     // Cargarlo en memoria
     //void * node = mmap(NULL,nodeLenght, PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,0);
-    char * node = leerArchivo(orden -> bytesocupados, orden->bloque);
+    char * node = leerArchivo(orden -> bytesocupados, orden->bloque,nodeFD);
     if(node == NULL){
     	exit(1);
     }
@@ -136,7 +134,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	close( pipe_hijoAPadre[1] );
 
     	// Escribo
-		write(pipe_padreAHijo[1],node,6000);
+		write(pipe_padreAHijo[1],node,orden -> bytesocupados);
 
     	// Cierro pipe
     	close( pipe_padreAHijo[1]);
