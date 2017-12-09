@@ -31,7 +31,7 @@ char *leerArchivo(int size, int nroBloque, int nodeFD){
 	char* lectura = malloc(size);
 	char * map;
 	printf("\tDEBUG node:%d size:%d block:%d\n",nodeFD,size,nroBloque);
-	if((map = mmap(NULL, size, PROT_READ, MAP_SHARED, nodeFD, offset)) == MAP_FAILED){
+	if((map = mmap(NULL, size, PROT_READ, MAP_PRIVATE, nodeFD, offset)) == MAP_FAILED){
 		perror("mmap");
 		log_error(logger,"No se pudo mappear archivo");
 	}
