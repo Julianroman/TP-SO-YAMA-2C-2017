@@ -408,16 +408,6 @@ t_tablaEstados* getRegistro(payload_RESPUESTA_MASTER* infoMaster, int jobID){
 		}
 		registro = list_find(TablaEstados, (void*)registroEspecifico);
 	}
-	else if(infoMaster->bloque == -2){
-		int registroEspecifico(t_tablaEstados* registroEstado){
-			return registroEstado->nodo->id == infoMaster->id_nodo &&
-					registroEstado->bloque == infoMaster->bloque &&
-					registroEstado->tarea == ALMACENAMIENTO &&
-					registroEstado->master == infoMaster->id_master &&
-					registroEstado->job->id == jobID;
-		}
-		registro = list_find(TablaEstados, (void*)registroEspecifico);
-	}
 	else{
 		int registroEspecifico(t_tablaEstados* registroEstado){
 			return registroEstado->nodo->id == infoMaster->id_nodo &&
@@ -439,28 +429,29 @@ void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_m
 }
 
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
-	t_tablaEstados* registroEstado = getRegistro(infoMaster, job_master->job->id);
-	if(registroEstado->tarea == TRANSFORMACION){
-		if(infoMaster->estado){
-			registroEstado->estado = EXITO;
-			log_info(logYAMA, "Job %d - Nodo %d - Bloque Archivo %d - %s - EXITO", registroEstado->job->id, infoMaster->id_nodo, infoMaster->bloque, castearTarea(registroEstado->tarea));
+	if(infoMaster->bloque != 2){ // Si la respuesta es distinta a almacenamiento
+		t_tablaEstados* registroEstado = getRegistro(infoMaster, job_master->job->id);
+		if(registroEstado->tarea == TRANSFORMACION){
+			if(infoMaster->estado){
+				registroEstado->estado = EXITO;
+				log_info(logYAMA, "Job %d - Nodo %d - Bloque Archivo %d - %s - EXITO", registroEstado->job->id, infoMaster->id_nodo, infoMaster->bloque, castearTarea(registroEstado->tarea));
+			}
+			else {
+				registroEstado->estado = ERROR;
+				log_error(logYAMA, "Job %d - Nodo %d - Bloque Archivo %d - %s - ERROR", registroEstado->job->id, infoMaster->id_nodo, infoMaster->bloque, castearTarea(registroEstado->tarea));
+			}
 		}
-		else {
-			registroEstado->estado = ERROR;
-			log_error(logYAMA, "Job %d - Nodo %d - Bloque Archivo %d - %s - ERROR", registroEstado->job->id, infoMaster->id_nodo, infoMaster->bloque, castearTarea(registroEstado->tarea));
+		else{
+			if(infoMaster->estado){
+				registroEstado->estado = EXITO;
+				log_info(logYAMA, "Job %d - Nodo %d - %s - EXITO", registroEstado->job->id, infoMaster->id_nodo, castearTarea(registroEstado->tarea));
+			}
+			else {
+				registroEstado->estado = ERROR;
+				log_error(logYAMA, "Job %d - Nodo %d - %s - ERROR", registroEstado->job->id, infoMaster->id_nodo, castearTarea(registroEstado->tarea));
+			}
 		}
 	}
-	else{
-		if(infoMaster->estado){
-			registroEstado->estado = EXITO;
-			log_info(logYAMA, "Job %d - Nodo %d - %s - EXITO", registroEstado->job->id, infoMaster->id_nodo, castearTarea(registroEstado->tarea));
-		}
-		else {
-			registroEstado->estado = ERROR;
-			log_error(logYAMA, "Job %d - Nodo %d - %s - ERROR", registroEstado->job->id, infoMaster->id_nodo, castearTarea(registroEstado->tarea));
-		}
-	}
-
 }
 
 void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker* nodo, int bloque, char* nombreArchivoTemporal){
