@@ -56,7 +56,7 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	log_info(logger, "Respondiendo ORDEN DE REDUCCION GLOBAL");
 
 	payload_ORDEN_REDUCCIONGLOBAL* orden = data;
-	payload_TEMPORAL* temporalPayload;
+	payload_BLOQUE* temporalPayload;
 	pid_t pid = getpid();
 	int socketSubordinado;
 	t_list* listaTemporales = list_create();
@@ -89,7 +89,9 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 		temporal -> index = 0;
 
 		// Dividir
-		temporal -> array = string_split(temporalPayload -> contenido, "\n");
+		char* stringTemporal = realloc((temporalPayload -> contenido),(temporalPayload->tamanio_bloque)+1);
+		stringTemporal[temporalPayload->tamanio_bloque] = '\0';
+		temporal -> array = string_split(stringTemporal, "\n");
 
 		// Destruir payload
 		//destroy_TEMPORAL(temporalPayload);
