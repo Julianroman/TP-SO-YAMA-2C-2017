@@ -39,7 +39,7 @@ void t_transformado_destroyer(void* victima){
 
 void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
-	log_info(logger, "Respondiendo ORDEN_REDUCCIONLOCAL");
+	log_info(logger, "Respondiendo ORDEN DE REDUCCION LOCAL");
 
 	pid_t pid = getpid();
     char* transformadoPath;
@@ -242,6 +242,7 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 
 		// Esito
+		log_trace(logger,"Reduccion local OK");
 		send_EXITO_OPERACION(socket_cliente);
 		exit(EXIT_SUCCESS);
 

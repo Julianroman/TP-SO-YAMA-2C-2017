@@ -53,7 +53,7 @@ void t_temporal_destroyer(void* victima){
 
 void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
-	log_info(logger, "Respondiendo ORDEN_REDUCCIONGLOBAL");
+	log_info(logger, "Respondiendo ORDEN DE REDUCCION GLOBAL");
 
 	payload_ORDEN_REDUCCIONGLOBAL* orden = data;
 	payload_TEMPORAL* temporalPayload;
@@ -262,6 +262,7 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 
 		// Esito
+		log_trace(logger,"Reduccion global OK");
 		send_EXITO_OPERACION(socket_cliente);
 		exit(EXIT_SUCCESS);
 
