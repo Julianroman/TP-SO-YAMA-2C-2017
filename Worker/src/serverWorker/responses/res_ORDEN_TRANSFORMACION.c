@@ -28,11 +28,11 @@ extern char* nodePath;
 
 char *leerArchivo(int size, int nroBloque, int nodeFD){
 	int offset = TAMANIOBLOQUE * nroBloque;
-	int archivo;
 	char* lectura = malloc(size);
-	archivo = nodeFD;
 	char * map;
-	if((map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset)) == MAP_FAILED){
+	printf("\tDEBUG node:%d size:%d block:%d\n",nodeFD,size,nroBloque);
+	if((map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, nodeFD, offset)) == MAP_FAILED){
+		perror("mmap");
 		log_error(logger,"No se pudo mappear archivo");
 	}
 	memcpy(lectura, map, size);
@@ -43,8 +43,7 @@ char *leerArchivo(int size, int nroBloque, int nodeFD){
 	char* mensajeLectura = string_from_format("Lectura completa en el bloque %i -- %i bytes",nroBloque,size);
 	log_trace(logger, mensajeLectura);
 	free(mensajeLectura);
-	//lectura[size] = '\0';
-	close(archivo);
+	close(nodeFD);
 	return lectura;
 }
 
@@ -85,6 +84,10 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 
     // Abrir archivo y conocer sus propiedades
     int nodeFD = open(nodePath,O_RDWR);
+    if(nodeFD == NULL){
+    	log_error(logger,"No se pudo abrir el data.bin");
+    	exit(1);
+    }
     struct stat nodeStats;
     fstat(nodeFD, &nodeStats);
     //size_t nodeLenght = nodeStats.st_size;
