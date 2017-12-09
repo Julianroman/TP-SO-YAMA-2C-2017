@@ -676,7 +676,7 @@ int getSocketNodoByName(int nroNodo){
 	return socket;
 }
 
-char *leerContenidoArchivo(char *pathConNombre){
+/*char *leerContenidoArchivo(char *pathConNombre){
 	int cantidadDeBloques;
 
 	sem_init(&binaryContenidoConsola, 0, 0);
@@ -694,10 +694,6 @@ char *leerContenidoArchivo(char *pathConNombre){
 	// Agarro el nombre sin la extension
 	char *name = string_new();
 	name = arrayPath[cant - 1];
-
-	/*if(string_contains(name, ".")){
-		name = string_substring_until(name, strlen(name) - 4);
-	}*/
 
 	// Busco el indice de la carpeta de destino
 	int indice = findDirByname(arrayPath[cant - 2]);
@@ -832,6 +828,116 @@ char *leerContenidoArchivo(char *pathConNombre){
 		}
 		free(tipo);
 		//config_destroy(archivo_configuracion);
+		fclose(in);
+	}
+	return contenidoLeido;
+}*/
+
+char *leerContenidoArchivo(char *pathConNombre){
+
+	sem_init(&binaryContenidoConsola, 0, 0);
+	sem_init(&binaryContenidoServidor, 0, 0);
+
+	// Para leer la tabla de archivos
+	// Separo el path con las /
+
+	char **arrayPath = string_split(pathConNombre, "/");
+	int cant = 0;
+	while(arrayPath[cant] != NULL ){
+		cant++;
+	}
+
+	// Agarro el nombre sin la extension
+	char *name = string_new();
+	name = arrayPath[cant - 1];
+
+	/*if(string_contains(name, ".")){
+		name = string_substring_until(name, strlen(name) - 4);
+	}*/
+
+	// Busco el indice de la carpeta de destino
+	int indice = findDirByname(arrayPath[cant - 2]);
+	// Concateno el path con el indice y el path de los archivos
+	char *indicePath = string_new();
+
+	// Entro al directorio de nombre:  numero de indice (Si no existe)
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+
+	// Concateno el path con el nombre del archivo
+	string_append(&indicePath, "/");
+	string_append(&indicePath, name);
+
+	// Abro el archivo de configuracion que tiene la tabla del archivo
+	char *pathArchivoConfig = string_new();
+	string_append(&pathArchivoConfig, directorioRaiz);
+	string_append(&pathArchivoConfig, indicePath);
+	contenidoLeido = string_new();
+	FILE *in;
+	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+		log_error(log, "No se encontro el archivo");
+		contenidoLeido = "Error";
+	}else{
+		t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+		char **nodoYBloque = malloc(sizeof(char*)*2);
+		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+		int socketOriginal = -1;
+		int socketCopia = -1;
+		int ok = 1;
+		int i = 0;
+		while(ok == 1){
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+				// Agarro el tamanio del bloque
+				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+				// Pido el original
+				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
+
+				socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
+				if(socketOriginal != -1){
+					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
+					sem_post(&binaryContenidoServidor);
+					sem_wait(&binaryContenidoConsola);
+
+				}
+
+			}
+
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+
+				// Agarro el tamanio del bloque
+				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
+				// Pido la copia
+				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloqueCopia[0],4) , nodoYBloqueCopia[1], i);
+
+				int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
+				if(socketCopia != -1){
+					send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
+					sem_post(&binaryContenidoServidor);
+					sem_wait(&binaryContenidoConsola);
+
+				}
+			}
+
+
+			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				ok = 0;
+			}
+
+			if(ok != 0 && socketOriginal != -1 && socketCopia != -1){
+				log_error(log, "Los sockets no estan disponibles");
+				contenidoLeido = "Error";
+			}
+
+			i++;
+		}
+
+		free(nodoYBloque);
+		free(nodoYBloqueCopia);
+		free(archivo_configuracion);
 		fclose(in);
 	}
 	return contenidoLeido;

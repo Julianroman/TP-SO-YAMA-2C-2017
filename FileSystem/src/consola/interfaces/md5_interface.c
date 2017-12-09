@@ -8,8 +8,8 @@ void md5_interface(char **comando){
 	char *rutaTemp = "/home/utnso/archivo.bin";
 
 	char *contenidoRecibido = leerContenidoArchivo(comando[1]);
-		if(string_equals_ignore_case(contenidoRecibido, "Error") == 0){
-
+		if(string_equals_ignore_case(contenidoRecibido, "Error")){
+			puts("Error al intentar leer el archivo (md5)");
 		}
 		else{
 			FILE *archivo;
