@@ -39,11 +39,13 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 			break;
 		case REDUCCION_LOCAL:
 			if(todosLosNodosTerminaronReduccionLocal(job_master->job->id)){
+				job_master->job->etapa = REDUCCION_GLOBAL; //Recien acá sé exactamente que el job está por la etapa de reduccion global
 				realizarReduccionGlobal(job_master);
 			}
 			break;
 		case REDUCCION_GLOBAL:
 			if(terminoRedGlobal(job_master)){
+				job_master->job->etapa = ALMACENAMIENTO;
 				realizarAlmacenadoFinal(job_master);
 			}
 			break;
@@ -74,11 +76,33 @@ Tarea etapaActiva(t_worker* nodo, t_job* job){
 void abortarJob(t_job* job){
 	job->estado = ERROR;
 	log_trace(logYAMA, "JOB TERMINADO ERRONEAMENTE");
+	liberarMemoria(job);
 }
 
 void finalizarCorrectamente(t_job* job){
 	job->estado = EXITO;
 	log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
+	liberarMemoria(t_job* job);
+}
+
+void liberarMemoria(t_job* job){
+	log_trace(logYAMA, "LIBERANDO MEMORIA");
+	void liberar(t_tablaEstados* registro){
+		free(registro);
+	}
+
+	int filtrarPorJob(t_tablaEstados* registro){
+		return registro->job->id == job->id;
+	}
+	t_list* registrosDeJob = list_filter(TablaEstados, (void*)filtrarPorJob);
+	int cantRegistros = list_size(registrosDeJob);
+	int i;
+
+	for(i=0; i < cantRegistros; i++){
+		list_remove_and_destroy_by_condition(TablaEstados, (void*)filtrarPorJob, (void*)liberar);
+	}
+	list_clean_and_destroy_elements(registrosDeJob, (void*)liberar);
+	list_destroy(registrosDeJob);
 }
 
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){

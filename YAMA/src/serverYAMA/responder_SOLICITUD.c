@@ -32,8 +32,8 @@ void res_SOLICITUD_JOB(int socket,void*  data){
 void res_RECIBIR_INFO(int socket, void* data){
 	payload_RESPUESTA_MASTER* infoMaster = data;
 	int buscarJob(t_job_master* job_master){
-			return job_master->master_socket == socket;
-		}
+		return job_master->master_socket == socket;
+	}
 	t_job_master* job_master = list_find(MastersJobs, (void*)buscarJob);
 	if(job_master->master_id == infoMaster->id_master){
 		responderSolicitudMaster(infoMaster, job_master);
