@@ -50,7 +50,8 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 			}
 			break;
 		case ALMACENAMIENTO:
-			log_trace(logYAMA, "Termino correctamente la etapa de almacenamiento. Finalizando JOB");
+			log_trace(logYAMA, "ENCARGADO %d ALMACENAMIENTO FINAL EXITO", infoMaster->id_nodo);
+			log_trace(logYAMA, "Finalizando JOB");
 			finalizarCorrectamente(job_master->job);
 			break;
 		}
@@ -115,6 +116,8 @@ void liberarMemoria(t_job* job){
 		t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
 		list_clean_and_destroy_elements(infoNodo->bloquesAEjecutar, (void*)liberarInfo);
 		list_clean_and_destroy_elements(infoNodo->infoBloques, (void*)liberarInfo);
+		free(infoNodo->job);
+		free(infoNodo);
 	}
 	list_iterate(nodosDisponibles, (void*)liberarNodo);
 }
@@ -356,6 +359,8 @@ void realizarAlmacenadoFinal(t_job_master* job_master){
 	t_tablaEstados* algunNodoConRedGlobalTerminada = list_find(TablaEstados, (void*)getRegistroEstadoRedLocal);
 	t_worker* encargado = getEncargado(job_master->job);
 	send_INFO_ALMACENAMIENTO(job_master->master_socket, encargado->puerto, encargado->ip, algunNodoConRedGlobalTerminada->archivoTemporal, encargado->id);
+	infoNodoPasarAEtapa(getInfoNodo(encargado, job_master->job), ALMACENAMIENTO);
+	log_info(logYAMA, "ENCARGADO %d REALIZANDO ALMACENAMIENTO", encargado->id);
 	// TO DO CARGAR EN LA TABLA DE ESTADOS EL ALMACENAMIENTO
 }
 
@@ -467,7 +472,7 @@ void actualizarEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_m
 }
 
 void actualizarTablaEstados(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
-	if(infoMaster->bloque != 2){ // Si la respuesta es distinta a almacenamiento
+	if(infoMaster->bloque != -2){ // Si la respuesta es distinta a almacenamiento
 		t_tablaEstados* registroEstado = getRegistro(infoMaster, job_master->job->id);
 		if(registroEstado->tarea == TRANSFORMACION){
 			if(infoMaster->estado){
@@ -518,7 +523,7 @@ void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo
 	registroEstado->estado = EN_EJECUCION;
 
 	list_add(TablaEstados, registroEstado);
-	log_trace(logYAMA, "Job %d - Nodo %d - %s - %s", job_master->job->id, nodo->id, castearTarea(etapa), castearEstado(EN_EJECUCION));
+	log_info(logYAMA, "Job %d - Nodo %d - %s - %s", job_master->job->id, nodo->id, castearTarea(etapa), castearEstado(EN_EJECUCION));
 }
 
 t_worker* getNodo(int nodoID){
