@@ -146,6 +146,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	waitpid(pid,&status,0);
 
     	// Creo un archivo
+    	log_info(logger,"Generando archivo...");
     	char* temporalPath = string_from_format("tmp/%s",orden->nombreArchivoTemporal);
 		FILE* fd = fopen(temporalPath,"w+");
 
