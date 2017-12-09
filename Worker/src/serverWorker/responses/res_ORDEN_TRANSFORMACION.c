@@ -77,103 +77,14 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     system(chmodComand);
     log_info(logger,"Script listo para transformar.");
 
+    char* transformationCommand = string_from_format("dd if=data.bin skip=%d count=%d bs=1 | ./%s | sort > tmp/%s", orden -> bloque, orden -> bytesocupados,scriptPath,orden->nombreArchivoTemporal);
+    system(transformationCommand);
 
-    // Cargar archivo a procesar
+	log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden ->bloque),(orden->nombreArchivoTemporal));
 
-    //off_t offset = (orden->bloque) * UNMB;// Seleccion de bloque
-
-    // Abrir archivo y conocer sus propiedades
-    int nodeFD = open(nodePath,O_RDWR);
-    if(nodeFD == -1){
-    	log_error(logger,"No se pudo abrir el data.bin");
-    	exit(1);
-    }
-    struct stat nodeStats;
-    fstat(nodeFD, &nodeStats);
-    //size_t nodeLenght = nodeStats.st_size;
-
-    // Cargarlo en memoria
-    //void * node = mmap(NULL,nodeLenght, PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,0);
-    char * node = leerArchivo(orden -> bytesocupados, orden->bloque,nodeFD);
-    if(node == NULL){
-    	exit(1);
-    }
-
-    //PIPEO INTENSIFIES!!!
-    int pipe_padreAHijo[2];
-    int pipe_hijoAPadre[2];
-
-    pipe(pipe_padreAHijo);
-    pipe(pipe_hijoAPadre);
-
-    int status;
-    // Un buffer para leer
-
-    if ((pid=fork()) == 0 ){
-    	log_info(logger,"Transformando...");
-    	//Hijo
-    	// Copio las pipes que necesito a stdin y stdout
-      	dup2(pipe_padreAHijo[0],STDIN_FILENO);
-      	dup2(pipe_hijoAPadre[1],STDOUT_FILENO);
-
-      	// Ciello lo que no necesito
-       	close( pipe_padreAHijo[1]);
-      	close( pipe_hijoAPadre[0]);
-    	close( pipe_hijoAPadre[1]);
-    	close( pipe_padreAHijo[0]);
-
-    	// Ejecuto el script
-        char *argv[] = {NULL};
-        char *envp[] = {NULL};
-
-        execve(scriptPath, argv, envp);
-        free(scriptPath);
-        exit(1);
-    }else{
-    	//size_t lenght = (orden -> bytesocupados);
-    	//Padre
-    	// Cierro lo que no necesito
-    	close( pipe_padreAHijo[0] );
-    	close( pipe_hijoAPadre[1] );
-
-    	// Escribo
-		write(pipe_padreAHijo[1],node,orden -> bytesocupados);
-
-    	// Cierro pipe
-    	close( pipe_padreAHijo[1]);
-
-    	// Espero al hijo
-    	waitpid(pid,&status,0);
-
-    	// Creo un archivo
-    	log_info(logger,"Generando archivo...");
-    	char* temporalPath = string_from_format("tmp/%s",orden->nombreArchivoTemporal);
-		FILE* fd = fopen(temporalPath,"w+");
-
-    	// Leo de a un char
-    	char bufferTemp;
-		// Leo de la pipe y escribo en el archivo
-    	while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			fputc(bufferTemp,fd);
-    	}
-
-    	// Cierro todito
-    	close(pipe_hijoAPadre[0]);
-		fclose(fd);
-	    //remove(scriptPath);
-
-	    // Ordeno el archivo
-	    char* sortCommand = string_from_format("sort %s -o %s",temporalPath,temporalPath);
-	    system(sortCommand);
-	    free(sortCommand);
-		free(temporalPath);
-
-		log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden ->bloque),(orden->nombreArchivoTemporal));
-
-	    // Esito
-		send_EXITO_OPERACION(socket_cliente);
-		exit(EXIT_SUCCESS);
-    }
+	// Esito
+	send_EXITO_OPERACION(socket_cliente);
+	exit(EXIT_SUCCESS);
 
 };
 
