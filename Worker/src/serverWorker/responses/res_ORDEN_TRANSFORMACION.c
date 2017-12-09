@@ -25,6 +25,31 @@
 extern t_log* logger;
 extern char* nodePath;
 
+char *leerArchivo(int size, int nroBloque){
+	int offset = TAMANIOBLOQUE * nroBloque;
+	int archivo;
+	if (!(archivo = fopen(pathDataBin, "r"))){
+		crearDataBin();
+	}
+	char* lectura = malloc(size);
+	archivo = open(pathDataBin, O_RDONLY);
+	char * map;
+	if((map = mmap((caddr_t)0, size, PROT_READ, MAP_SHARED, archivo, offset)) == MAP_FAILED){
+		log_error(logger,"No se pudo mappear archivo");
+	}
+	memcpy(lectura, map, size);
+	if (munmap(map, size) == -1)
+	{
+		log_error(logger, "No se pudo liberar el map");
+	}
+	char* mensajeLectura = string_from_format("Lectura completa en el bloque %i -- %i bytes",nroBloque,size);
+	log_trace(logger, mensajeLectura);
+	free(mensajeLectura);
+	//lectura[size] = '\0';
+	close(archivo);
+	return lectura;
+}
+
 void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	pid_t pid = getpid();
 
@@ -67,7 +92,8 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     //size_t nodeLenght = nodeStats.st_size;
 
     // Cargarlo en memoria
-    void * node = mmap(NULL,(orden -> bytesocupados), PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,offset);
+    //void * node = mmap(NULL,nodeLenght, PROT_READ | PROT_WRITE, MAP_SHARED,nodeFD,0);
+    char * node = leerArchivo(orden -> bytesocupados, orden->bloque);
     if(node == NULL){
     	exit(1);
     }
