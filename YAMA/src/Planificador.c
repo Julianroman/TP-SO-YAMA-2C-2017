@@ -82,7 +82,7 @@ void abortarJob(t_job* job){
 void finalizarCorrectamente(t_job* job){
 	job->estado = EXITO;
 	log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
-	liberarMemoria(t_job* job);
+	liberarMemoria(job);
 }
 
 void liberarMemoria(t_job* job){
@@ -90,10 +90,10 @@ void liberarMemoria(t_job* job){
 	void liberar(t_tablaEstados* registro){
 		free(registro);
 	}
-
 	int filtrarPorJob(t_tablaEstados* registro){
 		return registro->job->id == job->id;
 	}
+	// BORRANDO REGISTROS DE LA TABLA DE ESTADOS
 	t_list* registrosDeJob = list_filter(TablaEstados, (void*)filtrarPorJob);
 	int cantRegistros = list_size(registrosDeJob);
 	int i;
@@ -103,6 +103,12 @@ void liberarMemoria(t_job* job){
 	}
 	list_clean_and_destroy_elements(registrosDeJob, (void*)liberar);
 	list_destroy(registrosDeJob);
+
+	// BORRANDO INFO DEL PLANIFICADOR
+	/*void liberarNodo(t_worker* nodo){
+		list_find
+	}
+	list_iterate(nodosDisponibles, (void*)liberarNodo);*/
 }
 
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
