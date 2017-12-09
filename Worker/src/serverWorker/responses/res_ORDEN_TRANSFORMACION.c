@@ -77,7 +77,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     system(chmodComand);
     log_info(logger,"Script listo para transformar.");
 
-    char* transformationCommand = string_from_format("dd if=data.bin skip=%d count=%d bs=1 | ./%s | sort > tmp/%s", orden -> bloque, orden -> bytesocupados,scriptPath,orden->nombreArchivoTemporal);
+    char* transformationCommand = string_from_format("dd if=data.bin skip=%d count=%d bs=1 | ./%s | sort > tmp/%s", (orden -> bloque) * TAMANIOBLOQUE, orden -> bytesocupados,scriptPath,orden->nombreArchivoTemporal);
     system(transformationCommand);
 
 	log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden ->bloque),(orden->nombreArchivoTemporal));
