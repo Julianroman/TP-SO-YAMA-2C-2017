@@ -1,7 +1,7 @@
 Nodo10Total=40
 Nodo10Libres=28
-NODOS=[Nodo10]
-TAMANIO=40
+NODOS=[Nodo1, Nodo10]
+TAMANIO=60
 Nodo1Libres=20
 Nodo1Total=20
-LIBRE=28
+LIBRE=48
