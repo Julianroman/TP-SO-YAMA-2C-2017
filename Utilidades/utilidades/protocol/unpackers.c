@@ -390,3 +390,39 @@ void* unpack_PETICION_TEMPORAL(int socket){
     return (void*)payload;
 };
 
+void* unpack_ALMACENAR_ARCHIVO(int socket){
+
+    payload_ALMACENAR_ARCHIVO *payload= malloc(sizeof(payload_ALMACENAR_ARCHIVO));
+
+    recv(socket,&(payload->tamanio_contenido),sizeof(int),MSG_WAITALL);
+    int  tamanio_contenido = payload->tamanio_contenido;
+
+    char* contenido = malloc(tamanio_contenido);
+    recv(socket,contenido,tamanio_contenido,0);
+    payload->contenido = contenido;
+
+    recv(socket,&(payload->tamanio_pathDestino),sizeof(int),0);
+    int  tamanio_pathDestino = payload->tamanio_pathDestino;
+
+    char* pathDestino = malloc(tamanio_pathDestino);
+    recv(socket,pathDestino,tamanio_pathDestino,0);
+    payload->pathDestino = pathDestino;
+
+    recv(socket,&(payload->tamanio_nombre),sizeof(int),0);
+    int  tamanio_nombre = payload->tamanio_nombre;
+
+    char* nombre = malloc(tamanio_nombre);
+    recv(socket,nombre,tamanio_nombre,0);
+    payload->nombre = nombre;
+
+    recv(socket,&(payload->tamanio_tipo),sizeof(int),0);
+    int  tamanio_tipo = payload->tamanio_tipo;
+
+    char* tipo = malloc(tamanio_tipo);
+    recv(socket,tipo,tamanio_tipo,0);
+    payload->tipo = tipo;
+
+    return (void*)payload;
+
+
+};

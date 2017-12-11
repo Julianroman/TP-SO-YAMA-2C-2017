@@ -33,5 +33,6 @@ void* unpack_UBICACION_BLOQUE(int socket);
 void* unpack_TEMPORAL(int socket);
 void* unpack_PETICION_TEMPORAL(int socket);
 void* unpack_RECHAZO_CONEXION(int socket);
+void* unpack_ALMACENAR_ARCHIVO(int socket);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

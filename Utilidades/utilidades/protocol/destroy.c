@@ -92,6 +92,9 @@ void destroy(HEADER_T header,void* payload){
 		case RECHAZO_CONEXION:
 			destroy_RECHAZO_CONEXION((payload_RECHAZO_CONEXION*) payload);
 		break;
+		case ALMACENAR_ARCHIVO:
+			destroy_ALMACENAR_ARCHIVO((payload_ALMACENAR_ARCHIVO*) payload);
+		break;
 	}
 }
 
@@ -224,6 +227,14 @@ void destroy_PETICION_TEMPORAL(payload_PETICION_TEMPORAL* payload){
 }
 
 void destroy_RECHAZO_CONEXION(payload_RECHAZO_CONEXION* payload){
+	free(payload);
+}
+
+void destroy_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO* payload){
+	free(payload->contenido);
+	free(payload->pathDestino);
+	free(payload->nombre);
+	free(payload->tipo);
 	free(payload);
 }
 

@@ -94,6 +94,9 @@ void* receive(int socket,HEADER_T* cabecera){
         case RECHAZO_CONEXION:
         /* Carece de Payload */
         break;
+        case ALMACENAR_ARCHIVO:
+        payload = unpack_ALMACENAR_ARCHIVO(socket);
+        break;
     }
     (*cabecera) = header;
     return payload;
