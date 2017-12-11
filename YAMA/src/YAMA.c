@@ -71,7 +71,5 @@ void clienteFS(){
 		perror("No se pudo conectar");
 		exit(1);
 	}
-
-	send_PETICION_NODO(SocketFSGlobal, "hola.txt");
 };
 
