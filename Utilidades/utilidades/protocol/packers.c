@@ -737,7 +737,7 @@ char* pack_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO payload,int* tamanio_paqu
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(int);
-    memcpy(paquete+offset,&(payload.tamanio_bloque),tamanio_envio);
+    memcpy(paquete+offset,&(payload.tamanio_contenido),tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = (payload.tamanio_contenido);
