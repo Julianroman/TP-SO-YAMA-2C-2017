@@ -33,5 +33,6 @@ char* pack_UBICACION_BLOQUE(payload_UBICACION_BLOQUE payload,int* tamanio_paquet
 char* pack_TEMPORAL(payload_TEMPORAL payload,int* tamanio_paquete);
 char* pack_PETICION_TEMPORAL(payload_PETICION_TEMPORAL payload,int* tamanio_paquete);
 char* pack_RECHAZO_CONEXION(payload_RECHAZO_CONEXION payload,int* tamanio_paquete);
+char* pack_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO payload,int* tamanio_paquete);
 
 #endif /* UTILIDADES_PROTOCOL_UNPACKERS_H_ */

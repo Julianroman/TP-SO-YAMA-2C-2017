@@ -35,5 +35,6 @@ void destroy_UBICACION_BLOQUE(payload_UBICACION_BLOQUE* payload);
 void destroy_TEMPORAL(payload_TEMPORAL* payload);
 void destroy_PETICION_TEMPORAL(payload_PETICION_TEMPORAL* payload);
 void destroy_RECHAZO_CONEXION(payload_RECHAZO_CONEXION* payload);
+void destroy_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO* payload);
 
 #endif /* UTILIDADES_PROTOCOL_DESTROY_H_ */
