@@ -214,9 +214,13 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
 	if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 		log_error(logYAMA, "Se desconecto el FS.");
-				exit(1);
+		exit(1);
 	}
 
+	if (header == RECHAZO_CONEXION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
+		log_error(logYAMA, "FS no esta estable, me rechazó.");
+		exit(1);
+	}
 	//TODO header de acceso denegado
 
 	if(header == FIN_LISTA){
