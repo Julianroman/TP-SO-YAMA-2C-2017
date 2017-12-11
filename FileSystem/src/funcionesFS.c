@@ -127,8 +127,8 @@ void servidorFs(int puerto){
 						}
 						//char* nombreCliente = inet_ntoa(direccionCliente.sin_addr);
 						//vector[cliente]= "0";
-						char* mensaje = "Bienvenido a FS!!";
-						send(cliente, mensaje, strlen(mensaje), 0);
+						//char* mensaje = "Bienvenido a FS!!";
+						//send(cliente, mensaje, strlen(mensaje), 0);
 					}
 				} else {
 					// gestionar datos de un cliente
@@ -138,6 +138,9 @@ void servidorFs(int puerto){
 
 						if(cabecera == PRESENTACION_DATANODE){
 							//if(esEstadoEstable() == 1){
+								char* mensaje = "Bienvenido a FS!!";
+								send(i, mensaje, strlen(mensaje), 0);
+
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
 								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
@@ -147,6 +150,9 @@ void servidorFs(int puerto){
 
 
 								inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, puntero);
+
+								// Informo si es estado estable
+								esEstadoEstable();
 							//}else{
 								//TODO eliminar si no es nodo necesario para estado estable
 
@@ -155,19 +161,20 @@ void servidorFs(int puerto){
 
 
 						}else if(cabecera == PETICION_NODO){
-							// TODO:
-							//if(esEstadoEstable() == 1){
+							// TODO: Rechazo al YAMA si no esta estable
+							if(esEstadoEstable() == 1){
 								payload_PETICION_NODO *payload = data;
 								socketYama = i;
 								leerArchivo(payload->nombreArchivo);
-							/*}else{
-								char* mensaje = "No es estable. Se desconectara.";
+							}else{
+								char* mensaje = "Acceso Denegado";
 								send(i, mensaje, strlen(mensaje), 0);
+								send_FIN_COMUNICACION(i);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
-								log_trace(log, "Se desconecto el YAMA");
+								log_trace(log, "Se desconecto el YAMA. Estado NO estable");
 
-							}*/
+							}
 
 						}else if (cabecera == FIN_COMUNICACION) {
 
@@ -182,16 +189,6 @@ void servidorFs(int puerto){
 								log_trace(log, "Se desconecto el YAMA");
 							}
 
-
-							// error o conexión cerrada por el cliente //TODO
-							/*if(cabecera == PRESENTACION_DATANODE){
-								payload_PRESENTACION_DATANODE * payload = data;
-								printf("El DataNode %d se desconectó\n", payloadCliente->id_dataNode);
-								desconectarNodo(payloadCliente->id_dataNode);
-							}else if(cabecera == PETICION_NODO){
-								// TODO:
-								printf("El YAMA %d se desconectó\n", payloadCliente->id_dataNode);
-							}*/
 							close(i); // bye!
 							FD_CLR(i, &master); // eliminar del conjunto maestro
 						} else if(cabecera == BLOQUE){
@@ -237,10 +234,18 @@ t_bloque_libre *traerBloquesLibres() {
 	}
 	// TODO: chequear que haya espacio
 
-	retVal[0].nodo = list_get(listaDeNodos,nMayor);
-	retVal[0].bloque = proximoBloqueLibre(retVal[0].nodo);
-	//Modifico el bitmap del nodo
-	escribirBloqueLibre(retVal[0].nodo, retVal[0].bloque);
+	if(nMayor != -1){
+		retVal[0].nodo = list_get(listaDeNodos,nMayor);
+		retVal[0].bloque = proximoBloqueLibre(retVal[0].nodo);
+		if(retVal[0].bloque != -1){
+			// Modifico el bitmap del nodo
+			escribirBloqueLibre(retVal[0].nodo, retVal[0].bloque);
+		}else{
+			log_error(log, "No se pudo escribir el bloque libre. Bloque %i", retVal[0].bloque);
+		}
+	}else{
+		log_error(log, "No hay nodos con bloques libres");
+	}
 
 	// Busco otro nodo con la mayor cantidad de bloques libres pero que sea distinto al anterior
 	// El nodo con mayor cantidad de bloques libres (que no sea igual al primero)
@@ -262,14 +267,22 @@ t_bloque_libre *traerBloquesLibres() {
 				}
 			}
 		}
-		retVal[1].nodo = list_get(listaDeNodos,nSegundoMayor);
-		retVal[1].bloque = proximoBloqueLibre(retVal[1].nodo);
+
 		//Modifico el bitmap del nodo
-		// TODO: verificar que no sea -1
-		escribirBloqueLibre(retVal[1].nodo, retVal[1].bloque);
+		// TODO: PROBAR
+		if(nSegundoMayor != -1){
+			retVal[1].nodo = list_get(listaDeNodos,nSegundoMayor);
+			retVal[1].bloque = proximoBloqueLibre(retVal[1].nodo);
+			if(retVal[1].bloque != -1){
+				escribirBloqueLibre(retVal[1].nodo, retVal[1].bloque);
+			}else{
+				log_error(log, "No se pudo escribir el bloque libre. Bloque %i", retVal[1].bloque);
+			}
+		}else{
+			log_error(log, "No hay nodos con bloques libres");
+		}
+
 	}
-
-
 
 	return retVal;
 }
@@ -378,7 +391,6 @@ static t_list *cortar_modo_texto(FILE *in){
 
 		log_trace(log, "Fin corte archivo de texto. Total: %i bloques", bloq);
 
-		//fclose(in);
 	}
 	return retVal;
 }
@@ -510,20 +522,26 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 		config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
 
 		int i;
-		// Itero entre las paginas de la lista y se las mando a dataNode
-		for ( i=0; i<list_size(lista_de_paginas); i++){
-			t_pagina *pagina = list_get(lista_de_paginas, i);
-			char* bloqueNro = string_new();
-			string_append(&bloqueNro, "BLOQUE");
-			string_append(&bloqueNro, string_itoa(i));
-			string_append(&bloqueNro, "BYTES");
-			config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
-			enviarADataNode(pagina, fileExport, i);
-			free(pagina->contenido);
-			free(pagina);
-			//free(bloqueNro);
-
+		// Itero entre las paginas de la lista y se las mando a dataNode (Si hay espacio)
+		// TODO probar
+		if( cantidadTotalBloquesLibres() >= list_size(lista_de_paginas)){
+			for ( i=0; i<list_size(lista_de_paginas); i++){
+				t_pagina *pagina = list_get(lista_de_paginas, i);
+				char* bloqueNro = string_new();
+				string_append(&bloqueNro, "BLOQUE");
+				string_append(&bloqueNro, string_itoa(i));
+				string_append(&bloqueNro, "BYTES");
+				config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
+				enviarADataNode(pagina, fileExport, i);
+				free(pagina->contenido);
+				free(pagina);
+				//free(bloqueNro);
+			}
+		}else{
+			log_error(log, "No hay suficiente espacio para almacenar el archivo.");
 		}
+
+
 
 
 		config_save(fileExport);
@@ -543,7 +561,6 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 }
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode, int tamanioBloque){
-	// TODO enviar tamanio
 	send_UBICACION_BLOQUE(socketYama, ipDatanode , 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia, tamanioBloque);
 }
 
@@ -604,7 +621,7 @@ void leerArchivo(char *pathConNombre){
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				// TODO: Enviar a YAMA
+				// Se envia a YAMA
 				int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
 				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
 			}
@@ -616,7 +633,7 @@ void leerArchivo(char *pathConNombre){
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				// TODO: Enviar a YAMA
+				// Se envia a YAMA
 				int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
 				enviarAYama(nroNodoCopia, atoi(nodoYBloque[1]), i, 1, getIpNodoByName(nroNodoCopia), tamanioBloque);
 			}
@@ -633,6 +650,93 @@ void leerArchivo(char *pathConNombre){
 		free(archivo_configuracion);
 		fclose(in);
 		send_FIN_LISTA(socketYama);
+	}
+}
+
+void getInfoArchivo(char *pathConNombre){
+	// Para leer la tabla de archivos
+	// Separo el path con las /
+
+	char **arrayPath = string_split(pathConNombre, "/");
+	int cant = 0;
+	while(arrayPath[cant] != NULL ){
+		cant++;
+	}
+
+	// Agarro el nombre sin la extension
+	char *name = string_new();
+	name = arrayPath[cant - 1];
+
+	/*if(string_contains(name, ".")){
+		name = string_substring_until(name, strlen(name) - 4);
+	}*/
+
+	// Busco el indice de la carpeta de destino
+	int indice = findDirByname(arrayPath[cant - 2]);
+	// Concateno el path con el indice y el path de los archivos
+	char *indicePath = string_new();
+
+	// Entro al directorio de nombre:  numero de indice (Si no existe)
+	string_append(&indicePath, pathArchivos);
+	string_append(&indicePath, string_itoa(indice));
+
+	// Concateno el path con el nombre del archivo
+	string_append(&indicePath, "/");
+	string_append(&indicePath, name);
+
+	// Abro el archivo de configuracion que tiene la tabla del archivo
+	char *pathArchivoConfig = string_new();
+	string_append(&pathArchivoConfig, directorioRaiz);
+	string_append(&pathArchivoConfig, indicePath);
+
+	FILE *in;
+	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+		log_error(log, "No se encontro el archivo");
+	}else{
+		t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+		char **nodoYBloque = malloc(sizeof(char*)*2);
+		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+
+		if(config_has_property(archivo_configuracion ,"TAMANIO")){
+			log_info(log, "TAMANIO: %i", config_get_int_value(archivo_configuracion ,"TAMANIO"));
+		}
+		if(config_has_property(archivo_configuracion ,"TIPO")){
+			log_info(log, "TIPO: %s", config_get_string_value(archivo_configuracion ,"TIPO"));
+		}
+
+		int ok = 1;
+		int i = 0;
+		while(ok == 1){
+
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iBYTES", i))){
+				log_info(log, "Bloque %i", i);
+				log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i)));
+			}
+
+
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+				log_info(log, "ORIGINAL: %s -- Bloque %s\n", nodoYBloque[0], nodoYBloque[1], i);
+			}
+
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+				log_info(log, "COPIA: %s -- Bloque %s\n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+
+			}
+
+			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				ok = 0;
+			}
+
+			i++;
+		}
+
+		free(nodoYBloque);
+		free(nodoYBloqueCopia);
+		free(archivo_configuracion);
+		fclose(in);
 	}
 }
 
@@ -960,13 +1064,14 @@ void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo){
 	}
 }
 
-int esEstadoEstable(){ // TODO
+int esEstadoEstable(){
 	// Se fija si todos los nodos estan conectados
 	// Devuelve 0 si no estan todos
 	// Devuelve 1 si esta estable
 
 	if(formateado == 1){
 		//Si recien esta formateado esta estable
+		log_trace(log, "El sistema se encuentra recien formateado ==> ESTABLE");
 		return 1;
 	}else{
 		int estable = 1;
@@ -997,6 +1102,10 @@ int esEstadoEstable(){ // TODO
 			}
 
 			if(todosParaOriginal == -1 && todosParaCopia == -1){
+				estable = 0;
+			}
+
+			if((list_is_empty(nodosNecesarios->nodosOriginal) && todosParaCopia == -1) || (list_is_empty(nodosNecesarios->nodosCopia) && todosParaOriginal == -1)){
 				estable = 0;
 			}
 		}
@@ -1051,7 +1160,6 @@ void nodosARestaurar(){
 									nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, string_from_format("BLOQUE%iCOPIA0", i)));
 
 									printf("Necesito nodo %i para la copia 0 \n", atoi(string_substring_from(nodoYBloque[0],4)));
-									//TODO agregarlo a la struct o a la lista
 
 									agregarNodoAListaSiNoExiste(nodosParaOriginal, string_duplicate(nodoYBloque[0]));
 
@@ -1207,7 +1315,7 @@ int cantidadTotalBloques(){
 		unNodo = list_get(listaDeNodos, i);
 		cantidad += unNodo->cantidadBloques;
 	}
-	log_trace(log,"Total bloques libres: %d", cantidad);
+	log_trace(log,"Total bloques: %d", cantidad);
 	return cantidad;
 }
 

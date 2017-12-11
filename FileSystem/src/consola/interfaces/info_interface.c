@@ -4,6 +4,6 @@
 
 #include <stdio.h>
 
-void info_interface(){
-	printf("comando <info> reconocido / Implementacion en proceso\n");
+void info_interface(char **comando){
+	getInfoArchivo(comando[1]);
 };

@@ -89,6 +89,8 @@ void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia
 
 void leerArchivo(char *pathConNombre);
 
+void getInfoArchivo(char *pathConNombre);
+
 int getSocketNodoByName(int nroNodo);
 
 char *leerContenidoArchivo(char *pathConNombre);
