@@ -16,9 +16,9 @@ void ejecutar_comando(char* linea){
 	// Divido el string en tokens, separando donde haya un espacio
 	// El primer token sera el comando
 	//char* comando = strtok(linea," ");
-	char **comando;
-	if(string_contains(linea," ")){
-		comando = string_split(linea, " ");
+	char **comando = string_split(linea, " ");
+	//if(string_contains(linea," ")){
+
 		if((accion = buscar_interfaz(comando[0]))!=NULL){
 			// ejecuto la interfaz del comando
 			accion(comando);
@@ -27,7 +27,7 @@ void ejecutar_comando(char* linea){
 			fprintf(stderr, "Comando no reconocido.\n");
 		}
 	}
-	else{
+	//else{
 		/*comando = string_duplicate(linea);
 		puts(comando);
 		if((accion = buscar_interfaz(comando))!=NULL){
@@ -37,7 +37,7 @@ void ejecutar_comando(char* linea){
 			// Sino muestro un error
 			printf("Comando desconocido\n");
 		}*/
-		if(strcmp(linea, "format") == 0){
+		/*if(strcmp(linea, "format") == 0){
 			accion = buscar_interfaz(linea);
 			accion(linea);
 		}else{
@@ -47,11 +47,11 @@ void ejecutar_comando(char* linea){
 				fprintf(stderr, "Comando no reconocido.\n");
 			}
 
-		}
+		}*/
 
-	}
+//	}
 
-}
+//}
 
 void init_consola(){
 	char* linea;

@@ -5,6 +5,12 @@
 #include <stdio.h>
 
 void cat_interface(char **comando){
+
+	int cant = 0;
+	while(comando[cant] != NULL){
+		cant++;
+	}
+
 	printf("comando <cat> reconocido / Implementacion en proceso\n");
 
 	char *contenidoRecibido = leerContenidoArchivo(comando[1]);

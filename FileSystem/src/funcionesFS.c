@@ -167,8 +167,6 @@ void servidorFs(int puerto){
 								socketYama = i;
 								leerArchivo(payload->nombreArchivo);
 							}else{
-								char* mensaje = "Acceso Denegado";
-								send(i, mensaje, strlen(mensaje), 0);
 								send_FIN_COMUNICACION(i);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro

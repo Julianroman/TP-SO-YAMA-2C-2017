@@ -5,5 +5,15 @@
 #include <stdio.h>
 
 void info_interface(char **comando){
-	getInfoArchivo(comando[1]);
+	int cant = 0;
+	while(comando[cant] != NULL){
+		cant++;
+	}
+
+	if(cant != 1){
+		fprintf(stderr, "Comando erroneo. Podria probar con: info [path_archivo]");
+	}else{
+		getInfoArchivo(comando[1]);
+	}
+
 };
