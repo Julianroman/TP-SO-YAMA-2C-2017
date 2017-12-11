@@ -217,6 +217,8 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 				exit(1);
 	}
 
+	//TODO header de acceso denegado
+
 	if(header == FIN_LISTA){
 		log_trace(logYAMA, "Se cargaron los nodos correctamente");
 	}

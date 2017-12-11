@@ -130,15 +130,15 @@ void clienteDatanode(const char* ip, int puerto){
 		exit(1);
 	}
 
-	//------- Mensaje de bienvenida del FileSystem ---------------
-	char* buffer = malloc(1000);
-	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
-	buffer[bytesRecibidos] = '\0';
-	printf("FileSystem dice: %s\n", buffer);
-	free(buffer);
-	//------------------------------------------------------------
-
 	send_PRESENTACION_DATANODE(cliente, id, cantidadDeBloques, ipDatanode);
+
+	//------- Mensaje de bienvenida del FileSystem ---------------
+		char* buffer = malloc(1000);
+		int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+		buffer[bytesRecibidos] = '\0';
+		printf("FileSystem dice: %s\n", buffer);
+		free(buffer);
+		//------------------------------------------------------------
 
 	//Aca se queda escuchando para recibir bloques
 	HEADER_T cabecera;
