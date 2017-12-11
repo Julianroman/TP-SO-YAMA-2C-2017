@@ -17,7 +17,8 @@ sem_t binarioFS;
 sem_t binarioSocketFS;
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
+	//char* path = "/home/utnso/tp-2017-2c-Grupo-1---K3525/YAMA/src/yama-config.cfg";
+	char* path = "yama-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	configYAMA = malloc(sizeof(t_yama));
 	configYAMA->FS_PUERTO = config_get_int_value(archivo_configuracion, "FS_PUERTO");
@@ -71,12 +72,6 @@ void clienteFS(){
 		exit(1);
 	}
 
-	//------- Mensaje de bienvenida del FileSystem ---------------
-	char* buffer = malloc(1000);
-	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
-	buffer[bytesRecibidos] = '\0';
-	printf("FileSystem dice: %s\n", buffer);
-	free(buffer);
-	//------------------------------------------------------------
+	send_PETICION_NODO(SocketFSGlobal, "hola.txt");
 };
 
