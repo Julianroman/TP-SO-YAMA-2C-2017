@@ -89,6 +89,9 @@ void destroy(HEADER_T header,void* payload){
 		case PETICION_TEMPORAL:
 			destroy_PETICION_TEMPORAL((payload_PETICION_TEMPORAL*) payload);
 		break;
+		case RECHAZO_CONEXION:
+			destroy_RECHAZO_CONEXION((payload_RECHAZO_CONEXION*) payload);
+		break;
 	}
 }
 
@@ -217,6 +220,10 @@ void destroy_TEMPORAL(payload_TEMPORAL* payload){
 
 void destroy_PETICION_TEMPORAL(payload_PETICION_TEMPORAL* payload){
 	free(payload->nombre);
+	free(payload);
+}
+
+void destroy_RECHAZO_CONEXION(payload_RECHAZO_CONEXION* payload){
 	free(payload);
 }
 

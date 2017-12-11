@@ -91,6 +91,9 @@ void* receive(int socket,HEADER_T* cabecera){
         case PETICION_TEMPORAL:
         payload = unpack_PETICION_TEMPORAL(socket);
         break;
+        case RECHAZO_CONEXION:
+        /* Carece de Payload */
+        break;
     }
     (*cabecera) = header;
     return payload;

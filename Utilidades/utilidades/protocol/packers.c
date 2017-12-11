@@ -681,6 +681,21 @@ char* pack_PETICION_TEMPORAL(payload_PETICION_TEMPORAL payload,int* tamanio_paqu
     return paquete;
 };
 
+char* pack_RECHAZO_CONEXION(payload_RECHAZO_CONEXION payload,int* tamanio_paquete){
+    int tamanio_total = sizeof(HEADER_T);
+    char* paquete = malloc(tamanio_total);
+
+    int offset = 0;
+    int tamanio_envio;
+    HEADER_T cabecera = RECHAZO_CONEXION;
+    tamanio_envio = (sizeof(HEADER_T));
+    memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    (* tamanio_paquete) = tamanio_total;
+    return paquete;
+};
+
 char* pack_ARCHIVO(payload_ARCHIVO payload,int* tamanio_paquete){
     return NULL;
 };

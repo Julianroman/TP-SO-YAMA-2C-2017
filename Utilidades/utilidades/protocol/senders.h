@@ -32,5 +32,6 @@ void send_PETICION_BLOQUE(int socket  , int numero_bloque , int tam_bloque);
 void send_UBICACION_BLOQUE(int socket  , char* ip , int puerto , int numero_nodo , int bloque_nodo , int bloque_archivo , int copia , int tam_bloque);
 void send_TEMPORAL(int socket  , char* contenido);
 void send_PETICION_TEMPORAL(int socket  , char* nombre);
+void send_RECHAZO_CONEXION(int socket );
 
 #endif /* UTILIDADES_PROTOCOL_SENDER_H_ */

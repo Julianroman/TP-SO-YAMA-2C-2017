@@ -333,3 +333,12 @@ void send_PETICION_TEMPORAL(int socket , char* nombre){
     free(paquete);
 };
 
+void send_RECHAZO_CONEXION(int socket){
+    payload_RECHAZO_CONEXION payload;
+
+    int tamanio_paquete;
+    char* paquete = pack_RECHAZO_CONEXION(payload,&tamanio_paquete);
+    enviar_paquete(socket,paquete,tamanio_paquete);
+    free(paquete);
+};
+
