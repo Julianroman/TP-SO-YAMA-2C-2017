@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include <utilidades/socket_utils.h>
+#include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include <commons/config.h>
@@ -32,12 +33,12 @@ char* ipFS;
 t_log* logger;
 char* nodePath = "data.bin";
 
-void leerConfiguracion(char* path, char** ipFS,int* puertoFS){
+void leerConfiguracion(char* path){
 	t_config* archivo_configuracion = config_create(path);
-	*puertoFS = config_get_int_value(archivo_configuracion, "FS_PUERTO");
+	puertoFS = config_get_int_value(archivo_configuracion, "FS_PUERTO");
 	char* pivote = config_get_string_value(archivo_configuracion, "FS_IP");
-	*ipFS = malloc(strlen(pivote)+1);
-	strcpy(*ipFS, pivote);
+	ipFS = malloc(strlen(pivote)+1);
+	strcpy(ipFS, pivote);
 	config_destroy(archivo_configuracion);
 }
 
@@ -54,8 +55,7 @@ int main(int argc, char **argv) {
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
 	// Leer configuracion
-	leerConfiguracion("worker-config.cfg", &ipFS,&puertoFS);
-	log_trace(logger, "Configuracion leida");
+	leerConfiguracion("worker-config.cfg");
 
 	// Creao carpetas (si no existen)
 	struct stat st = {0};
@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
 
 	// Manejo de logs
 	logger = log_create("worker.log", "Worker", true, LOG_LEVEL_TRACE);
+	log_trace(logger, "Configuracion leida");
 
 	log_trace(logger, "Comenzando Worker en el puerto %d\n",puerto);
 
