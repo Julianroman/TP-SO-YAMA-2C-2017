@@ -302,7 +302,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	string_append(&nombreBloque, string_itoa(nroBloque));
 	string_append(&nombreBloque, "COPIA");
 	string_append(&nombreBloque, "0");
-	printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[0].nodo->nroNodo, bloquesLibres[0].bloque);
+	log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[0].nodo->nroNodo, bloquesLibres[0].bloque);
 	string_append(&almacenamientoBloque, "[Nodo");
 	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].nodo->nroNodo));
 	string_append(&almacenamientoBloque, ", ");
@@ -322,7 +322,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 		string_append(&nombreBloque, string_itoa(nroBloque));
 		string_append(&nombreBloque, "COPIA");
 		string_append(&nombreBloque, "1");
-		printf("Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+		log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
 		string_append(&almacenamientoBloque, "[Nodo");
 		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
 		string_append(&almacenamientoBloque, ", ");
@@ -355,6 +355,7 @@ static t_list *cortar_modo_texto(FILE *in){
 
 	if ( in != NULL ) {
 		char* linea;
+		log_trace(log, "Comienza el corte del archivo");
 		while ( (linea = getLine(in)) != NULL ) {
 
 				size_concat = (strlen(text)+strlen(linea))*sizeof(char);
@@ -368,12 +369,13 @@ static t_list *cortar_modo_texto(FILE *in){
 					nodo->contenido = malloc(tamBloque);
 					memcpy(nodo->contenido,text,tamBloque);
 					list_add(retVal, nodo);
-
+					log_trace(log, "Bloque %i completo", bloq);
 					bloq ++;
 					free(text);
 					text = string_new();
 					string_append(&text, linea);
 					tamBloque = 0;
+
 				}
 
 		}
@@ -746,7 +748,7 @@ void leerArchivo(char *pathConNombre){
 		while(ok == 1){
 			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
 				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-				printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+				log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
@@ -758,7 +760,7 @@ void leerArchivo(char *pathConNombre){
 
 			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
 				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-				printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+				log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));

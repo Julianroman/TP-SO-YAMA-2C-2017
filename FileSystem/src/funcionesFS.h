@@ -31,7 +31,7 @@
 
 
 #define TOTALDIRECTORIOS 100
-#define PATHDIRECTORIOS "/home/utnso/Directorios.txt"
+#define PATHDIRECTORIOS "root/Directorios.txt"
 #define PATHBITMAP "root/metadata/bitmaps/"
 
 t_log *log; // Log file

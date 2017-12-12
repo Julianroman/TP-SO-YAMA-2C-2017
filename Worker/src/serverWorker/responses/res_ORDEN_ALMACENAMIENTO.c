@@ -62,7 +62,7 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 
 	char * contenido = leerFinal(input_file_size,temporalPath);
 	int socketFS = crear_conexion(ipFS,puertoFS);
-	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,"root/transformados/",orden->nombreTemporal_ReduccionGlobal,"txt");
+	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,"root",orden->nombreTemporal_ReduccionGlobal,"txt");
 	send_EXITO_OPERACION(socket_cliente);
 	close(socketFS);
 };
