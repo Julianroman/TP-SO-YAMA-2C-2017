@@ -26,9 +26,20 @@
 
 #define PUERTOESCUCHA 5042
 
+int puertoFS;
+char* ipFS;
 
 t_log* logger;
 char* nodePath = "data.bin";
+
+void leerConfiguracion(char* path, char** ipFS,int* puertoFS){
+	t_config* archivo_configuracion = config_create(path);
+	*puertoFS = config_get_int_value(archivo_configuracion, "FS_PUERTO");
+	char* pivote = config_get_string_value(archivo_configuracion, "FS_IP");
+	*ipFS = malloc(strlen(pivote)+1);
+	strcpy(*ipFS, pivote);
+	config_destroy(archivo_configuracion);
+}
 
 int main(int argc, char **argv) {
 	/* -------- DEV-FEATURE ---------------------------------------------- */
@@ -41,6 +52,10 @@ int main(int argc, char **argv) {
 		puerto = PUERTOESCUCHA;
 	}
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
+
+	// Leer configuracion
+	leerConfiguracion("master-config.cfg", &ipFS,&puertoFS);
+	log_trace(logger, "Configuracion leida");
 
 	// Creao carpetas (si no existen)
 	struct stat st = {0};

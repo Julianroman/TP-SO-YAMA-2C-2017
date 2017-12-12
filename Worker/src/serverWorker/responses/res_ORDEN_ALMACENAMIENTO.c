@@ -8,6 +8,7 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <commons/string.h>
 #include <sys/types.h>
@@ -24,7 +25,8 @@
 int TAMANIOBLOQUE = 1048576;
 
 extern t_log* logger;
-extern char* nodePath;
+extern int puertoFS;
+extern char* ipFS;
 
 char *leerFinal(int size, char* path){
 	int offset = 0;
@@ -46,10 +48,10 @@ char *leerFinal(int size, char* path){
 
 void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	log_info(logger, "Respondiendo ORDEN DE ALMACENAMIENTO");
-	payload_ORDEN_ALMACENAMIENTO* payload = data
+	payload_ORDEN_ALMACENAMIENTO* orden = data;
 
 	// Cargar el temporal local
-	char* temporalPath = string_from_format("tmp/%s",orden -> nombre);
+	char* temporalPath = string_from_format("tmp/%s",orden->nombreTemporal_ReduccionGlobal);
 
 	int input_file_size;
 	FILE *input_file = fopen(temporalPath, "rb");
@@ -58,6 +60,9 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	input_file_size = ftell(input_file);
 	fclose(input_file);
 
-	char * contenido = leerArchivo(payload -> nombreTemporal_ReduccionGlobal, int nroBloque, int nodeFD);
+	char * contenido = leerFinal(input_file_size,temporalPath);
+	int socketFS = crear_conexion(ipFS,puertoFS);
+	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,"root/transformados/",orden->nombreTemporal_ReduccionGlobal,"txt");
 	send_EXITO_OPERACION(socket_cliente);
+	close(socketFS);
 };
