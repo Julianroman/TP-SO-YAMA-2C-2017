@@ -22,7 +22,7 @@
 
 #define BUFFERSIZE 1024
 #define UNMB 1048576;
-int TAMANIOBLOQUE = 1048576;
+#define TAMANIOBLOQUE 1048576;
 
 extern t_log* logger;
 extern int puertoFS;
