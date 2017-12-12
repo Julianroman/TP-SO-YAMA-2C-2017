@@ -16,3 +16,7 @@
 [TRACE] 16:03:01:465 Worker/(6874:6874): Comenzando Worker en el puerto 9095
 
 [TRACE] 16:03:01:465 Worker/(6874:6874): Esperando instrucciones
+[TRACE] 16:40:18:382 Worker/(9546:9546): Configuracion leida
+[TRACE] 16:40:18:391 Worker/(9546:9546): Comenzando Worker en el puerto 5042
+
+[TRACE] 16:40:18:391 Worker/(9546:9546): Esperando instrucciones
