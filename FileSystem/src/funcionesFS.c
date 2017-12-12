@@ -348,73 +348,65 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 static t_list *cortar_modo_texto(FILE *in){
 	t_list *retVal = list_create();
 
-	char* text = string_new();
-	int size_concat = 0;
-	int bloq = 1;
-	int tamBloque = 0;
+	int size_bytes;
+	fseek(in,0,SEEK_END);
+	size_bytes = ftell(in);
+	rewind(in);
 
-	if ( in != NULL ) {
-		char* linea;
-		log_trace(log, "Comienza el corte del archivo");
-		while ( (linea = getLine(in)) != NULL ) {
 
-				size_concat = (strlen(text)+strlen(linea))*sizeof(char);
+	char* map;
+	if((map = mmap((caddr_t)0, tamanioBloques, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
+		log_error(log,"Error al mappear archivo\n");
+		return 1;
+	}else{
+		char **mapSeparado = string_split(map, '\n');
+		free(map);
 
-				if(size_concat <= tamanioBloques){
-					string_append(&text, linea);
-					tamBloque = size_concat;
-				}else{
-					t_pagina *nodo = malloc(sizeof(t_pagina));
-					nodo->tamanio = tamBloque;
-					nodo->contenido = malloc(tamBloque);
-					memcpy(nodo->contenido,text,tamBloque);
-					list_add(retVal, nodo);
-					log_trace(log, "Bloque %i completo", bloq);
-					bloq ++;
-					free(text);
-					text = string_new();
-					string_append(&text, linea);
-					tamBloque = 0;
+		int bloq = 1;
+		log_trace(log, "Comienza la separacion de los bloques");
+		int size_concat = 0;
+		int sizeSinConcat = 0;
+		char *textoBloque = string_new();
 
-				}
+		int i = 0;
+		while(mapSeparado[i] != NULL){
+			int sizeSinConcat = size_concat;
+			size_concat += strlen(mapSeparado[i])*sizeof(char) + sizeof(char); // sizeof(/n)
+			if(size_concat >= tamanioBloques){
 
+				t_pagina *nodo = malloc(sizeof(t_pagina));
+				nodo->tamanio = sizeSinConcat;
+				nodo->contenido = malloc(sizeSinConcat);
+				memcpy(nodo->contenido,textoBloque,sizeSinConcat);
+				list_add(retVal, nodo);
+
+				sizeSinConcat = 0;
+				size_concat = strlen(mapSeparado[i])*sizeof(char) + sizeof(char);
+				free(textoBloque);
+				textoBloque = string_new();
+
+			}
+			string_append(&textoBloque, mapSeparado[i]);
+			string_append(&textoBloque, '/n');
 		}
 
-		if(!string_is_empty(text)){
+		if(!string_is_empty(textoBloque)){
 			t_pagina *nodo = malloc(sizeof(t_pagina));
-			nodo->tamanio = tamBloque;
-			nodo->contenido = malloc(tamBloque);
-			memcpy(nodo->contenido,text,tamBloque);
+			nodo->tamanio = size_concat;
+			nodo->contenido = malloc(size_concat);
+			memcpy(nodo->contenido,textoBloque,size_concat);
 			list_add(retVal, nodo);
 
+			sizeSinConcat = 0;
+			size_concat = strlen(mapSeparado[i])*sizeof(char) + sizeof(char);
+			free(textoBloque);
 		}
 
-		free(text);
-
-		log_trace(log, "Fin corte archivo de texto. Total: %i bloques", bloq);
-
 	}
+
 	return retVal;
 }
 
-/*
- * Funcion getLine
- * Objetivo     : traer las lineas del archivo de entrada, hasta un maximo de 1M por linea
- * Entrada      : el archivo del cual leer
- * Salida       : el string (terminado con \0) o NULL en caso de fin de archivo o error
- * Observaciones: el string INCLUYE el fin de linea (n)
- *                abrir y cerrar el archivo es responsabilidad del llamador
-*/
-char* getLine(FILE* in) {
-        // El Buffer para recibir el archivo
-        char currline[tamanioBloques+1];
-
-        if ( fgets(currline,tamanioBloques+1,in) == NULL )
-                return NULL;
-        else
-                // Pido memoria, copio y devuelvo
-                return strdup(currline);
-}
 
 static t_list *cortar_modo_binario(FILE *in){
 	t_list *retVal = list_create();
