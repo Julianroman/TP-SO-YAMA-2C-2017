@@ -226,14 +226,12 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 			// Escribir al pipe
 			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
 			string_append(&proximaEscrituraString,"\n");
-			log_warning(logger,"%s",proximaEscrituraString);
 			write(pipe_padreAHijo[1],proximaEscrituraString,strlen(proximaEscrituraString));
 
 			// Sacar los archivos que ya completaron su contenido
 			proximaEscritura -> index = (proximaEscritura -> index) + 1;
 			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
 			if(proximaEscrituraString == NULL){
-				log_warning(logger,"TEMPORAL EOF");
 				list_remove_and_destroy_element(listaTemporales, indiceProximaEscritura,t_temporal_destroyer);
 			}
 
@@ -257,7 +255,6 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 		// Leo de la pipe y escribo en el archivo
 		char bufferTemp;
 		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			putchar(bufferTemp);
 			putc(bufferTemp, fd);
 		}
 
