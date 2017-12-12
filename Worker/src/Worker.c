@@ -31,14 +31,13 @@ int puertoFS;
 char* ipFS;
 
 t_log* logger;
-char* nodePath = "data.bin";
+char* nodePath;
 
 void leerConfiguracion(char* path){
 	t_config* archivo_configuracion = config_create(path);
 	puertoFS = config_get_int_value(archivo_configuracion, "FS_PUERTO");
-	char* pivote = config_get_string_value(archivo_configuracion, "FS_IP");
-	ipFS = malloc(strlen(pivote)+1);
-	strcpy(ipFS, pivote);
+	ipFS = config_get_string_value(archivo_configuracion, "FS_IP");
+	nodePath = config_get_string_value(archivo_configuracion, "RUTA_DATABIN");
 	config_destroy(archivo_configuracion);
 }
 
