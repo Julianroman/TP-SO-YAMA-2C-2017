@@ -201,7 +201,7 @@ void servidorFs(int puerto){
 							sem_post(&binaryContenidoConsola);
 						} else if(cabecera == ALMACENAR_ARCHIVO){
 							payload_ALMACENAR_ARCHIVO * payload = data;
-							almacenarArchivoWorker(payload xasfsdf);
+							almacenarArchivoWorker(payload->pathDestino, payload->nombre, payload->tipo, payload->contenido, payload->tamanio_contenido);
 						}
 
 					} // Esto es ¡TAN FEO!
