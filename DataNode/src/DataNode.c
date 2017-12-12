@@ -78,22 +78,6 @@ int main(void) {
 	leerConfiguracion();
 	log_trace(logger, "Configuracion leida");
 
-	struct stat st = {0};
-	if (stat("metadata", &st) == -1) { //Si no existe el path, lo creo
-		if(mkdir("metadata", 0700) == 0){
-			log_info(logger,"Se creo el directorio metadata");
-		}
-	}
-
-	/* -------- DEV-FEATURE ---------------------------------------------- */
-	/* Opcion de asignar puerto para multiples nodos en el mismo ordenador */
-
-	/*if (argc==2){
-		char* idString = argv[1];
-		id = atoi(idString);
-	}*/
-	/* -- END / DEV-FEATURE ---------------------------------------------- */
-
 	crearDataBin();
 	/*char* lectura;
 	lectura = leerArchivo(TAMANIOBLOQUE, 8);
@@ -110,11 +94,22 @@ int main(void) {
 
 void crearDataBin(){
 	FILE* archivo;
+	int sizeAnterior;
+	int sizeActual = cantidadDeBloques*TAMANIOBLOQUE;
 	if (!(archivo = fopen(pathDataBin, "r"))){
 		log_trace(logger, "Archivo inexistente se crea.");
 		archivo = fopen(pathDataBin,"w");
-		ftruncate(fileno(archivo),TAMANIOBLOQUE*cantidadDeBloques);
+		ftruncate(fileno(archivo),sizeActual);
 		fclose(archivo);
+	}else{
+		fseek(archivo,0,SEEK_END);
+		sizeAnterior = ftell(archivo);
+		rewind(archivo);
+		if(sizeAnterior != sizeActual){
+			remove(archivo);
+			archivo = fopen(pathDataBin,"w");
+			ftruncate(fileno(archivo),sizeActual);
+		}
 	}
 }
 
@@ -161,7 +156,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 			log_error(logger,"Bloque inexistente, no se puede leer");
 			break;
 		}*/
-		log_trace(logger, "Lectura del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
+		log_trace(logger, "Leyendo del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
 		free(bloque);
@@ -173,7 +168,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 			free(payloadLeer->contenido);
 			break;
 		}*/
-		log_trace(logger, "Escritura en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
+		log_trace(logger, "Escribiendo en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
 	case FIN_COMUNICACION:
