@@ -161,7 +161,7 @@ void servidorFs(int puerto){
 
 
 						}else if(cabecera == PETICION_NODO){
-							// TODO: Rechazo al YAMA si no esta estable
+							// Si el estado no esta estable rechazo al Yama
 							if(esEstadoEstable() == 1){
 								payload_PETICION_NODO *payload = data;
 								socketYama = i;
@@ -233,7 +233,6 @@ t_bloque_libre *traerBloquesLibres() {
 			nBloques = n;
 		}
 	}
-	// TODO: chequear que haya espacio
 
 	if(nMayor != -1){
 		retVal[0].nodo = list_get(listaDeNodos,nMayor);
@@ -1679,7 +1678,7 @@ void printLs(char* path){
 	else{
 		int i;
 		for (i = 0; i < TOTALDIRECTORIOS; i++) {
-			if(tablaDeDirectorios[i].padre == indice){ //TODO faltan los archivos
+			if(tablaDeDirectorios[i].padre == indice){
 				printf("%s ", tablaDeDirectorios[i].nombre );
 			}
 
