@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 	/* -- END / DEV-FEATURE ---------------------------------------------- */
 
 	// Leer configuracion
-	leerConfiguracion("master-config.cfg", &ipFS,&puertoFS);
+	leerConfiguracion("worker-config.cfg", &ipFS,&puertoFS);
 	log_trace(logger, "Configuracion leida");
 
 	// Creao carpetas (si no existen)
