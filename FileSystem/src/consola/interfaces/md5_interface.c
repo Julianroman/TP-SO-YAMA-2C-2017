@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 void md5_interface(char **comando){
-	char *rutaTemp = "/home/utnso/archivo.bin";
+	char *rutaTemp = "/home/utnso/archivoTemp.bin";
 
 	char *contenidoRecibido = leerContenidoArchivo(comando[1]);
 		if(string_equals_ignore_case(contenidoRecibido, "Error")){
@@ -13,7 +13,7 @@ void md5_interface(char **comando){
 		}
 		else{
 			FILE *archivo;
-			archivo = fopen("/home/utnso/archivo.bin", "wb+");
+			archivo = fopen(rutaTemp, "wb+");
 			fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
 
 			free(contenidoRecibido); // TODO: No esta haciendo el free
@@ -22,8 +22,8 @@ void md5_interface(char **comando){
 
 			system(string_from_format("md5sum %s", rutaTemp));
 
-			if(remove(rutaTemp) == -1){
+			//if(remove(rutaTemp) == -1){
 				//No se elimino
-			}
+			//}
 		}
 };

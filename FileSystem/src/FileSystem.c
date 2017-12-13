@@ -59,6 +59,7 @@ int main(int arg, char** argv) {
 	//leerArchivo("/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin");
 
 	//cpfrom /home/utnso root/metadata archivoBinario.bin bin
+	//cpfrom /home/utnso root archivoTexto.txt txt
 	//cat /home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/FileSystem/root/metadata/archivoBinario.bin
 	///home/utnso/testers
 	return EXIT_SUCCESS;

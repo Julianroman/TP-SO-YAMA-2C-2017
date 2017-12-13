@@ -313,7 +313,7 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	//Envio el original al primer nodo
 	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].bloque);
 
-	if(list_size(listaDeNodos) > 1){
+	if(list_size(listaDeNodos) > 1){ //TODO validar que no sea -1
 		// Envio la copia
 		nombreBloque = string_new();
 		almacenamientoBloque = string_new();
@@ -348,63 +348,34 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 static t_list *cortar_modo_texto(FILE *in){
 	t_list *retVal = list_create();
 
-	int size_bytes;
-	fseek(in,0,SEEK_END);
-	size_bytes = ftell(in);
-	rewind(in);
+	int n;
+	char *buffer = malloc(tamanioBloques);
+	int offset = 0;
+	int j = 0;
+	while ( (n=fread(buffer,1,tamanioBloques,in)) > 0 ) {
+		//-----------------------
 
+		j = n;
+		if(n == tamanioBloques){
 
-	char* map;
-	if((map = mmap((caddr_t)0, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
-		log_error(log,"Error al mappear archivo\n");
-		return 1;
-	}else{
-		char **mapSeparado = string_split(map, '\n');
-		if(munmap(map, size_bytes) == -1){
-			log_error(log, "No se pudo liberar el map");
-		}
-
-		int bloq = 1;
-		log_trace(log, "Comienza la separacion de los bloques");
-		int size_concat = 0;
-		int sizeSinConcat = 0;
-		char *textoBloque = string_new();
-
-		int i = 0;
-		while(mapSeparado[i] != NULL){
-			int sizeSinConcat = size_concat;
-			size_concat += strlen(mapSeparado[i])*sizeof(char) + sizeof(char); // sizeof(/n)
-			if(size_concat >= tamanioBloques){
-
-				t_pagina *nodo = malloc(sizeof(t_pagina));
-				nodo->tamanio = sizeSinConcat;
-				nodo->contenido = malloc(sizeSinConcat);
-				memcpy(nodo->contenido,textoBloque,sizeSinConcat);
-				list_add(retVal, nodo);
-
-				sizeSinConcat = 0;
-				size_concat = strlen(mapSeparado[i])*sizeof(char) + sizeof(char);
-				free(textoBloque);
-				textoBloque = string_new();
-
+			while(buffer[j-1] != '\n'){
+				j--;
+				fseek(in,-1,SEEK_CUR);
 			}
-			string_append(&textoBloque, mapSeparado[i]);
-			string_append(&textoBloque, '/n');
+
+		}else{
+			fseek(in,0,SEEK_END);
 		}
 
-		if(!string_is_empty(textoBloque)){
-			t_pagina *nodo = malloc(sizeof(t_pagina));
-			nodo->tamanio = size_concat;
-			nodo->contenido = malloc(size_concat);
-			memcpy(nodo->contenido,textoBloque,size_concat);
-			list_add(retVal, nodo);
-
-			sizeSinConcat = 0;
-			size_concat = strlen(mapSeparado[i])*sizeof(char) + sizeof(char);
-			free(textoBloque);
-		}
-
+		t_pagina *nodo = malloc(sizeof(t_pagina));
+		nodo->tamanio = j;
+		nodo->contenido = malloc(j);
+		memcpy(nodo->contenido, string_substring(buffer, 0, j), j); //TODO
+		list_add(retVal, nodo);
+		printf("Enviado \n");
+		offset += j;
 	}
+	free(buffer);
 
 	return retVal;
 }
