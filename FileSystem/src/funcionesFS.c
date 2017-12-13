@@ -1092,11 +1092,11 @@ char *leerContenidoArchivo(char *pathConNombre){
 				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-				// Pido el original
-				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
 
 				socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 				if(socketOriginal != -1){
+					// Pido el original
+					log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
 					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
 					sem_post(&binaryContenidoServidor);
 					sem_wait(&binaryContenidoConsola);
@@ -1105,17 +1105,16 @@ char *leerContenidoArchivo(char *pathConNombre){
 
 			}
 
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i)) && socketOriginal == -1){
 				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
 
 				// Agarro el tamanio del bloque
 				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				// Pido la copia
-				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloqueCopia[0],4) , nodoYBloqueCopia[1], i);
-
 				int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 				if(socketCopia != -1){
+					// Pido la copia
+					log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", string_substring_from(nodoYBloqueCopia[0],4) , nodoYBloqueCopia[1], i);
 					send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
 					sem_post(&binaryContenidoServidor);
 					sem_wait(&binaryContenidoConsola);
@@ -1131,6 +1130,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 			if(ok != 0 && socketOriginal != -1 && socketCopia != -1){
 				log_error(log, "Los sockets no estan disponibles");
 				contenidoLeido = "Error";
+				ok = 0;
 			}
 
 			i++;
