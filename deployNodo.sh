@@ -50,8 +50,8 @@ generar_configuracion(){
 
 	echo "NUMERO_NODO=$NRONODO" >> "$DATANODEPATH/$DATANODECONFIG"
 
-	echo "RUTA_DATABIN=../../data.bin >> "$DATANODEPATH/$DATANODECONFIG"
-	echo "RUTA_DATABIN=../../data.bin >> "$WORKERPATH/$WORKERCONFIG"
+	echo "RUTA_DATABIN=../../data.bin" >> "$DATANODEPATH/$DATANODECONFIG"
+	echo "RUTA_DATABIN=../../data.bin" >> "$WORKERPATH/$WORKERCONFIG"
 
 
 	echo "Ingrese la cantidad de bloques"
