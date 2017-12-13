@@ -65,7 +65,7 @@ void* rutina_transformacion(void* args){
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	if ( socketWorker == -1){
 		fallosTransformacion ++;
-		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		log_error(logger, "No se puede conectar %s:%d",payload->IP_Worker,payload->PUERTO_Worker);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
 
 	}
