@@ -22,8 +22,8 @@ void md5_interface(char **comando){
 
 			system(string_from_format("md5sum %s", rutaTemp));
 
-			//if(remove(rutaTemp) == -1){
+			if(remove(rutaTemp) == -1){
 				//No se elimino
-			//}
+			}
 		}
 };

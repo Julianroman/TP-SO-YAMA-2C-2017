@@ -372,7 +372,6 @@ static t_list *cortar_modo_texto(FILE *in){
 		nodo->contenido = malloc(j);
 		memcpy(nodo->contenido, string_substring(buffer, 0, j), j); //TODO
 		list_add(retVal, nodo);
-		printf("Enviado \n");
 		offset += j;
 	}
 	free(buffer);
