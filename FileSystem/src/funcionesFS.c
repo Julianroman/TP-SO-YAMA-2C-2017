@@ -355,12 +355,14 @@ static t_list *cortar_modo_texto(FILE *in){
 
 
 	char* map;
-	if((map = mmap((caddr_t)0, tamanioBloques, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
+	if((map = mmap((caddr_t)0, size_bytes, PROT_READ, MAP_SHARED, fileno(in),0)) == MAP_FAILED){
 		log_error(log,"Error al mappear archivo\n");
 		return 1;
 	}else{
 		char **mapSeparado = string_split(map, '\n');
-		free(map);
+		if(munmap(map, size_bytes) == -1){
+			log_error(log, "No se pudo liberar el map");
+		}
 
 		int bloq = 1;
 		log_trace(log, "Comienza la separacion de los bloques");
