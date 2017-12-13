@@ -269,7 +269,8 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 			if(list_any_satisfy(infoWorker->infoBloques, (void*)tieneCopia)){
 				t_infoBloque* bloqueEncontrado = list_find(infoWorker->infoBloques, (void*)tieneCopia);
 				char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloqueEncontrado->bloqueNodo, worker->id);
-				send_INFO_TRANSFORMACION(job_master->master_socket, worker->puerto, worker->ip, bloqueEncontrado->bloqueNodo, 1048576, nombreArchivoTemporal, worker->id);
+				log_warning(logYAMA, "Bloque %i -- Tamaño %i", bloqueEncontrado->bloqueNodo,  bloqueEncontrado->tamanioBloque);
+				send_INFO_TRANSFORMACION(job_master->master_socket, worker->puerto, worker->ip, bloqueEncontrado->bloqueNodo, bloqueEncontrado->tamanioBloque, nombreArchivoTemporal, worker->id); // TODO aca
 				actualizarTablaEstadosConTransformacion(job_master, worker, bloqueEncontrado->bloqueNodo, nombreArchivoTemporal);
 				break;
 			}
