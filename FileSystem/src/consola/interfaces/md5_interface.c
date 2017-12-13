@@ -20,7 +20,9 @@ void md5_interface(char **comando){
 			fclose(archivo);
 
 
-			system(string_from_format("md5sum %s", rutaTemp));
+			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", rutaTemp));
+
+
 
 			if(remove(rutaTemp) == -1){
 				//No se elimino
