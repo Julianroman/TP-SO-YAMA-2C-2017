@@ -30,7 +30,9 @@
 void leerConfiguracion(char* path, char** ipYama,int* puertoYama){
 	t_config* archivo_configuracion = config_create(path);
 	*puertoYama = config_get_int_value(archivo_configuracion, "YAMA_PUERTO");
-	*ipYama = config_get_string_value(archivo_configuracion, "YAMA_IP");
+	char* pivote = config_get_string_value(archivo_configuracion, "YAMA_IP");
+	*ipYama = malloc(strlen(pivote)+1);
+	strcpy(*ipYama, pivote);
 	config_destroy(archivo_configuracion);
 }
 
