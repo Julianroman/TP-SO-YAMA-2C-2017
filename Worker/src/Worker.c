@@ -56,6 +56,9 @@ int main(int argc, char **argv) {
 	// Leer configuracion
 	leerConfiguracion("worker-config.cfg");
 
+	// Vaciar scripts
+	system("rm -r scripts/");
+
 	// Creao carpetas (si no existen)
 	struct stat st = {0};
 	if (stat("scripts", &st) == -1) {
@@ -64,6 +67,8 @@ int main(int argc, char **argv) {
 	if (stat("tmp", &st) == -1) {
 		mkdir("tmp", 0700);
 	}
+
+
 
 
 	// Manejo de logs
