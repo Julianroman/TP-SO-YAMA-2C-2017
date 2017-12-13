@@ -55,7 +55,7 @@ generar_configuracion(){
 	read IPYAMA
 
 	echo "YAMA_IP=$IPYAMA" >> "$YAMAPATH/$YAMACONFIG"
-	echo "YAMA_PUERTO=5040" >> "$YAMAPATH/$YAMACONFIG"
+	echo "YAMA_PUERTO=5041" >> "$YAMAPATH/$YAMACONFIG"
 
 	echo "Ingrese la carga base"
 	echo -n "> "

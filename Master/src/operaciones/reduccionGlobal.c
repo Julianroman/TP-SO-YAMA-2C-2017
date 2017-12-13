@@ -73,6 +73,12 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 
 	// Conectarse al encargado
 	int socketWorker = crear_conexion(payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+	if(socketWorker == -1){
+		// TODO Corregir la info del logger
+		//log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		log_error(logger, "Redux global ERR ");
+		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,0);
+	}
 	send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadEncargado->PUERTO_Worker,payloadEncargado->IP_Worker,payloadEncargado->nombreTemporal_ReduccionLocal,payloadEncargado->nombreTemporal_ReduccionGlobal,payloadEncargado->encargado);
 
 
@@ -101,15 +107,11 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Reduccion global completada en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,1);
-	}
-	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+	} else {
 		// TODO Corregir la info del logger
 		//log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		log_error(logger, "Redux global ERR ");
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,0);
-	}
-	else{
-		log_warning(logger,"No se reconoce la respuesta del worker, HEADER DESCONOCIDO: %d",header);
 	}
 
 

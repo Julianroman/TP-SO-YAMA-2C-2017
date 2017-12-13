@@ -63,6 +63,12 @@ void* rutina_transformacion(void* args){
 
 	// Enviar orden
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
+	if ( socketWorker == -1){
+		fallosTransformacion ++;
+		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
+
+	}
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
 
 	// Enviar script
@@ -73,18 +79,10 @@ void* rutina_transformacion(void* args){
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Transformacion OK %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,1);
-	}
-	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+	}else{
 		fallosTransformacion ++;
 		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
-	}
-	else{
-		fallosTransformacion ++;
-		log_warning(logger,"No se reconoce la respuesta del worker");
-		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
-		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
-		exit(1);
 	}
 	close(socketWorker);
 	// TODO Destruir payload

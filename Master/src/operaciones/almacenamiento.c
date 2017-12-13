@@ -27,6 +27,10 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	log_trace(logger, "Almacenamiento final iniciado");
 	payload_INFO_ALMACENAMIENTO* payload = data;
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
+	if(socketWorker == -1){
+		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
+		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
+	}
 	send_ORDEN_ALMACENAMIENTO(socketWorker,payload->nombreTemporal_ReduccionGlobal);
 
 	HEADER_T header;
@@ -34,13 +38,9 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	if(header == EXITO_OPERACION){
 		log_info(logger, "Almacenamiento de <%s> completado por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,1);
-	}
-	else if(header == FIN_COMUNICACION || header == FRACASO_OPERACION){
+	}else{
 		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
-	}
-	else{
-		log_warning(logger,"No se reconoce la respuesta del worker");
 	}
 
 
