@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 void md5_interface(char **comando){
-	char *rutaTemp = "/home/utnso/archivoTemp.bin";
+	char *rutaTemp = "/home/utnso/archivoTemp.txt";
 
 	char *contenidoRecibido = leerContenidoArchivo(comando[1]);
 		if(string_equals_ignore_case(contenidoRecibido, "Error")){
@@ -13,7 +13,7 @@ void md5_interface(char **comando){
 		}
 		else{
 			FILE *archivo;
-			archivo = fopen(rutaTemp, "wb+");
+			archivo = fopen(rutaTemp, "w+");
 			fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
 
 			free(contenidoRecibido); // TODO: No esta haciendo el free
