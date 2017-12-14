@@ -243,7 +243,7 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 
 		// Espero al hijo
-		waitpid(pid,&status,0);
+		//waitpid(pid,&status,0);
 
 
 		// Creo un archivo

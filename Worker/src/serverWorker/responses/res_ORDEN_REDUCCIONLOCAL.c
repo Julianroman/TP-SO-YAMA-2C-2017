@@ -43,9 +43,6 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 	pid_t pid = getpid();
     char* transformadoPath;
-    t_transformado* transformado;
-    t_list * listaTransformados = list_create();
-    size_t len = 0;
 	payload_ORDEN_REDUCCIONLOCAL* orden = data;
 	HEADER_T cabecera;
 
@@ -56,17 +53,9 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 	// Generar el path
 	transformadoPath = string_from_format("tmp/%s",orden->nombreTemporal_Transformacion);
+	char* transformados = string_new();
+	string_append(&transformados,transformadoPath);
 
-
-	// Cargar nodo
-    transformado = malloc(sizeof(t_transformado));
-    if((transformado -> file = fopen(transformadoPath,"r")) == NULL) puts("NULL FILE");
-    transformado -> lastLine = NULL;
-    	// Recibir linea
-    if(getline(&(transformado -> lastLine),&len,transformado -> file) != -1){
-		// Agregarlo a la lista si tiene contenido
-		list_add(listaTransformados,transformado);
-    }
 
     // Destruir orden cuando no la uso
 	destroy_ORDEN_REDUCCIONLOCAL(orden);
@@ -77,18 +66,8 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 		// Generar el path
 		transformadoPath = string_from_format("tmp/%s",orden->nombreTemporal_Transformacion);
-
-		// Cargar nodo
-	    transformado = malloc(sizeof(t_transformado));
-	    if((transformado -> file = fopen(transformadoPath,"r")) == NULL) puts("NULL FILE");
-	    transformado -> lastLine = NULL;
-	    	// Recibir linea
-	    if(getline(&(transformado -> lastLine),&len,transformado -> file) != -1){
-
-			// Agregarlo a la lista si tiene contenido
-			list_add(listaTransformados,transformado);
-	    }
-
+		string_append(&transformados," ");
+		string_append(&transformados,transformadoPath);
 
 	    // Destruir orden cuando no la uso
 		destroy_ORDEN_REDUCCIONLOCAL(orden);
@@ -101,8 +80,7 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 		send_FRACASO_OPERACION(socket_cliente);
 		exit(1);
 	}
-	// Destruyo el fin de lista
-	// WARNING IMPLEMENTANDO
+	// Destruyo el fin de list
 
 
 	// Recibir script
@@ -132,122 +110,8 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
     system(chmodComand);
 
 
-
-	//PIPEO INTENSIFIES!!!
-	int pipe_padreAHijo[2];
-	int pipe_hijoAPadre[2];
-
-	pipe(pipe_padreAHijo);
-	pipe(pipe_hijoAPadre);
-
-	int status;
-
-
-	if ((pid=fork()) == 0 ){
-		// ************* HIJO ************* //
-
-
-		// Copio las pipes que necesito a stdin y stdout
-		dup2(pipe_padreAHijo[0],STDIN_FILENO);
-		dup2(pipe_hijoAPadre[1],STDOUT_FILENO);
-
-
-		// Ciello lo que no necesito
-		close( pipe_padreAHijo[1]);
-		close( pipe_hijoAPadre[0]);
-		close( pipe_hijoAPadre[1]);
-		close( pipe_padreAHijo[0]);
-
-
-		// Ejecuto el script
-		char *argv[] = {NULL};
-		char *envp[] = {NULL};
-		execve(scriptPath, argv, envp);
-		exit(1);
-
-
-		// *********** END HIJO ************ //
-	}else{
-		// ************* PADRE ************* //
-
-
-		// Cierro lo que no necesito
-		close( pipe_padreAHijo[0] );
-		close( pipe_hijoAPadre[1] );
-
-
-		// APAREO & ESCRITURA
-		int running = 1;
-		int comparaciones;
-		int i;
-		t_transformado* candidatoAEscribir;
-		t_transformado* transformadoAEscribir;
-		int indiceProximaEscritura;
-
-		while (running){
-			comparaciones = list_size(listaTransformados);
-			// Si ya agotamos todos los archivos termina el apareo/escritura
-			if(comparaciones == 0){running = 0;break;}
-
-			// Selecciono el proximo a escribir
-			for(i = 0; i < comparaciones ; i++){
-				candidatoAEscribir = list_get(listaTransformados,i);
-				if(i==0){
-					transformadoAEscribir = candidatoAEscribir;
-					indiceProximaEscritura = i;
-					break;
-				}
-				if(strcmp(candidatoAEscribir -> lastLine, transformadoAEscribir-> lastLine) <= 0){
-					transformadoAEscribir = candidatoAEscribir;
-					indiceProximaEscritura = i;
-				}
-			}
-
-
-			// Escribir al pipe
-			write(pipe_padreAHijo[1],transformadoAEscribir->lastLine,strlen(transformadoAEscribir->lastLine));
-
-			// Sacar los archivos que ya completaron su contenido
-			if(getline(&(transformadoAEscribir -> lastLine),&len,transformadoAEscribir -> file) == -1){
-				list_remove_and_destroy_element(listaTransformados, indiceProximaEscritura,t_transformado_destroyer);
-			}
-		}
-
-
-		// Cierro pipe
-		close( pipe_padreAHijo[1]);
-
-
-		// Espero al hijo
-		waitpid(pid,&status,0);
-
-
-		// Creo un archivo
-		char* temporalPath = string_from_format("tmp/%s",nombreReduccionLocal);
-		FILE* fd = fopen(temporalPath,"w+");
-		free(temporalPath);
-
-
-		// Leo de la pipe y escribo en el archivo
-		char bufferTemp;
-		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			putc(bufferTemp, fd);
-		}
-
-
-		// Cierro todito
-		close(pipe_hijoAPadre[0]);
-		fclose(fd);
-		remove(scriptPath);
-
-
-		// Esito
-		log_trace(logger,"Reduccion local OK");
-		send_EXITO_OPERACION(socket_cliente);
-		exit(EXIT_SUCCESS);
-
-		// ********** END PADRE ************ //
-	}
+    char* comandoReduccion = string_from_format("sort -m %s > %s",transformados,nombreReduccionLocal);
+    system(comandoReduccion);
 
 
 };
