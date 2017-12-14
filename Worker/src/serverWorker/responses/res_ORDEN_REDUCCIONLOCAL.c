@@ -110,7 +110,7 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
     system(chmodComand);
 
 
-    char* comandoReduccion = string_from_format("sort -m %s > %s",transformados,nombreReduccionLocal);
+    char* comandoReduccion = string_from_format("sort -m %s | ./%s > /tmp/%s",transformados,scriptPath,nombreReduccionLocal);
     system(comandoReduccion);
 
 
