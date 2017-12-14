@@ -40,17 +40,6 @@ char* temporalToChar(char* path){
 	return file_contents;
 }
 
-typedef struct{
-	char** array;
-	int index;
-} t_temporal;
-
-void t_temporal_destroyer(void* victima){
-	t_temporal* temporal = victima;
-	free(temporal -> array);
-	free(temporal);
-}
-
 void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 	log_info(logger, "Respondiendo ORDEN DE REDUCCION GLOBAL");
@@ -63,14 +52,10 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	char* nombreReduccionGlobal = orden -> nombreTemporal_ReduccionGlobal;
 
 	// Cargar el temporal local
-	char* temporalPath = string_from_format("tmp/%s",orden -> nombreTemporal_ReduccionLocal);
-	char* temporalContents = temporalToChar(temporalPath);
-	free(temporalPath);
-
-	t_temporal* temporal = malloc(sizeof(t_temporal));
-	temporal -> array = string_split(temporalContents, "\n");
-	temporal -> index = 0;
-	list_add(listaTemporales,temporal);
+	char* temporalPaths = string_from_format("tmp/%s",orden -> nombreTemporal_ReduccionLocal);
+	char* temporalPath;
+	int i = 0;
+	FILE* temporal;
 
 
 	orden = receive(socket_cliente,&header);
@@ -85,24 +70,26 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 		// Recibir
 		temporalPayload = receive(socketSubordinado,&header);
-		temporal = malloc(sizeof(t_temporal));
-		temporal -> index = 0;
-
-		// Dividir
-		char* stringTemporal = realloc((temporalPayload -> contenido),(temporalPayload->tamanio_bloque)+1);
-		stringTemporal[temporalPayload->tamanio_bloque] = '\0';
-		temporal -> array = string_split(stringTemporal, "\n");
-
-		// Destruir payload
-		//destroy_TEMPORAL(temporalPayload);
-
 		log_info(logger, "Temporal recibido");
 
 		//Guardar
-		list_add(listaTemporales,temporal);
+		temporalPath = string_from_format("tmp/received_temporal%d",i);
+		temporal = fopen(temporalPath,"w+");
+	    fwrite(temporalPayload -> contenido,1,temporalPayload ->tamanio_bloque, temporal);
+	    log_info(logger, "Temporal guardado");
+
+	    // Agregar temporales recibidos
+	    string_append(&temporalPaths, " ");
+	    string_append(&temporalPaths, temporalPath);
+	    log_info(logger, "Path generado");
+
+		// Destruir payload
+		// destroy_TEMPORAL(temporalPayload);
 
 		// Repeat
+		fclose(temporal);
 		orden = receive(socket_cliente,&header);
+		i++;
 	}
 
 
@@ -130,8 +117,8 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 	// Guardo el script
 	char* contenido = script -> contenido;
-	char* path = string_from_format("scripts/reductor%d", pid);
-    FILE *fp = fopen(path, "ab");
+	char* scriptPath = string_from_format("scripts/reductor%d", pid);
+    FILE *fp = fopen(scriptPath, "ab");
     if (fp != NULL)
     {
         fputs(contenido, fp);
@@ -140,138 +127,17 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
     // Le otorgo permisos de ejecucion
     // la funcion chmod no me estaria funcionando pero el buen system siempre provee
-    char* chmodComand = string_from_format("chmod 777 %s", path);
+    char* chmodComand = string_from_format("chmod 777 %s", scriptPath);
     system(chmodComand);
     free(chmodComand);
 
+    // Ejecutar la transformacion
+    char* comandoReduccion = string_from_format("sort -m %s | ./%s > tmp/%s",temporalPaths,scriptPath,nombreReduccionGlobal);
+    log_info(logger,"Comando: %s\n",comandoReduccion );
+    system(comandoReduccion);
 
-    //PIPEO INTENSIFIES!!!
-	int pipe_padreAHijo[2];
-	int pipe_hijoAPadre[2];
-
-	pipe(pipe_padreAHijo);
-	pipe(pipe_hijoAPadre);
-
-	int status;
-
-
-	if ((pid=fork()) == 0 ){
-		// ************* HIJO ************* //
-
-
-		// Copio las pipes que necesito a stdin y stdout
-		dup2(pipe_padreAHijo[0],STDIN_FILENO);
-		dup2(pipe_hijoAPadre[1],STDOUT_FILENO);
-
-
-		// Ciello lo que no necesito
-		close( pipe_padreAHijo[1]);
-		close( pipe_hijoAPadre[0]);
-		close( pipe_hijoAPadre[1]);
-		close( pipe_padreAHijo[0]);
-
-
-		// Ejecuto el script
-		char *argv[] = {NULL};
-		char *envp[] = {NULL};
-		execve(path, argv, envp);
-		exit(1);
-
-
-		// *********** END HIJO ************ //
-	}else{
-		// ************* PADRE ************* //
-
-
-		// Cierro lo que no necesito
-		close( pipe_padreAHijo[0] );
-		close( pipe_hijoAPadre[1] );
-
-
-		// APAREO & ESCRITURA
-		int running = 1;
-		int comparaciones;
-		int i;
-		t_temporal* proximaEscritura;
-		t_temporal* retador;
-		char* retadorString;
-		char* proximaEscrituraString;
-		int indiceProximaEscritura;
-
-		while (running){
-			comparaciones = list_size(listaTemporales);
-			// Si ya agotamos todos los archivos termina el apareo/escritura
-			if(comparaciones == 0){running = 0;break;}
-
-			// Selecciono el proximo a escribir
-			for(i = 0; i < comparaciones ; i++){
-				// Primero queda como proxima escritura
-				if(i==0){
-					proximaEscritura = list_get(listaTemporales,i);
-					indiceProximaEscritura = i;
-					break;
-				}
-
-				// Buscar el menor
-				retador = list_get(listaTemporales,i);
-				retadorString = (retador -> array)[retador -> index];
-				proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
-				if(strcmp(retadorString,proximaEscrituraString) <= 0){
-					proximaEscritura = retador;
-					indiceProximaEscritura = i;
-				}
-			}
-
-
-			// Escribir al pipe
-			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
-			string_append(&proximaEscrituraString,"\n");
-			write(pipe_padreAHijo[1],proximaEscrituraString,strlen(proximaEscrituraString));
-
-			// Sacar los archivos que ya completaron su contenido
-			proximaEscritura -> index = (proximaEscritura -> index) + 1;
-			proximaEscrituraString = (proximaEscritura -> array)[proximaEscritura -> index];
-			if(proximaEscrituraString == NULL){
-				list_remove_and_destroy_element(listaTemporales, indiceProximaEscritura,t_temporal_destroyer);
-			}
-
-		}
-
-
-		// Cierro pipe
-		close( pipe_padreAHijo[1]);
-
-
-		// Espero al hijo
-		//waitpid(pid,&status,0);
-
-
-		// Creo un archivo
-		char* temporalPath = string_from_format("tmp/%s",nombreReduccionGlobal);
-		FILE* fd = fopen(temporalPath,"w+");
-		free(temporalPath);
-
-
-		// Leo de la pipe y escribo en el archivo
-		char bufferTemp;
-		while(0 != read( pipe_hijoAPadre[0], &bufferTemp, 1)){
-			putc(bufferTemp, fd);
-		}
-
-
-		// Cierro todito
-		close(pipe_hijoAPadre[0]);
-		fclose(fd);
-		remove(path);
-
-
-		// Esito
-		log_trace(logger,"Reduccion global OK");
-		send_EXITO_OPERACION(socket_cliente);
-		exit(EXIT_SUCCESS);
-
-		// ********** END PADRE ************ //
-	}
+    log_trace(logger,"Reduccion global OK -> %s generado",nombreReduccionGlobal);
+    send_EXITO_OPERACION(socket_cliente);
 
 
 };
