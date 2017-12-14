@@ -102,7 +102,7 @@ void finalizarCorrectamente(t_job* job){
 void liberarMemoria(t_job* job){
 	log_trace(logYAMA, "LIBERANDO MEMORIA");
 	void liberar(t_tablaEstados* registro){
-		free(registro);
+		//free(registro); // TODO: Saco esto porque rompe
 	}
 	int filtrarPorJob(t_tablaEstados* registro){
 		return registro->job->id == job->id;
@@ -120,17 +120,17 @@ void liberarMemoria(t_job* job){
 
 	// BORRANDO INFO DEL PLANIFICADOR
 	void liberarInfo(t_infoBloque* infoBloque){
-		free(infoBloque);
+		//free(infoBloque); // TODO: Saco esto porque rompe
 	}
 	int getInfo(t_infoNodo* info){
 		return info->job->id = job->id;
 	}
 	void liberarNodo(t_worker* nodo){
-		t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
+		/*t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
 		list_clean_and_destroy_elements(infoNodo->bloquesAEjecutar, (void*)liberarInfo);
 		list_clean_and_destroy_elements(infoNodo->infoBloques, (void*)liberarInfo);
 		free(infoNodo->job);
-		free(infoNodo);
+		free(infoNodo);*/ // TODO: Saco esto porque rompe
 	}
 	list_iterate(nodosDisponibles, (void*)liberarNodo);
 }
@@ -239,6 +239,7 @@ void realizarTransformacion(t_job_master* job_master){
 		for(j=0; j<cantBloques; j++){
 			t_infoBloque* bloque = list_get(infoNodo->bloquesAEjecutar,j);
 			char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloque->bloqueNodo, nodo->id);
+			log_warning(logYAMA, "BloqueNodo %i -- tamaño %i -- BloqueArchivo %i", bloque->bloqueNodo, bloque->tamanioBloque, bloque->bloqueArchivo);
 			send_INFO_TRANSFORMACION(job_master->master_socket, nodo->puerto, nodo->ip, bloque->bloqueNodo, bloque->tamanioBloque, nombreArchivoTemporal, nodo->id);
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque->bloqueNodo, nombreArchivoTemporal);
 			aumentarCarga(nodo);
