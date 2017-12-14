@@ -85,7 +85,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     fclose(temporalFile);
 
     log_info(logger,"Bloque: %d, %d bytes",(orden -> bloque),orden -> bytesocupados);
-    char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s","../../data.bin", scriptPath ,orden->nombreArchivoTemporal);
+    char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
 
     if((system(transformationCommand))==-1){exit(1);};
     log_info(logger,"Comando: %s",transformationCommand);
