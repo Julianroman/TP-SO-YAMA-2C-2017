@@ -90,13 +90,13 @@ Tarea etapaActiva(t_worker* nodo, t_job* job){
 void abortarJob(t_job* job){
 	job->estado = ERROR;
 	log_trace(logYAMA, "JOB TERMINADO ERRONEAMENTE");
-	liberarMemoria(job);
+	//liberarMemoria(job);
 }
 
 void finalizarCorrectamente(t_job* job){
 	job->estado = EXITO;
 	log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
-	liberarMemoria(job);
+	//liberarMemoria(job);
 }
 
 void liberarMemoria(t_job* job){
