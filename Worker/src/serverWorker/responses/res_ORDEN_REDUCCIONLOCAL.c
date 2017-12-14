@@ -114,5 +114,6 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
     system(comandoReduccion);
 
 
+    send_EXITO_OPERACION(socket_cliente);
 };
 
