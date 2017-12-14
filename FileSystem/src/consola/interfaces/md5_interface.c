@@ -13,7 +13,7 @@ void md5_interface(char **comando){
 		}
 		else{
 			FILE *archivo;
-			archivo = fopen(rutaTemp, "w+");
+			archivo = fopen(rutaTemp, "w");
 			fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
 
 			free(contenidoRecibido); // TODO: No esta haciendo el free
