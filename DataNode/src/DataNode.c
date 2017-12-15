@@ -152,10 +152,10 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	switch(cabecera){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
-		/*if(bloqueInvalido(payloadLeer->numero_bloque) == 1){
+		if(bloqueInvalido(payloadLeer->numero_bloque) == 1){
 			log_error(logger,"Bloque inexistente, no se puede leer");
 			break;
-		}*/
+		}
 		log_trace(logger, "Leyendo del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 		bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
 		send_BLOQUE(socket, payloadLeer->tam_bloque, bloque, payloadLeer->numero_bloque);
@@ -163,11 +163,11 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 		break;
 	case BLOQUE:
 		payloadEscribir = data;
-		/*if(bloqueInvalido(payloadLeer->numero_bloque)  == 1){
+		if(bloqueInvalido(payloadLeer->numero_bloque)  == 1){
 			log_error(logger,"Bloque inexistente, no se puede escribir");
-			free(payloadLeer->contenido);
+			free(payloadEscribir->contenido);
 			break;
-		}*/
+		}
 		log_trace(logger, "Escribiendo en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
 		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
