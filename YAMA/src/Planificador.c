@@ -15,6 +15,7 @@
 static int ESTAINICIALIZADO = 0;
 static int idUltimoJobCreado = 0;
 static int cantidadNodosActivos = 0;
+t_list* nodosActivos;
 
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 	usleep(configYAMA->retardoPlanificacion);
@@ -227,7 +228,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 	}
 }
 
-void realizarTransformacion(t_job_master* job_master, t_list* nodosActivos){
+void realizarTransformacion(t_job_master* job_master){
 	int i,j, cantBloques;
 	int cantNodos = list_size(nodosActivos);
 	for(i=0; i<cantNodos;i++){
@@ -393,7 +394,7 @@ t_worker* getEncargado(t_job* job){
 		t_infoNodo* infoNodo = list_find(worker->infoNodos, (void*)getInfoNodoConJob);
 		return infoNodo->encargado == 1;
 	}
-	t_worker* encargado = list_find(nodosDisponibles, (void*)buscarEncargadoDeJob);
+	t_worker* encargado = list_find(nodosActivos, (void*)buscarEncargadoDeJob);
 	return encargado;
 }
 
@@ -622,7 +623,7 @@ void planificacionWClock(t_job_master* job_master){
 			contador = 0;
 		}
 	}
-	t_list* nodosActivos = list_create();
+	nodosActivos = list_create();
 	int bloqueArchivo;
 	int cantidadTotalBloquesArchivo = getTotalBloquesArchivo(job_master->job->id);
 
@@ -656,7 +657,7 @@ void planificacionWClock(t_job_master* job_master){
 		}
 	}
 	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
-	realizarTransformacion(job_master, nodosActivos);
+	realizarTransformacion(job_master);
 
 }
 
