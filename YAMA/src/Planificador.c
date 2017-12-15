@@ -14,6 +14,7 @@
 
 static int ESTAINICIALIZADO = 0;
 static int idUltimoJobCreado = 0;
+static int cantidadReplanificaciones = 0;
 
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
   usleep(configYAMA->retardoPlanificacion);
@@ -51,8 +52,7 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
         }
         break;
       case ALMACENAMIENTO:
-        log_trace(logYAMA, "ENCARGADO %d ALMACENAMIENTO FINAL EXITO", infoMaster->id_nodo);
-        log_trace(logYAMA, "Finalizando JOB");
+        log_trace(logYAMA, "JOB %d - NODO %d - ALMACENAMIENTO - EXITO", job_master->job->id, infoMaster->id_nodo);
         finalizarCorrectamente(job_master);
         break;
       }
@@ -60,11 +60,17 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 
     else { // SI LA OPERACION FUE ERROR
       if(etapaActiva(nodo, job_master->job) == TRANSFORMACION){
-        log_trace(logYAMA, "Replanificando transformacion del Nodo %d ", infoMaster->id_nodo);
-        replanificar(job_master, nodo);
+    	if(cantidadReplanificaciones > 0){
+    		log_trace(logYAMA, "Replanificando transformacion del Nodo %d ", infoMaster->id_nodo);
+    		replanificar(job_master, nodo);
+    	}
+    	else{
+    		log_error(logYAMA, "NO EXISTEN COPIAS DISPONIBLES PARA REPLANIFICAR");
+    		abortarJob(job_master);
+    	}
       }
       else {
-        log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE - Abortando JOB");
+        log_error(logYAMA, "Fallo en etapa NO REPLANIFICABLE");
         abortarJob(job_master);
       }
     }
@@ -88,14 +94,15 @@ Tarea etapaActiva(t_worker* nodo, t_job* job){
 
 void abortarJob(t_job_master* job_master){
   job_master->job->estado = ERROR;
-  log_error(logYAMA, "JOB TERMINADO ERRONEAMENTE");
+  log_error(logYAMA, "JOB %d ABORTADO", job_master->job->id);
   eliminarMaster(job_master->master_id);
   liberarMemoria(job_master->job);
+  exit(1);
 }
 
 void finalizarCorrectamente(t_job_master* job_master){
   job_master->job->estado = EXITO;
-  log_trace(logYAMA, "JOB TERMINADO CORRECTAMENTE");
+  log_trace(logYAMA, "JOB %d TERMINADO CORRECTAMENTE", job_master->job->id);
   eliminarMaster(job_master->master_id);
   liberarMemoria(job_master->job);
 }
@@ -103,7 +110,7 @@ void finalizarCorrectamente(t_job_master* job_master){
 void liberarMemoria(t_job* job){
   log_trace(logYAMA, "LIBERANDO MEMORIA");
   void liberar(t_tablaEstados* registro){
-    free(registro); // TODO: Saco esto porque rompe
+    free(registro);
   }
   int filtrarPorJob(t_tablaEstados* registro){
     return registro->job->id == job->id;
@@ -192,7 +199,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
         infoBloque->copia = bloques->copia;
 
         list_add(infoNodo->infoBloques, infoBloque);
-        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d - JOB %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, infoNodo->job->id);
       }
 
       else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
@@ -246,6 +253,7 @@ void realizarTransformacion(t_job_master* job_master){
     }
   }
   log_trace(logYAMA, "Enviadas todas las transformaciones a los nodos disponibles");
+  cantidadReplanificaciones++;
 }
 
 void replanificar(t_job_master* job_master, t_worker* nodoFallido){
@@ -379,7 +387,7 @@ void realizarAlmacenadoFinal(t_job_master* job_master){
   t_worker* encargado = getEncargado(job_master->job);
   send_INFO_ALMACENAMIENTO(job_master->master_socket, encargado->puerto, encargado->ip, algunNodoConRedGlobalTerminada->archivoTemporal, encargado->id);
   infoNodoPasarAEtapa(getInfoNodo(encargado, job_master->job), ALMACENAMIENTO);
-  log_info(logYAMA, "ENCARGADO %d REALIZANDO ALMACENAMIENTO", encargado->id);
+  log_info(logYAMA, "Job %d - Nodo %d - ALMACENAMIENTO - EN_EJECUCION", job_master->job->id, encargado->id);
 }
 
 t_worker* getEncargado(t_job* job){
@@ -536,7 +544,7 @@ void actualizarTablaEstadosConTransformacion(t_job_master* job_master, t_worker*
   list_add(TablaEstados, registroEstado);
   char* tarea = castearTarea(registroEstado->tarea);
   char* estado = castearEstado(registroEstado->estado);
-  log_info(logYAMA, "Job %d - Nodo %d - Bloque Archivo %d - %s - %s", registroEstado->job->id, registroEstado->nodo->id, registroEstado->bloque, tarea, estado);
+  log_info(logYAMA, "Job %d - Nodo %d - Bloque Nodo %d - %s - %s", registroEstado->job->id, registroEstado->nodo->id, registroEstado->bloque, tarea, estado);
 }
 
 void actualizarTablaEstadosConReduccion(t_job_master* job_master, t_worker* nodo, char* nombreArchivoTemporal, Tarea etapa){
