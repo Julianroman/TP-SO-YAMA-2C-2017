@@ -51,8 +51,8 @@ void escribirArchivo(char* data, int size, int nroBloque);
 char *leerArchivo(int size, int nroBloque);
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
-	//char* path = "nodo-config.cfg";
+	//char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/DataNode/Debug/nodo-config.cfg";
+	char* path = "nodo-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	puertoFs = config_get_int_value(archivo_configuracion, "PUERTO_FILESYSTEM");
 	printf("El puerto FS es: %i \n", puertoFs);
