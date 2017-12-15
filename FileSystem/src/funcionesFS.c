@@ -201,7 +201,7 @@ void servidorFs(int puerto){
 							sem_post(&binaryContenidoConsola);
 						} else if(cabecera == ALMACENAR_ARCHIVO){
 							payload_ALMACENAR_ARCHIVO * payload = data;
-							almacenarArchivoWorker(payload->pathDestino, payload->nombre, payload->tipo, payload->contenido, payload->tamanio_contenido);
+							almacenarArchivoWorker(payload->pathDestino, payload->nombre, payload->tipo, payload->contenido, payload->tamanio_contenido, i);
 						}
 
 					} // Esto es ¡TAN FEO!
@@ -227,7 +227,8 @@ t_bloque_libre *traerBloquesLibres() {
 	for (i = 0; i < list_size(listaDeNodos); i ++){
 		t_nodo *unNodo;
 		unNodo = list_get(listaDeNodos, i);
-		int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques; // TODO cambio
+		int n = bloquesLibresEnNodo(unNodo);
+		//int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;// TODO cambio
 		if ( n > nBloques ){
 			nMayor = i;
 			nBloques = n;
@@ -259,8 +260,8 @@ t_bloque_libre *traerBloquesLibres() {
 			t_nodo *unNodo;
 			unNodo = list_get(listaDeNodos, i);
 			if( i != nMayor){
-				//int n = bloquesLibresEnNodo(unNodo);
-				int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;
+				int n = bloquesLibresEnNodo(unNodo);
+				//int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;
 
 				if ( n > nSegundoBloques ){
 					nSegundoMayor = i;
@@ -527,7 +528,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	return 0;
 }
 
-int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *contenido, int tamanioContenido){
+int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *contenido, int tamanioContenido, int socketRecibido){
 	if(list_size(listaDeNodos) == 0){
 		log_error(log, "No hay nodos conectados");
 	}else{
@@ -576,7 +577,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 
 		char *pathTemp = "root/temp.txt";
 		FILE *archivoTemp;
-		archivoTemp = fopen(pathTemp, "w+");
+		archivoTemp = fopen(pathTemp, "w");
 		fwrite(contenido, tamanioContenido ,1, archivoTemp);
 		fclose(archivoTemp);
 
@@ -649,6 +650,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 		if(remove(pathTemp) == -1){
 			//No se elimino
 		}
+		send_EXITO_OPERACION(socketRecibido);
 	}
 
 
