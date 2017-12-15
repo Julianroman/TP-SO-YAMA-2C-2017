@@ -1067,7 +1067,7 @@ int getSocketNodoByName(int nroNodo){
 
 char *leerContenidoArchivo(char *pathConNombre){
 
-	if(esRutaYamaFSConNombre(pathConNombre)){
+	if(esRutaYamaFSConNombre(pathConNombre)==1){
 		sem_init(&binaryContenidoConsola, 0, 0);
 		sem_init(&binaryContenidoServidor, 0, 0);
 

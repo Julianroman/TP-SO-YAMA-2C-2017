@@ -16,7 +16,9 @@ void md5_interface(char **comando){
 		char *rutaTemp = "archivoTemp.txt";
 
 		char *contenidoRecibido = leerContenidoArchivo(comando[1]);
-		if(string_equals_ignore_case(contenidoRecibido, "Error")){
+		int rec = string_equals_ignore_case(contenidoRecibido, "Error");
+
+		if(rec == 1){
 			puts("Error al intentar leer el archivo (md5)");
 		}
 		else{
@@ -30,9 +32,9 @@ void md5_interface(char **comando){
 
 			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", rutaTemp));
 
-			//if(remove(rutaTemp) == -1){
+			if(remove(rutaTemp) == -1){
 				//No se elimino
-			//}
+			}
 		}
 	}
 
