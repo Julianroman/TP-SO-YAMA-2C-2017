@@ -20,7 +20,7 @@ void cpto_interface(char **comando){
 			}
 			else{
 				FILE *archivo;
-				archivo = fopen(comando[2], "w");
+				archivo = fopen(string_from_format("%s/nombre.txt", comando[2]), "w");
 				fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
 
 				free(contenidoRecibido);

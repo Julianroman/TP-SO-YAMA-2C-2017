@@ -1412,10 +1412,13 @@ int existeEstadoAnterior(){
 
 int nodoPerteneceAEstadoAnterior(int id){
 	int i = 0;
+	log_trace(log, "Antes del while");
 	while(nodosEstadoAnterior[i] != NULL){
+		log_trace(log, "Dentro del while");
 		if(string_equals_ignore_case(string_from_format("Nodo%i", id), nodosEstadoAnterior[i])){
 			return EXITO;
 		}
+		i++;
 	}
 	return FRACASO;
 
@@ -1940,16 +1943,81 @@ void createDirectory(char* path){
 						}
 					}
 					else{
-						log_error(log, "El directorio ya existe o no se pudo crear");
+						//log_error(log, "El directorio ya existe o no se pudo crear");
 					}// hasta aca
 
 					free(padres);
 				}else{
-					log_error(log, "El directorio que intenta crear ya existe");
+					//log_error(log, "El directorio que intenta crear ya existe");
 				}
 
 			}
 			saveTablaDeDirectorios();
+	}
+
+
+}
+
+void createLogicDirectory(char* path){
+	if(string_starts_with(path, "/")){
+		log_error(log, "Error al crear directorio. Se encuentra en root/");
+	}
+	else{
+		char* pathConcat = string_new();
+			string_append(&pathConcat, directorioRaiz);
+			string_append(&pathConcat, path);
+			int indiceDisponible = -1;
+			int j;
+			for(j = (TOTALDIRECTORIOS - 1) ; j >= 0; j--){
+				if(tablaDeDirectorios[j].indice == -1){
+					indiceDisponible = j;
+				}
+			}
+			if(indiceDisponible == -1){
+				log_error(log, "La tabla de directorios esta completa");
+			}else{
+				if(esRutaYamaFSConNombre(pathConcat)){
+					char **padres = string_split(path, "/");
+					//int cant;
+					//cant = strlen(padres) / sizeof(char*); //Length de padres
+					int cant = 0;
+					while(padres[cant] != NULL ){
+						cant++;
+					}
+
+
+					if(findDirByname(padres[cant-1]) == -1){ //Si es -1 no existe
+
+						if(cant == 1){
+							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[0]);
+							tablaDeDirectorios[indiceDisponible].padre = 0;
+						}
+						else{
+							int father;
+							if(strcmp(padres[cant-2], "root") == 0){
+								father = 0;
+							}else{
+								father = findDirByname(padres[cant-2]);
+							}
+
+							tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
+							strcpy(tablaDeDirectorios[indiceDisponible].nombre, padres[cant-1]);
+							tablaDeDirectorios[indiceDisponible].padre = father;
+						}
+
+						log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
+
+						free(padres);
+					}else{
+						log_error(log, "El directorio que intenta crear ya existe");
+					}
+
+				}
+				saveTablaDeDirectorios();
+				}
+
+
 	}
 
 

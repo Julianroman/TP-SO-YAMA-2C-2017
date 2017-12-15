@@ -5,5 +5,5 @@
 #include <stdio.h>
 
 void format_interface(){
-	resetFS();
+	format();
 };
