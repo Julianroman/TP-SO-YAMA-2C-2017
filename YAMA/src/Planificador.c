@@ -23,7 +23,7 @@ void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master){
 
-	if(existeEnLista(infoMaster->id_nodo)){
+	if(existeEnLista(infoMaster->id_nodo, job_master)){
 
 		actualizarEstados(infoMaster, job_master);
 
@@ -74,11 +74,11 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
 	}
 }
 
-int existeEnLista(int nodoID){
+int existeEnLista(int nodoID, t_job_master* job_master){
 	int existe(t_worker* worker){
 		return worker->id == nodoID;
 	}
-	return list_any_satisfy(nodosDisponibles, (void*)existe);
+	return list_any_satisfy(job_master->nodosActivos, (void*)existe);
 }
 
 Tarea etapaActiva(t_worker* nodo, t_job* job){
@@ -255,15 +255,15 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 	int sacarNodoCaido(t_worker* worker){
 		return worker->id != nodoFallido->id;
 	}
-	t_list* nodosActivos = list_filter(nodosDisponibles, (void*)sacarNodoCaido);
+	t_list* nodosNoCaidos = list_filter(job_master->nodosActivos, (void*)sacarNodoCaido);
 
 	for(i=0; i < cantidadBloquesAReplanificar; i++){
 		t_infoBloque* bloqueABuscar = list_get(infoNodo->bloquesAEjecutar, i);
 		int tieneCopia(t_infoBloque* bloqueInfo){
 			return bloqueInfo->bloqueArchivo == bloqueABuscar->bloqueArchivo;
 		}
-		for(j=0; j < list_size(nodosActivos); j++){
-			t_worker* worker = list_get(nodosActivos, j);
+		for(j=0; j < list_size(nodosNoCaidos); j++){
+			t_worker* worker = list_get(nodosNoCaidos, j);
 			t_infoNodo* infoWorker = getInfoNodo(worker, job_master->job);
 			if(list_any_satisfy(infoWorker->infoBloques, (void*)tieneCopia)){
 				t_infoBloque* bloqueEncontrado = list_find(infoWorker->infoBloques, (void*)tieneCopia);
@@ -279,11 +279,8 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 	int nodoConID(t_worker* nodo){
 		return nodo->id == nodoFallido->id;
 	}
-	void eliminarNodo(t_worker* nodo){
-		free(nodo);
-	}
-	list_remove_and_destroy_by_condition(nodosDisponibles, (void*)nodoConID, (void*)eliminarNodo);
-	list_destroy(nodosActivos);
+	list_remove_by_condition(job_master->nodosActivos, (void*)nodoConID);
+	list_destroy(nodosNoCaidos);
 }
 
 t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo){
@@ -341,6 +338,7 @@ void realizarReduccionGlobal(t_job_master* job_master){
 }
 
 t_worker* elegirEncargadoRedGlobal(t_job* job){
+	t_list* nodosActivos = getNodosActivos(job->id);
 	int ordenar(t_worker* nodo1, t_worker* nodo2){
 		if(nodo1->carga == nodo2->carga){
 			return nodo1->cantTareasHistoricas < nodo2->cantTareasHistoricas;
@@ -349,8 +347,8 @@ t_worker* elegirEncargadoRedGlobal(t_job* job){
 			return nodo1->carga < nodo2->carga;
 		}
 	}
-	list_sort(nodosDisponibles, (void*)ordenar);
-	t_worker* worker = list_get(nodosDisponibles, 0);
+	list_sort(nodosActivos, (void*)ordenar);
+	t_worker* worker = list_get(nodosActivos, 0);
 	t_infoNodo* infoNodo = getInfoNodo(worker, job);
 	infoNodo->encargado = 1;
 	return worker;
@@ -644,7 +642,7 @@ void planificacionWClock(t_job_master* job_master){
 					list_add(infoNodo->bloquesAEjecutar, infoBloque);
 					aumentarCarga(workerActual);
 					disminuirDisponibilidad(workerActual);
-					log_trace(logYAMA, "Al worker %d de IP: %s, se le asigno el bloque Archivo %i",workerActual->id, workerActual->ip ,bloqueArchivo);
+					log_trace(logYAMA, "ASIGNADO NODO %d BLOQUE ARCHIVO %i",workerActual->id, bloqueArchivo);
 					int estaEnLista(t_worker* nodito){
 						return nodito->id == workerActual->id;
 					}
