@@ -401,21 +401,21 @@ void* unpack_ALMACENAR_ARCHIVO(int socket){
     recv(socket,contenido,tamanio_contenido,0);
     payload->contenido = contenido;
 
-    recv(socket,&(payload->tamanio_pathDestino),sizeof(int),0);
+    recv(socket,&(payload->tamanio_pathDestino),sizeof(int),MSG_WAITALL);
     int  tamanio_pathDestino = payload->tamanio_pathDestino;
 
     char* pathDestino = malloc(tamanio_pathDestino);
     recv(socket,pathDestino,tamanio_pathDestino,0);
     payload->pathDestino = pathDestino;
 
-    recv(socket,&(payload->tamanio_nombre),sizeof(int),0);
+    recv(socket,&(payload->tamanio_nombre),sizeof(int),MSG_WAITALL);
     int  tamanio_nombre = payload->tamanio_nombre;
 
     char* nombre = malloc(tamanio_nombre);
     recv(socket,nombre,tamanio_nombre,0);
     payload->nombre = nombre;
 
-    recv(socket,&(payload->tamanio_tipo),sizeof(int),0);
+    recv(socket,&(payload->tamanio_tipo),sizeof(int),MSG_WAITALL);
     int  tamanio_tipo = payload->tamanio_tipo;
 
     char* tipo = malloc(tamanio_tipo);
