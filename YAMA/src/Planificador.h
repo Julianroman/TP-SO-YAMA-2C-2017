@@ -48,6 +48,7 @@ int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 void liberarMemoria(t_job* job);
 int existeEnLista(int nodoID);
+t_list* getNodosActivos(int jobID);
 
 // FUNCIONES DE NODO
 t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job);

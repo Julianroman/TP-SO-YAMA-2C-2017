@@ -46,6 +46,7 @@ typedef struct {
 	t_job* job;
 	int master_id;
 	int master_socket;
+	t_list* nodosActivos;
 }t_job_master;
 
 typedef struct {
