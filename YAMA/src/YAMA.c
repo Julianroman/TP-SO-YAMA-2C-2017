@@ -72,4 +72,3 @@ void clienteFS(){
 		exit(1);
 	}
 };
-

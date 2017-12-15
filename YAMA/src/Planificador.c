@@ -14,8 +14,6 @@
 
 static int ESTAINICIALIZADO = 0;
 static int idUltimoJobCreado = 0;
-static int cantidadNodosActivos = 0;
-t_list* nodosActivos;
 
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 	usleep(configYAMA->retardoPlanificacion);
@@ -141,6 +139,7 @@ void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
 		ESTAINICIALIZADO++;
 	}
 	job_master->job = newJob();
+	job_master->nodosActivos = list_create();
 	cargarNodosParaPlanificacion(nombreArchivo, job_master->job);
 }
 
@@ -230,9 +229,9 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
 void realizarTransformacion(t_job_master* job_master){
 	int i,j, cantBloques;
-	int cantNodos = list_size(nodosActivos);
+	int cantNodos = list_size(job_master->nodosActivos);
 	for(i=0; i<cantNodos;i++){
-		t_worker* nodo = list_get(nodosActivos, i);
+		t_worker* nodo = list_get(job_master->nodosActivos, i);
 		t_infoNodo* infoNodo = getInfoNodo(nodo, job_master->job);
 		infoNodoPasarAEtapa(infoNodo, TRANSFORMACION);
 		cantBloques = list_size(infoNodo->bloquesAEjecutar);
@@ -243,7 +242,6 @@ void realizarTransformacion(t_job_master* job_master){
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque->bloqueNodo, nombreArchivoTemporal);
 			aumentarCarga(nodo);
 		}
-		cantidadNodosActivos++;
 	}
 	log_trace(logYAMA, "Enviadas todas las transformaciones a los nodos disponibles");
 }
@@ -253,7 +251,6 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 	t_infoNodo* infoNodo = getInfoNodo(nodoFallido, job_master->job);
 	int cantidadBloquesAReplanificar = list_size(infoNodo->bloquesAEjecutar);
 	int i, j;
-	cantidadNodosActivos--;
 
 	int sacarNodoCaido(t_worker* worker){
 		return worker->id != nodoFallido->id;
@@ -394,8 +391,17 @@ t_worker* getEncargado(t_job* job){
 		t_infoNodo* infoNodo = list_find(worker->infoNodos, (void*)getInfoNodoConJob);
 		return infoNodo->encargado == 1;
 	}
-	t_worker* encargado = list_find(nodosActivos, (void*)buscarEncargadoDeJob);
+
+	t_worker* encargado = list_find(getNodosActivos(job->id), (void*)buscarEncargadoDeJob);
 	return encargado;
+}
+
+t_list* getNodosActivos(int jobID){
+	int buscarPorJob(t_job_master* job_master){
+		return job_master->job->id == jobID;
+	}
+	t_job_master* mastersJobs = list_find(MastersJobs, (void*)buscarPorJob);
+	return mastersJobs->nodosActivos;
 }
 
 int registroTerminoExitosamente(t_tablaEstados* registroEstado){
@@ -411,7 +417,7 @@ int todosLosNodosTerminaronReduccionLocal(int jobID){
 
 	t_list* nodosEnReduccionLocal = list_filter(TablaEstados, (void*)nodoConJOBYReduccionLocal);
 
-	if(cantidadNodosActivos == list_size(nodosEnReduccionLocal)){ // La cantidad de nodos en reduccion local tiene que ser igual a la cantidad de nodos total
+	if(list_size(getNodosActivos(jobID)) == list_size(nodosEnReduccionLocal)){ // La cantidad de nodos en reduccion local tiene que ser igual a la cantidad de nodos activos de ese job
 		if(list_all_satisfy(nodosEnReduccionLocal, (void*)registroTerminoExitosamente)){
 			list_destroy(nodosEnReduccionLocal);
 			return 1;
@@ -623,7 +629,6 @@ void planificacionWClock(t_job_master* job_master){
 			contador = 0;
 		}
 	}
-	nodosActivos = list_create();
 	int bloqueArchivo;
 	int cantidadTotalBloquesArchivo = getTotalBloquesArchivo(job_master->job->id);
 
@@ -643,8 +648,8 @@ void planificacionWClock(t_job_master* job_master){
 					int estaEnLista(t_worker* nodito){
 						return nodito->id == workerActual->id;
 					}
-					if(!list_any_satisfy(nodosActivos, (void*)estaEnLista)){
-						list_add(nodosActivos, workerActual);
+					if(!list_any_satisfy(job_master->nodosActivos, (void*)estaEnLista)){
+						list_add(job_master->nodosActivos, workerActual);
 					}
 					pasarASiguiente();
 					break;
