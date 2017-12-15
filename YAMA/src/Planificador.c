@@ -14,7 +14,7 @@
 
 static int ESTAINICIALIZADO = 0;
 static int idUltimoJobCreado = 0;
-
+static int cantidadNodosActivos = 0;
 
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master){
 	usleep(configYAMA->retardoPlanificacion);
@@ -102,7 +102,7 @@ void finalizarCorrectamente(t_job* job){
 void liberarMemoria(t_job* job){
 	log_trace(logYAMA, "LIBERANDO MEMORIA");
 	void liberar(t_tablaEstados* registro){
-		//free(registro); // TODO: Saco esto porque rompe
+		free(registro); // TODO: Saco esto porque rompe
 	}
 	int filtrarPorJob(t_tablaEstados* registro){
 		return registro->job->id == job->id;
@@ -115,24 +115,23 @@ void liberarMemoria(t_job* job){
 	for(i=0; i < cantRegistros; i++){
 		list_remove_and_destroy_by_condition(TablaEstados, (void*)filtrarPorJob, (void*)liberar);
 	}
-	list_clean_and_destroy_elements(registrosDeJob, (void*)liberar);
 	list_destroy(registrosDeJob);
 
 	// BORRANDO INFO DEL PLANIFICADOR
-	void liberarInfo(t_infoBloque* infoBloque){
+	/*void liberarInfo(t_infoBloque* infoBloque){
 		//free(infoBloque); // TODO: Saco esto porque rompe
 	}
 	int getInfo(t_infoNodo* info){
 		return info->job->id = job->id;
 	}
 	void liberarNodo(t_worker* nodo){
-		/*t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
+		t_infoNodo* infoNodo = list_find(nodo->infoNodos, (void*)getInfo);
 		list_clean_and_destroy_elements(infoNodo->bloquesAEjecutar, (void*)liberarInfo);
 		list_clean_and_destroy_elements(infoNodo->infoBloques, (void*)liberarInfo);
 		free(infoNodo->job);
-		free(infoNodo);*/ // TODO: Saco esto porque rompe
+		free(infoNodo); // TODO: Saco esto porque rompe
 	}
-	list_iterate(nodosDisponibles, (void*)liberarNodo);
+	list_iterate(nodosDisponibles, (void*)liberarNodo);*/
 }
 
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
@@ -244,6 +243,7 @@ void realizarTransformacion(t_job_master* job_master){
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque->bloqueNodo, nombreArchivoTemporal);
 			aumentarCarga(nodo);
 		}
+		cantidadNodosActivos++;
 	}
 	log_trace(logYAMA, "Enviadas todas las transformaciones a los nodos disponibles");
 }
@@ -253,6 +253,7 @@ void replanificar(t_job_master* job_master, t_worker* nodoFallido){
 	t_infoNodo* infoNodo = getInfoNodo(nodoFallido, job_master->job);
 	int cantidadBloquesAReplanificar = list_size(infoNodo->bloquesAEjecutar);
 	int i, j;
+	cantidadNodosActivos--;
 
 	int sacarNodoCaido(t_worker* worker){
 		return worker->id != nodoFallido->id;
@@ -410,7 +411,7 @@ int todosLosNodosTerminaronReduccionLocal(int jobID){
 
 	t_list* nodosEnReduccionLocal = list_filter(TablaEstados, (void*)nodoConJOBYReduccionLocal);
 
-	if(list_size(nodosDisponibles) == list_size(nodosEnReduccionLocal)){ // La cantidad de nodos en reduccion local tiene que ser igual a la cantidad de nodos total
+	if(cantidadNodosActivos == list_size(nodosEnReduccionLocal)){ // La cantidad de nodos en reduccion local tiene que ser igual a la cantidad de nodos total
 		if(list_all_satisfy(nodosEnReduccionLocal, (void*)registroTerminoExitosamente)){
 			list_destroy(nodosEnReduccionLocal);
 			return 1;
@@ -424,7 +425,6 @@ int todosLosNodosTerminaronReduccionLocal(int jobID){
 		list_destroy(nodosEnReduccionLocal);
 		return 0;
 	}
-
 }
 
 int nodoTerminoTransformacion(int idNodo, int jobID){

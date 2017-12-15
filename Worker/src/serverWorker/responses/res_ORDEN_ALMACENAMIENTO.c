@@ -11,6 +11,7 @@
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <commons/string.h>
+#include <commons/config.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,8 +26,6 @@
 #define TAMANIOBLOQUE 1048576;
 
 extern t_log* logger;
-extern int puertoFS;
-extern char* ipFS;
 
 char *leerFinal(int size, char* path){
 	int offset = 0;
@@ -53,16 +52,41 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	// Cargar el temporal local
 	char* temporalPath = string_from_format("tmp/%s",orden->nombreTemporal_ReduccionGlobal);
 
+		// Tamanio de archivo
 	int input_file_size;
 	FILE *input_file = fopen(temporalPath, "rb");
-
 	fseek(input_file, 0, SEEK_END);
 	input_file_size = ftell(input_file);
 	fclose(input_file);
 
+		//Obtener contenido
 	char * contenido = leerFinal(input_file_size,temporalPath);
+
+
+	// Mandar al FS
+		// Recuperar metadata del archivo de configuracion
+	t_config* archivo_configuracion = config_create("worker-config.cfg");
+	int puertoFS = config_get_int_value(archivo_configuracion, "FS_PUERTO");
+	char* ipFS = config_get_string_value(archivo_configuracion, "FS_IP");
+
+	//Conectarse al FS
+	log_info(logger,"Conectandose al FileSystem %s:%d",ipFS,puertoFS);
 	int socketFS = crear_conexion(ipFS,puertoFS);
+	config_destroy(archivo_configuracion);
+
+	// Enviar contenido
 	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,"root",orden->nombreTemporal_ReduccionGlobal,"txt");
-	send_EXITO_OPERACION(socket_cliente);
+	free(contenido);
+
+	// Esperar respuesta
+	receive(socketFS,&header);
+
+	if(header == EXITO_OPERACION){
+		send_EXITO_OPERACION(socketFS);
+	}else{
+		send_FRACASO_OPERACION(socketFS);
+	}
+
+	// Cerrar socket
 	close(socketFS);
 };
