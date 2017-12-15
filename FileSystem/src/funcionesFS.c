@@ -227,7 +227,7 @@ t_bloque_libre *traerBloquesLibres() {
 	for (i = 0; i < list_size(listaDeNodos); i ++){
 		t_nodo *unNodo;
 		unNodo = list_get(listaDeNodos, i);
-		int n = bloquesLibresEnNodo(unNodo);
+		int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques; // TODO cambio
 		if ( n > nBloques ){
 			nMayor = i;
 			nBloques = n;
@@ -259,7 +259,8 @@ t_bloque_libre *traerBloquesLibres() {
 			t_nodo *unNodo;
 			unNodo = list_get(listaDeNodos, i);
 			if( i != nMayor){
-				int n = bloquesLibresEnNodo(unNodo);
+				//int n = bloquesLibresEnNodo(unNodo);
+				int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;
 
 				if ( n > nSegundoBloques ){
 					nSegundoMayor = i;
