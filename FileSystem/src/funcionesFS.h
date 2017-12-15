@@ -107,11 +107,15 @@ int esEstadoEstable();
 
 int existeEstadoAnterior();
 
+int nodoPerteneceAEstadoAnterior(int id);
+
 void initOrRestoreFS();
 
 void initFS();
 
-void formatear();
+void resetFS();
+
+void format();
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo);
 

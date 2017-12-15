@@ -6,7 +6,7 @@
 
 int tamanioBloques = 1048576; // tamaño bloques 1MB
 
-int formateado = 0;
+int cleaned = 0;
 
 t_list *listaDeNodos; // Lista de nodos
 t_directory *tablaDeDirectorios; // Tabla de directorios
@@ -25,7 +25,8 @@ pthread_mutex_t mutexContenido;
 sem_t binaryContenidoServidor;
 sem_t binaryContenidoConsola;
 
-
+int FsFormated = 0;
+char **nodosEstadoAnterior;
 
 t_nodo *nodo_create(int32_t nroNodo, t_bitarray* bitmap, int32_t socket, int32_t cantidadBloques, char *ip) {
 	t_nodo *new = malloc(sizeof(t_nodo));
@@ -60,7 +61,7 @@ void desconectarNodo(int id_dataNode){
 		}
 	}
 
-	actualizarTablaDeNodos();
+	//actualizarTablaDeNodos();
 }
 
 void servidorFs(int puerto){
@@ -150,6 +151,14 @@ void servidorFs(int puerto){
 								//payload tiene toda la info
 								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
+
+								if(FsFormated == 0 || nodoPerteneceAEstadoAnterior(payload->id_dataNode)){
+									//Lo acepto
+									log_info(log, "Acepto al nodo");
+								}else{
+									//Lo rechazo
+									log_error(log, "Rechazo al nodo");
+								}
 								char *puntero = malloc(payload->tamanio_ipDatanode);
 								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
 
@@ -159,7 +168,7 @@ void servidorFs(int puerto){
 								// Informo si es estado estable
 								esEstadoEstable();
 								//Cuando se conecta un nodo deja de estar formateado
-								formateado = 0;
+								cleaned = 0;
 							//}else{
 								//TODO eliminar si no es nodo necesario para estado estable
 
@@ -1199,14 +1208,14 @@ void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo){
 }
 
 int esEstadoEstable(){
-	// Se fija si todos los nodos estan conectados
+	// Se fija si todos los nodos necesarios estan conectados
 	// Devuelve 0 si no estan todos
 	// Devuelve 1 si esta estable
 
-	if(formateado == 1){
+	if(FsFormated == 0){
 		//Si recien esta formateado esta estable
-		log_trace(log, "El sistema se encuentra recien formateado ==> ESTABLE");
-		return 1;
+		log_trace(log, "El sistema no se encuentra formateado. NO ESTABLE");
+		return 0;
 	}else{
 		if(cantidadTotalDeArchivos()==0){
 			log_trace(log, "El sistema se encuentra ESTABLE");
@@ -1386,25 +1395,42 @@ int existeEstadoAnterior(){
 	struct stat st = {0};
 	if (stat(PATHDIRECTORIOS, &st) == -1) { //Si no existe el path
 		log_info(log, "No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
-		return 1;
+		return 0;
 	}
 	else if(stat(pathTablaNodos, &st) == -1){
 		log_info(log, "No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
-		return 1;
+		return 0;
 	}
 	else{
-		return 0;
+		initTablaDeNodos();
+		nodosEstadoAnterior = config_get_array_value(fileNodos, "NODOS");
+
+		return 1;
 	}
 
 }
 
+int nodoPerteneceAEstadoAnterior(int id){
+	int i = 0;
+	while(nodosEstadoAnterior[i] != NULL){
+		if(string_equals_ignore_case(string_from_format("Nodo%i", id), nodosEstadoAnterior[i])){
+			return EXITO;
+		}
+	}
+	return FRACASO;
+
+
+}
+
+
 void initOrRestoreFS(){
-	if(existeEstadoAnterior() == 1){
-		formatear();
+	if(existeEstadoAnterior() == 0){
+		resetFS();
 	}else{
 		initFS();
 		nodosARestaurar();
 		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
+		FsFormated = 1;
 	}
 }
 
@@ -1427,7 +1453,7 @@ void initFS(){
 	initTablaDeNodos();
 }
 
-void formatear(){
+void resetFS(){
 	system(string_from_format("rm -r %s/*", directorioRaiz));
 
 	// la tabla de directorios esta en el directorio raiz asi que ya se borra antes
@@ -1440,7 +1466,13 @@ void formatear(){
 
 	initFS();
 
-	formateado = 1;
+	cleaned = 1;
+}
+
+void format(){
+	FsFormated = 1;
+	//No permite que entre otro nodo
+	//Deja que yama arranque
 }
 
 void almacenarBitmapEnArchivo(t_nodo *unNodo){

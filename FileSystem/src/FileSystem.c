@@ -26,7 +26,9 @@ int main(int arg, char** argv) {
 
 	if (arg > 1 && string_equals_ignore_case(argv[1], "--clean")){
 		log_info(log,"Se inicia el Filesystem ignorando y eliminando estado anterior");
-		formatear();
+		log_info(log,"Esperando Nodos...");
+
+		resetFS();
 	}
 	else{
 		log_info(log,"Se intentara iniciar el Filesystem reestableciendo desde estado anterior");
