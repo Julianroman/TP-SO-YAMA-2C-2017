@@ -181,7 +181,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 
 int bloqueInvalido(int bloque){
 	int exito = 0;
-	if(bloque < 0 || bloque > cantidadDeBloques - 1){
+	if(bloque < 0 || bloque > (cantidadDeBloques - 1)){
 		exito = 1;
 	}
 	return exito;
