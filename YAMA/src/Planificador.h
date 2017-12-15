@@ -26,7 +26,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job);
 t_worker* elegirEncargadoRedGlobal(t_job* job);
 void realizarAlmacenadoFinal(t_job_master* job_master);
 void realizarReduccionGlobal(t_job_master* job_master);
-void realizarTransformacion(t_job_master* job_master);
+void realizarTransformacion(t_job_master* job_master, t_list* nodosActivos);
 void realizarReduccionLocal(t_worker* nodo, t_job_master* job_master);
 void replanificar(t_job_master* job_master, t_worker* nodoFallido);
 t_worker* getEncargado(t_job* job);

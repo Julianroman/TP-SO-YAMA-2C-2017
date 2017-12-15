@@ -227,18 +227,17 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 	}
 }
 
-void realizarTransformacion(t_job_master* job_master){
+void realizarTransformacion(t_job_master* job_master, t_list* nodosActivos){
 	int i,j, cantBloques;
-	int cantNodos = list_size(nodosDisponibles);
+	int cantNodos = list_size(nodosActivos);
 	for(i=0; i<cantNodos;i++){
-		t_worker* nodo = list_get(nodosDisponibles, i);
+		t_worker* nodo = list_get(nodosActivos, i);
 		t_infoNodo* infoNodo = getInfoNodo(nodo, job_master->job);
 		infoNodoPasarAEtapa(infoNodo, TRANSFORMACION);
 		cantBloques = list_size(infoNodo->bloquesAEjecutar);
 		for(j=0; j<cantBloques; j++){
 			t_infoBloque* bloque = list_get(infoNodo->bloquesAEjecutar,j);
 			char* nombreArchivoTemporal = getNombreArchivoTemporalTransformacion(job_master->job->id, bloque->bloqueNodo, nodo->id);
-			log_warning(logYAMA, "BloqueNodo %i -- tamaño %i -- BloqueArchivo %i", bloque->bloqueNodo, bloque->tamanioBloque, bloque->bloqueArchivo);
 			send_INFO_TRANSFORMACION(job_master->master_socket, nodo->puerto, nodo->ip, bloque->bloqueNodo, bloque->tamanioBloque, nombreArchivoTemporal, nodo->id);
 			actualizarTablaEstadosConTransformacion(job_master, nodo, bloque->bloqueNodo, nombreArchivoTemporal);
 			aumentarCarga(nodo);
@@ -623,7 +622,7 @@ void planificacionWClock(t_job_master* job_master){
 			contador = 0;
 		}
 	}
-
+	t_list* nodosActivos = list_create();
 	int bloqueArchivo;
 	int cantidadTotalBloquesArchivo = getTotalBloquesArchivo(job_master->job->id);
 
@@ -640,6 +639,12 @@ void planificacionWClock(t_job_master* job_master){
 					aumentarCarga(workerActual);
 					disminuirDisponibilidad(workerActual);
 					log_trace(logYAMA, "Al worker %d de IP: %s, se le asigno el bloque Archivo %i",workerActual->id, workerActual->ip ,bloqueArchivo);
+					int estaEnLista(t_worker* nodito){
+						return nodito->id == workerActual->id;
+					}
+					if(!list_any_satisfy(nodosActivos, (void*)estaEnLista)){
+						list_add(nodosActivos, workerActual);
+					}
 					pasarASiguiente();
 					break;
 				}
@@ -651,7 +656,7 @@ void planificacionWClock(t_job_master* job_master){
 		}
 	}
 	log_trace(logYAMA, "Planificacion terminada. Mandando a realizar instrucciones a los nodos");
-	realizarTransformacion(job_master);
+	realizarTransformacion(job_master, nodosActivos);
 
 }
 
