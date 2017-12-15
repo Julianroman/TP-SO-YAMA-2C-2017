@@ -11,5 +11,6 @@
 //  en el puerto pasasdo por parametro (int)
 void init_serverYAMA(int puerto);
 void agregarAListado(int idUltimoMasterCreado, int socket);
+void eliminarMaster(int masterID);
 extern t_yama* configYAMA;
 #endif /* SERVERMASTER_H_ */
