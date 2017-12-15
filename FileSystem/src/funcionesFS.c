@@ -664,7 +664,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 			if(remove(pathTemp) == -1){
 				//No se elimino
 			}
-			free(pathTemp);
+
 			send_EXITO_OPERACION(socketRecibido);
 
 		}
