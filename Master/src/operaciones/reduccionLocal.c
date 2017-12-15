@@ -82,7 +82,7 @@ void* rutina_reduccionLocal(void* args){
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	if(socketWorker == -1){
 		fallosReduxLocal ++;
-		log_error(logger, "Redux local ERR %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
+		log_error(logger, "Redux local ERR | Nodo %d (%s:%d)",idNodo,ipWorker,puetoWorker);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,0);
 	}
 	send_ORDEN_REDUCCIONLOCAL(socketWorker,payload->nombreTemporal_Transformacion,payload->nombreTemporal_ReduccionLocal);
@@ -120,11 +120,11 @@ void* rutina_reduccionLocal(void* args){
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_info(logger, "Redux local OK %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
+		log_trace(logger, "Redux local OK | Nodo %d (%s:%d)",idNodo,ipWorker,puetoWorker);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,1);
 	}else{
 		fallosReduxLocal ++;
-		log_error(logger, "Redux local ERR %s:%d // %s",ipWorker,puetoWorker,nombreReduccionLocal);
+		log_error(logger, "Redux local ERR | Nodo %d (%s:%d)",idNodo,ipWorker,puetoWorker);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,0);
 	}
 

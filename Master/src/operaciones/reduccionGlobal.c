@@ -10,6 +10,7 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/destroy.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <commons/collections/queue.h>
@@ -68,7 +69,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		log_error(logger,"El administrador se ha desconectado");
 		exit(1);
 	}
-	log_info(logger, "Conectandose al encargado...");
+	log_info(logger, "Conectandose al encargado | Nodo%d  (%s:%d) ...",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 
 
 	// Conectarse al encargado
@@ -92,7 +93,9 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	for(i = 0; i < cantidadNodos;i++){
 		payloadSubordinado = queue_pop(colaDeInformaciones);
 		send_ORDEN_REDUCCIONGLOBAL(socketWorker,payloadSubordinado->PUERTO_Worker,payloadSubordinado->IP_Worker,payloadSubordinado->nombreTemporal_ReduccionLocal,payloadSubordinado->nombreTemporal_ReduccionGlobal,payloadSubordinado->encargado);
-		// TODO destruir payload
+
+		// Destruir payload
+		destroy_INFO_REDUCCIONGLOBAL(payloadSubordinado);
 	}
 	send_FIN_LISTA(socketWorker);
 
@@ -105,12 +108,12 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	// Recibir respuesta y contactar al yama
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_info(logger, "Reduccion global completada en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		log_trace(logger, "Redux global OK | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,1);
 	} else {
 		// TODO Corregir la info del logger
 		//log_error(logger, "Reduccion global interrumpida en %s:%d",payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
-		log_error(logger, "Redux global ERR ");
+		log_error(logger, "Redux global ERR | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,0);
 	}
 
@@ -121,7 +124,6 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 
 
 	// Parar timer
-	log_trace(logger, "Reduccion global finalizada");
 	time (&finEtapa);
 	tiempoReduxGlobal += difftime(finEtapa,inicioEtapa);
 

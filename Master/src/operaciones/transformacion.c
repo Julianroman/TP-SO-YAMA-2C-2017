@@ -36,7 +36,7 @@ STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data)
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
-	log_trace(logger, "Transformacion iniciada");
+	log_trace(logger, "Transformacion iniciada | Nodo%d (%s:%d) BLOQUE:%d",data->ID_Nodo,data->IP_Worker,data->PUERTO_Worker,data->bloque);
 	transformacionesRealizadas ++;
 
 	// Verificacion para estadisticas
@@ -65,7 +65,7 @@ void* rutina_transformacion(void* args){
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	if ( socketWorker == -1){
 		fallosTransformacion ++;
-		log_error(logger, "No se puede conectar %s:%d",payload->IP_Worker,payload->PUERTO_Worker);
+		log_error(logger, "Transformacion ERR (No route to host)| Nodo%d (%s:%d) BLOQUE:%d",payload->ID_Nodo,payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
 
 	}
@@ -77,11 +77,11 @@ void* rutina_transformacion(void* args){
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_info(logger, "Transformacion OK %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		log_trace(logger, "Transformacion OK | Nodo%d (%s:%d) BLOQUE:%d",payload->ID_Nodo,payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,1);
 	}else{
 		fallosTransformacion ++;
-		log_error(logger, "Transformacion ERR %s:%d // BLOCK: %d",payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		log_error(logger, "Transformacion ERR | Nodo%d (%s:%d) BLOQUE:%d",payload->ID_Nodo,payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
 	}
 	close(socketWorker);
