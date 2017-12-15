@@ -23,17 +23,17 @@
 #include "serverYAMA.h"
 #include "../YAMA.h"
 
-static int idUltimoMasterCreado = 1;
+int idUltimoMasterCreado = 1;
 
 #define BACKLOG       5
 
-void agregarAListado(int idUltimoMasterCreado, int socket){
+void agregarAListado(int socket){
 	t_job_master* job_master = malloc(sizeof(t_job_master));
 	job_master->master_id = idUltimoMasterCreado;
 	job_master->master_socket = socket;
 	list_add(MastersJobs, job_master);
 	send_JOB(socket, idUltimoMasterCreado);
-	idUltimoMasterCreado += 1;
+	idUltimoMasterCreado ++;
 }
 
 void eliminarMaster(int masterID){
@@ -41,6 +41,14 @@ void eliminarMaster(int masterID){
 		return job_master->master_id == masterID;
 	}
 	list_remove_by_condition(MastersJobs, (void*)eliminar);
+}
+
+int getMasterID(int socketMaster){
+	int buscar(t_job_master* job_master){
+		return job_master->master_socket == socketMaster;
+	}
+	t_job_master* master = list_find(MastersJobs, (void*)buscar);
+	return master->master_id;
 }
 
 void init_serverYAMA(int puertoEscucha){
@@ -90,15 +98,15 @@ void init_serverYAMA(int puertoEscucha){
 								fdmax = nuevoCliente;
 								}
 							log_trace(logYAMA, "Se conecto Master %d", idUltimoMasterCreado);
-							agregarAListado(idUltimoMasterCreado, nuevoCliente);
-
+							agregarAListado(nuevoCliente);
 						}
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);
 						if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
 							FD_CLR(i,&master); // Eliminar de la lista
-							eliminarMaster(idUltimoMasterCreado);
-							log_error(logYAMA, "Se desconecto Master %d", idUltimoMasterCreado);
+							int masterID = getMasterID(i);
+							eliminarMaster(masterID);
+							log_error(logYAMA, "Se desconecto Master %d", masterID);
 							break;
 						}
 						else{
