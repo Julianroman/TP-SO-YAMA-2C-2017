@@ -221,14 +221,14 @@ t_bloque_libre *traerBloquesLibres() {
 	// El nodo con mayor cantidad de bloques libres
 	int nMayor = -1;
 	// La mayor cantidad de bloques libres
-	int nBloques = -1;
+	float nBloques = -1;
 
 	int i;
 	for (i = 0; i < list_size(listaDeNodos); i ++){
 		t_nodo *unNodo;
 		unNodo = list_get(listaDeNodos, i);
-		int n = bloquesLibresEnNodo(unNodo);
-		//int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;// TODO cambio
+		//int n = bloquesLibresEnNodo(unNodo);
+		float n = (float)bloquesLibresEnNodo(unNodo)/ (float)unNodo->cantidadBloques;
 		if ( n > nBloques ){
 			nMayor = i;
 			nBloques = n;
@@ -252,7 +252,7 @@ t_bloque_libre *traerBloquesLibres() {
 	// El nodo con mayor cantidad de bloques libres (que no sea igual al primero)
 	int nSegundoMayor = -1;
 	// La mayor cantidad de bloques libres
-	int nSegundoBloques = -1;
+	float nSegundoBloques = -1;
 
 	if(list_size(listaDeNodos) > 1){
 
@@ -260,8 +260,8 @@ t_bloque_libre *traerBloquesLibres() {
 			t_nodo *unNodo;
 			unNodo = list_get(listaDeNodos, i);
 			if( i != nMayor){
-				int n = bloquesLibresEnNodo(unNodo);
-				//int n = bloquesLibresEnNodo(unNodo)/unNodo->cantidadBloques;
+				//int n = bloquesLibresEnNodo(unNodo);
+				float n = (float)bloquesLibresEnNodo(unNodo)/ (float)unNodo->cantidadBloques;
 
 				if ( n > nSegundoBloques ){
 					nSegundoMayor = i;

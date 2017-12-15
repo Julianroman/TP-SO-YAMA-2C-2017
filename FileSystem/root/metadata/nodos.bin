@@ -1,5 +1,5 @@
-NODOS=ÿÿÿÿÿÿ?]
-TAMANIO=300
-Nodo13Libres=37
-Nodo13Total=300
-LIBRE=37
+NODOS=[Nodo1]
+TAMANIO=50
+Nodo1Libres=44
+Nodo1Total=50
+LIBRE=44
