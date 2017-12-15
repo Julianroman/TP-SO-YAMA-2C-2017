@@ -1,5 +1,9 @@
 #include "funcionesFS.h"
 
+#define EXITO 1
+#define FRACASO 0
+
+
 int tamanioBloques = 1048576; // tamaño bloques 1MB
 
 int formateado = 0;
@@ -402,126 +406,130 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	if(list_size(listaDeNodos) == 0){
 		log_error(log, "No hay nodos conectados");
 	}else{
-		// Concateno el path del origen con el nombre y el tipo
-		char *pathOrigenCompleto = string_new();
-		pathOrigenCompleto = string_duplicate(location);
-		if(!string_ends_with(location, "/"))
-			string_append(&pathOrigenCompleto, "/");
 
-		string_append(&pathOrigenCompleto, name);
-		//string_append(&pathOrigenCompleto, ".");
-		//string_append(&pathOrigenCompleto, tipo);
+		if(esRutaYamaFS(pathDestino)){
+			// Concateno el path del origen con el nombre y el tipo
+			char *pathOrigenCompleto = string_new();
+			pathOrigenCompleto = string_duplicate(location);
+			if(!string_ends_with(location, "/"))
+				string_append(&pathOrigenCompleto, "/");
+
+			string_append(&pathOrigenCompleto, name);
+			//string_append(&pathOrigenCompleto, ".");
+			//string_append(&pathOrigenCompleto, tipo);
 
 
-		// Agarro el path destino y le concateno el nombre
+			// Agarro el path destino y le concateno el nombre
 
-		char *pathDestinoCompleto = string_new();
-		pathDestinoCompleto = string_duplicate(pathDestino);
-		if(!string_ends_with(pathDestino, "/"))
-			string_append(&pathDestinoCompleto, "/");
+			char *pathDestinoCompleto = string_new();
+			pathDestinoCompleto = string_duplicate(pathDestino);
+			if(!string_ends_with(pathDestino, "/"))
+				string_append(&pathDestinoCompleto, "/");
 
-		string_append(&pathDestinoCompleto, name);
+			string_append(&pathDestinoCompleto, name);
 
-		char **arrayDestino = string_split(pathDestinoCompleto, "/");
-		int cant = 0;
-		while(arrayDestino[cant] != NULL ){
-			cant++;
-		}
-
-		// Busco el indice de la carpeta de destino
-		int indice = findDirByname(arrayDestino[cant - 2]);
-		// Concateno el path con el indice y el path de los archivos
-		char *indicePath = string_new();
-		string_append(&indicePath, pathArchivos);
-		string_append(&indicePath, string_itoa(indice));
-		// Creo el directorio de nombre:  numero de indice (Si no existe)
-		createDirectory(indicePath);
-
-		// Concateno el path con el nombre del archivo
-		string_append(&indicePath, "/");
-		string_append(&indicePath, name);
-
-		// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
-		// Seria la tabla de archivos
-		char *pathArchivoConfig = string_new();
-		string_append(&pathArchivoConfig, directorioRaiz);
-		string_append(&pathArchivoConfig, indicePath);
-
-		FILE *archivo = fopen(pathArchivoConfig, "w");
-
-		t_config *fileExport = config_create(pathArchivoConfig);
-		//config_set_value(fileExport, "FILE", destino);
-		if(strcmp(tipo, "txt") == 0)
-			config_set_value(fileExport, "TIPO", "TEXTO");
-		else
-			config_set_value(fileExport, "TIPO", "BINARIO");
-
-		// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
-		// Refleja el archivo leido
-		// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
-		// En el caso de texto, cada bloque mide 1MB o menos
-
-		FILE *in;
-
-		t_list *lista_de_paginas;
-
-		if ( strcmp(tipo,"txt") == 0 ) {
-			if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
-				printf("No se encontro el archivo");
-				return 1;
+			char **arrayDestino = string_split(pathDestinoCompleto, "/");
+			int cant = 0;
+			while(arrayDestino[cant] != NULL ){
+				cant++;
 			}
 
-			lista_de_paginas = cortar_modo_texto(in);
+			// Busco el indice de la carpeta de destino
+			int indice = findDirByname(arrayDestino[cant - 2]);
+			// Concateno el path con el indice y el path de los archivos
+			char *indicePath = string_new();
+			string_append(&indicePath, pathArchivos);
+			string_append(&indicePath, string_itoa(indice));
+			// Creo el directorio de nombre:  numero de indice (Si no existe)
+			createDirectory(indicePath);
 
-		}
-		else{
-			if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
-				printf("No se encontro el archivo");
-				return 1;
+			// Concateno el path con el nombre del archivo
+			string_append(&indicePath, "/");
+			string_append(&indicePath, name);
+
+			// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
+			// Seria la tabla de archivos
+			char *pathArchivoConfig = string_new();
+			string_append(&pathArchivoConfig, directorioRaiz);
+			string_append(&pathArchivoConfig, indicePath);
+
+			FILE *archivo = fopen(pathArchivoConfig, "w");
+
+			t_config *fileExport = config_create(pathArchivoConfig);
+			//config_set_value(fileExport, "FILE", destino);
+			if(strcmp(tipo, "txt") == 0)
+				config_set_value(fileExport, "TIPO", "TEXTO");
+			else
+				config_set_value(fileExport, "TIPO", "BINARIO");
+
+			// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
+			// Refleja el archivo leido
+			// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
+			// En el caso de texto, cada bloque mide 1MB o menos
+
+			FILE *in;
+
+			t_list *lista_de_paginas;
+
+			if ( strcmp(tipo,"txt") == 0 ) {
+				if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
+					printf("No se encontro el archivo");
+					return 1;
+				}
+
+				lista_de_paginas = cortar_modo_texto(in);
+
 			}
-			lista_de_paginas = cortar_modo_binario(in);
-		}
-
-		// Tamanio del archivo
-		int size_bytes;
-		fseek(in,0,SEEK_END);
-		size_bytes = ftell(in);
-		rewind(in);
-		config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
-
-		int i;
-		// Itero entre las paginas de la lista y se las mando a dataNode (Si hay espacio)
-		// TODO probar
-		if( cantidadTotalBloquesLibres() >= list_size(lista_de_paginas)){
-			for ( i=0; i<list_size(lista_de_paginas); i++){
-				t_pagina *pagina = list_get(lista_de_paginas, i);
-				char* bloqueNro = string_new();
-				string_append(&bloqueNro, "BLOQUE");
-				string_append(&bloqueNro, string_itoa(i));
-				string_append(&bloqueNro, "BYTES");
-				config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
-				enviarADataNode(pagina, fileExport, i);
-				free(pagina->contenido);
-				free(pagina);
-				//free(bloqueNro);
+			else{
+				if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
+					printf("No se encontro el archivo");
+					return 1;
+				}
+				lista_de_paginas = cortar_modo_binario(in);
 			}
-		}else{
-			log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+
+			// Tamanio del archivo
+			int size_bytes;
+			fseek(in,0,SEEK_END);
+			size_bytes = ftell(in);
+			rewind(in);
+			config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
+
+			int i;
+			// Itero entre las paginas de la lista y se las mando a dataNode (Si hay espacio)
+			// TODO probar
+			if( cantidadTotalBloquesLibres() >= list_size(lista_de_paginas)){
+				for ( i=0; i<list_size(lista_de_paginas); i++){
+					t_pagina *pagina = list_get(lista_de_paginas, i);
+					char* bloqueNro = string_new();
+					string_append(&bloqueNro, "BLOQUE");
+					string_append(&bloqueNro, string_itoa(i));
+					string_append(&bloqueNro, "BYTES");
+					config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
+					enviarADataNode(pagina, fileExport, i);
+					free(pagina->contenido);
+					free(pagina);
+					//free(bloqueNro);
+				}
+			}else{
+				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+			}
+
+
+
+
+			config_save(fileExport);
+			config_save_in_file(fileExport, indicePath);
+
+			fclose(archivo);
+			config_destroy(fileExport);
+			free(pathOrigenCompleto);
+			free(indicePath);
+			free(arrayDestino);
+
+			fclose(in);
 		}
 
-
-
-
-		config_save(fileExport);
-		config_save_in_file(fileExport, indicePath);
-
-		fclose(archivo);
-		config_destroy(fileExport);
-		free(pathOrigenCompleto);
-		free(indicePath);
-		free(arrayDestino);
-
-		fclose(in);
 	}
 
 
@@ -532,125 +540,133 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 	if(list_size(listaDeNodos) == 0){
 		log_error(log, "No hay nodos conectados");
 	}else{
-		// Agarro el path destino y le concateno el nombre
+		if(esRutaYamaFS(pathDestino)){
 
-		char *pathDestinoCompleto = string_new();
-		pathDestinoCompleto = string_duplicate(pathDestino);
-		if(!string_ends_with(pathDestino, "/"))
-			string_append(&pathDestinoCompleto, "/");
+			// Agarro el path destino y le concateno el nombre
 
-		string_append(&pathDestinoCompleto, name);
+			char *pathDestinoCompleto = string_new();
+			pathDestinoCompleto = string_duplicate(pathDestino);
+			if(!string_ends_with(pathDestino, "/"))
+				string_append(&pathDestinoCompleto, "/");
 
-		char **arrayDestino = string_split(pathDestinoCompleto, "/");
-		int cant = 0;
-		while(arrayDestino[cant] != NULL ){
-			cant++;
-		}
+			string_append(&pathDestinoCompleto, name);
 
-		// Busco el indice de la carpeta de destino
-		int indice = findDirByname(arrayDestino[cant - 2]);
-		// Concateno el path con el indice y el path de los archivos
-		char *indicePath = string_new();
-		string_append(&indicePath, pathArchivos);
-		string_append(&indicePath, string_itoa(indice));
-		// Creo el directorio de nombre:  numero de indice (Si no existe)
-		createDirectory(indicePath);
-
-		// Concateno el path con el nombre del archivo
-		string_append(&indicePath, "/");
-		string_append(&indicePath, name);
-
-		// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
-		// Seria la tabla de archivos
-		char *pathArchivoConfig = string_new();
-		string_append(&pathArchivoConfig, directorioRaiz);
-		string_append(&pathArchivoConfig, indicePath);
-
-		FILE *archivo = fopen(pathArchivoConfig, "w");
-
-		t_config *fileExport = config_create(pathArchivoConfig);
-		//config_set_value(fileExport, "FILE", destino);
-		if(strcmp(tipo, "txt") == 0)
-			config_set_value(fileExport, "TIPO", "TEXTO");
-		else
-			config_set_value(fileExport, "TIPO", "BINARIO");
-
-		char *pathTemp = "root/temp.txt";
-		FILE *archivoTemp;
-		archivoTemp = fopen(pathTemp, "w");
-		fwrite(contenido, tamanioContenido ,1, archivoTemp);
-		fclose(archivoTemp);
-
-
-
-		// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
-		// Refleja el archivo leido
-		// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
-		// En el caso de texto, cada bloque mide 1MB o menos
-
-		FILE *in;
-
-		t_list *lista_de_paginas;
-
-		if ( strcmp(tipo,"txt") == 0 ) {
-			if ( (in = fopen(pathTemp, "r") ) == NULL ) {
-				printf("No se encontro el archivo");
-				return 1;
+			char **arrayDestino = string_split(pathDestinoCompleto, "/");
+			int cant = 0;
+			while(arrayDestino[cant] != NULL ){
+				cant++;
 			}
 
-			lista_de_paginas = cortar_modo_texto(in);
+			// Busco el indice de la carpeta de destino
+			int indice = findDirByname(arrayDestino[cant - 2]);
+			// Concateno el path con el indice y el path de los archivos
+			char *indicePath = string_new();
+			string_append(&indicePath, pathArchivos);
+			string_append(&indicePath, string_itoa(indice));
+			// Creo el directorio de nombre:  numero de indice (Si no existe)
+			createDirectory(indicePath);
 
-		}
-		else{
-			if ( (in = fopen(pathTemp, "rb") ) == NULL ) {
-				printf("No se encontro el archivo");
-				return 1;
+			// Concateno el path con el nombre del archivo
+			string_append(&indicePath, "/");
+			string_append(&indicePath, name);
+
+			// Abro o creo un archivo de configuracion para ir guardando donde esta cada bloque
+			// Seria la tabla de archivos
+			char *pathArchivoConfig = string_new();
+			string_append(&pathArchivoConfig, directorioRaiz);
+			string_append(&pathArchivoConfig, indicePath);
+
+			FILE *archivo = fopen(pathArchivoConfig, "w");
+
+			t_config *fileExport = config_create(pathArchivoConfig);
+			//config_set_value(fileExport, "FILE", destino);
+			if(strcmp(tipo, "txt") == 0)
+				config_set_value(fileExport, "TIPO", "TEXTO");
+			else
+				config_set_value(fileExport, "TIPO", "BINARIO");
+
+			char *pathTemp = "root/temp.txt";
+			FILE *archivoTemp;
+			archivoTemp = fopen(pathTemp, "w");
+			fwrite(contenido, tamanioContenido ,1, archivoTemp);
+			fclose(archivoTemp);
+
+
+
+			// Creo una lista de paginas donde almaceno estructuras de tipo t_pagina
+			// Refleja el archivo leido
+			// En el caso de binario, todos los bloques miden lo mismo salvo el ultimo que puede medir menos
+			// En el caso de texto, cada bloque mide 1MB o menos
+
+			FILE *in;
+
+			t_list *lista_de_paginas;
+
+			if ( strcmp(tipo,"txt") == 0 ) {
+				if ( (in = fopen(pathTemp, "r") ) == NULL ) {
+					printf("No se encontro el archivo");
+					return 1;
+				}
+
+				lista_de_paginas = cortar_modo_texto(in);
+
 			}
-			lista_de_paginas = cortar_modo_binario(in);
-		}
-
-		// Tamanio del archivo
-		int size_bytes;
-		fseek(in,0,SEEK_END);
-		size_bytes = ftell(in);
-		rewind(in);
-		config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
-
-		int i;
-		// Itero entre las paginas de la lista y se las mando a dataNode (Si hay espacio)
-		// TODO probar
-		if( cantidadTotalBloquesLibres() >= list_size(lista_de_paginas)){
-			for ( i=0; i<list_size(lista_de_paginas); i++){
-				t_pagina *pagina = list_get(lista_de_paginas, i);
-				char* bloqueNro = string_new();
-				string_append(&bloqueNro, "BLOQUE");
-				string_append(&bloqueNro, string_itoa(i));
-				string_append(&bloqueNro, "BYTES");
-				config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
-				enviarADataNode(pagina, fileExport, i);
-				free(pagina->contenido);
-				free(pagina);
-				//free(bloqueNro);
+			else{
+				if ( (in = fopen(pathTemp, "rb") ) == NULL ) {
+					printf("No se encontro el archivo");
+					return 1;
+				}
+				lista_de_paginas = cortar_modo_binario(in);
 			}
-		}else{
-			log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+
+			// Tamanio del archivo
+			int size_bytes;
+			fseek(in,0,SEEK_END);
+			size_bytes = ftell(in);
+			rewind(in);
+			config_set_value(fileExport, "TAMANIO", string_itoa(size_bytes));
+
+			int i;
+			// Itero entre las paginas de la lista y se las mando a dataNode (Si hay espacio)
+			// TODO probar
+			if( cantidadTotalBloquesLibres() >= list_size(lista_de_paginas)){
+				for ( i=0; i<list_size(lista_de_paginas); i++){
+					t_pagina *pagina = list_get(lista_de_paginas, i);
+					char* bloqueNro = string_new();
+					string_append(&bloqueNro, "BLOQUE");
+					string_append(&bloqueNro, string_itoa(i));
+					string_append(&bloqueNro, "BYTES");
+					config_set_value(fileExport, bloqueNro, string_itoa(pagina->tamanio));
+					enviarADataNode(pagina, fileExport, i);
+					free(pagina->contenido);
+					free(pagina);
+					//free(bloqueNro);
+				}
+			}else{
+				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+			}
+
+
+			config_save(fileExport);
+			config_save_in_file(fileExport, indicePath);
+
+			fclose(archivo);
+			config_destroy(fileExport);
+			free(indicePath);
+			free(arrayDestino);
+
+			fclose(in);
+
+			// Elimino el archivo temporal donde estaba guardando el contenido
+			if(remove(pathTemp) == -1){
+				//No se elimino
+			}
+			free(pathTemp);
+			send_EXITO_OPERACION(socketRecibido);
+
 		}
 
 
-		config_save(fileExport);
-		config_save_in_file(fileExport, indicePath);
-
-		fclose(archivo);
-		config_destroy(fileExport);
-		free(indicePath);
-		free(arrayDestino);
-
-		fclose(in);
-
-		if(remove(pathTemp) == -1){
-			//No se elimino
-		}
-		send_EXITO_OPERACION(socketRecibido);
 	}
 
 
@@ -677,166 +693,175 @@ void leerArchivo(char *pathConNombre){
 	char *name = string_new();
 	name = arrayPath[cant - 1];
 
-	/*if(string_contains(name, ".")){
-		name = string_substring_until(name, strlen(name) - 4);
-	}*/
+	if(esRutaYamaFSConNombre(pathConNombre)){
+		// Busco el indice de la carpeta de destino
+		int indice = findDirByname(arrayPath[cant - 2]);
+		// Concateno el path con el indice y el path de los archivos
+		char *indicePath = string_new();
 
-	// Busco el indice de la carpeta de destino
-	int indice = findDirByname(arrayPath[cant - 2]);
-	// Concateno el path con el indice y el path de los archivos
-	char *indicePath = string_new();
+		// Entro al directorio de nombre:  numero de indice (Si no existe)
+		string_append(&indicePath, pathArchivos);
+		string_append(&indicePath, string_itoa(indice));
 
-	// Entro al directorio de nombre:  numero de indice (Si no existe)
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
+		// Concateno el path con el nombre del archivo
+		string_append(&indicePath, "/");
+		string_append(&indicePath, name);
 
-	// Concateno el path con el nombre del archivo
-	string_append(&indicePath, "/");
-	string_append(&indicePath, name);
+		// Abro el archivo de configuracion que tiene la tabla del archivo
+		char *pathArchivoConfig = string_new();
+		string_append(&pathArchivoConfig, directorioRaiz);
+		string_append(&pathArchivoConfig, indicePath);
+		contenidoLeido = string_new();
+		FILE *in;
+		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+			log_error(log, "No se encontro el archivo");
+			contenidoLeido = "Error";
+			send_FRACASO_OPERACION(socketYama);
+		}else{
+			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-	// Abro el archivo de configuracion que tiene la tabla del archivo
-	char *pathArchivoConfig = string_new();
-	string_append(&pathArchivoConfig, directorioRaiz);
-	string_append(&pathArchivoConfig, indicePath);
-	contenidoLeido = string_new();
-	FILE *in;
-	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
-		log_error(log, "No se encontro el archivo");
-		contenidoLeido = "Error";
-		send_FRACASO_OPERACION(socketYama);
-	}else{
-		t_config* archivo_configuracion = config_create(pathArchivoConfig);
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
 
-		char **nodoYBloque = malloc(sizeof(char*)*2);
-		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int ok = 1;
+			int i = 0;
+			while(ok == 1){
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 
-		int ok = 1;
-		int i = 0;
-		while(ok == 1){
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-				log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
-				// Agarro el tamanio del bloque
-				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+					// Se envia a YAMA
+					int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
+					enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
+				}
 
-				// Se envia a YAMA
-				int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
-				enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
+					// Se envia a YAMA
+					int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
+					enviarAYama(nroNodoCopia, atoi(nodoYBloqueCopia[1]), i, 1, getIpNodoByName(nroNodoCopia), tamanioBloque);
+				}
+
+				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					if(i == 0){
+						log_error(log, "No se encontro el archivo en la ruta indicada");
+					}
+
+					ok = 0;
+				}
+
+				i++;
 			}
 
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-				log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-
-				// Agarro el tamanio del bloque
-				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-				// Se envia a YAMA
-				int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
-				enviarAYama(nroNodoCopia, atoi(nodoYBloqueCopia[1]), i, 1, getIpNodoByName(nroNodoCopia), tamanioBloque);
-			}
-
-			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-				ok = 0;
-			}
-
-			i++;
+			free(nodoYBloque);
+			free(nodoYBloqueCopia);
+			free(archivo_configuracion);
+			free(arrayPath);
+			fclose(in);
+			send_FIN_LISTA(socketYama);
 		}
-
-		free(nodoYBloque);
-		free(nodoYBloqueCopia);
-		free(archivo_configuracion);
-		fclose(in);
-		send_FIN_LISTA(socketYama);
 	}
+
 }
 
 void getInfoArchivo(char *pathConNombre){
-	// Para leer la tabla de archivos
-	// Separo el path con las /
 
-	char **arrayPath = string_split(pathConNombre, "/");
-	int cant = 0;
-	while(arrayPath[cant] != NULL ){
-		cant++;
+	if(esRutaYamaFSConNombre(pathConNombre)){
+		// Para leer la tabla de archivos
+		// Separo el path con las /
+
+		char **arrayPath = string_split(pathConNombre, "/");
+		int cant = 0;
+		while(arrayPath[cant] != NULL ){
+			cant++;
+		}
+
+		// Agarro el nombre sin la extension
+		char *name = string_new();
+		name = arrayPath[cant - 1];
+
+		/*if(string_contains(name, ".")){
+			name = string_substring_until(name, strlen(name) - 4);
+		}*/
+
+		// Busco el indice de la carpeta de destino
+		int indice = findDirByname(arrayPath[cant - 2]);
+		// Concateno el path con el indice y el path de los archivos
+		char *indicePath = string_new();
+
+		// Entro al directorio de nombre:  numero de indice (Si no existe)
+		string_append(&indicePath, pathArchivos);
+		string_append(&indicePath, string_itoa(indice));
+
+		// Concateno el path con el nombre del archivo
+		string_append(&indicePath, "/");
+		string_append(&indicePath, name);
+
+		// Abro el archivo de configuracion que tiene la tabla del archivo
+		char *pathArchivoConfig = string_new();
+		string_append(&pathArchivoConfig, directorioRaiz);
+		string_append(&pathArchivoConfig, indicePath);
+
+		FILE *in;
+		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+			log_error(log, "No se encontro el archivo");
+		}else{
+			t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+
+			if(config_has_property(archivo_configuracion ,"TAMANIO")){
+				log_info(log, "TAMANIO: %i", config_get_int_value(archivo_configuracion ,"TAMANIO"));
+			}
+			if(config_has_property(archivo_configuracion ,"TIPO")){
+				log_info(log, "TIPO: %s", config_get_string_value(archivo_configuracion ,"TIPO"));
+			}
+
+			int ok = 1;
+			int i = 0;
+			while(ok == 1){
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iBYTES", i))){
+					log_info(log, "Bloque %i", i);
+					log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i)));
+				}
+
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+					log_info(log, "ORIGINAL: %s -- Bloque %s\n", nodoYBloque[0], nodoYBloque[1], i);
+				}
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+					log_info(log, "COPIA: %s -- Bloque %s\n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
+
+				}
+
+				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					ok = 0;
+				}
+
+				i++;
+			}
+
+			free(nodoYBloque);
+			free(nodoYBloqueCopia);
+			free(archivo_configuracion);
+			fclose(in);
+		}
 	}
 
-	// Agarro el nombre sin la extension
-	char *name = string_new();
-	name = arrayPath[cant - 1];
 
-	/*if(string_contains(name, ".")){
-		name = string_substring_until(name, strlen(name) - 4);
-	}*/
-
-	// Busco el indice de la carpeta de destino
-	int indice = findDirByname(arrayPath[cant - 2]);
-	// Concateno el path con el indice y el path de los archivos
-	char *indicePath = string_new();
-
-	// Entro al directorio de nombre:  numero de indice (Si no existe)
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
-
-	// Concateno el path con el nombre del archivo
-	string_append(&indicePath, "/");
-	string_append(&indicePath, name);
-
-	// Abro el archivo de configuracion que tiene la tabla del archivo
-	char *pathArchivoConfig = string_new();
-	string_append(&pathArchivoConfig, directorioRaiz);
-	string_append(&pathArchivoConfig, indicePath);
-
-	FILE *in;
-	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
-		log_error(log, "No se encontro el archivo");
-	}else{
-		t_config* archivo_configuracion = config_create(pathArchivoConfig);
-
-		char **nodoYBloque = malloc(sizeof(char*)*2);
-		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-
-		if(config_has_property(archivo_configuracion ,"TAMANIO")){
-			log_info(log, "TAMANIO: %i", config_get_int_value(archivo_configuracion ,"TAMANIO"));
-		}
-		if(config_has_property(archivo_configuracion ,"TIPO")){
-			log_info(log, "TIPO: %s", config_get_string_value(archivo_configuracion ,"TIPO"));
-		}
-
-		int ok = 1;
-		int i = 0;
-		while(ok == 1){
-
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iBYTES", i))){
-				log_info(log, "Bloque %i", i);
-				log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i)));
-			}
-
-
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-				log_info(log, "ORIGINAL: %s -- Bloque %s\n", nodoYBloque[0], nodoYBloque[1], i);
-			}
-
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-				log_info(log, "COPIA: %s -- Bloque %s\n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-
-			}
-
-			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-				ok = 0;
-			}
-
-			i++;
-		}
-
-		free(nodoYBloque);
-		free(nodoYBloqueCopia);
-		free(archivo_configuracion);
-		fclose(in);
-	}
 }
 
 char *getIpNodoByName(int name){
@@ -1039,112 +1064,119 @@ int getSocketNodoByName(int nroNodo){
 
 char *leerContenidoArchivo(char *pathConNombre){
 
-	sem_init(&binaryContenidoConsola, 0, 0);
-	sem_init(&binaryContenidoServidor, 0, 0);
+	if(esRutaYamaFSConNombre(pathConNombre)){
+		sem_init(&binaryContenidoConsola, 0, 0);
+		sem_init(&binaryContenidoServidor, 0, 0);
 
-	// Para leer la tabla de archivos
-	// Separo el path con las /
+		// Para leer la tabla de archivos
+		// Separo el path con las /
 
-	char **arrayPath = string_split(pathConNombre, "/");
-	int cant = 0;
-	while(arrayPath[cant] != NULL ){
-		cant++;
-	}
-
-	// Agarro el nombre sin la extension
-	char *name = string_new();
-	name = arrayPath[cant - 1];
-
-	/*if(string_contains(name, ".")){
-		name = string_substring_until(name, strlen(name) - 4);
-	}*/
-
-	// Busco el indice de la carpeta de destino
-	int indice = findDirByname(arrayPath[cant - 2]);
-	// Concateno el path con el indice y el path de los archivos
-	char *indicePath = string_new();
-
-	// Entro al directorio de nombre:  numero de indice (Si no existe)
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
-
-	// Concateno el path con el nombre del archivo
-	string_append(&indicePath, "/");
-	string_append(&indicePath, name);
-
-	// Abro el archivo de configuracion que tiene la tabla del archivo
-	char *pathArchivoConfig = string_new();
-	string_append(&pathArchivoConfig, directorioRaiz);
-	string_append(&pathArchivoConfig, indicePath);
-	contenidoLeido = string_new();
-	FILE *in;
-	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
-		log_error(log, "No se encontro el archivo");
-		contenidoLeido = "Error";
-	}else{
-		t_config* archivo_configuracion = config_create(pathArchivoConfig);
-
-		char **nodoYBloque = malloc(sizeof(char*)*2);
-		char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-		int socketOriginal = -1;
-		int socketCopia = -1;
-		int ok = 1;
-		int i = 0;
-		while(ok == 1){
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-				// Agarro el tamanio del bloque
-				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-				socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
-				if(socketOriginal != -1){
-					// Pido el original
-					log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
-					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
-					sem_post(&binaryContenidoServidor);
-					sem_wait(&binaryContenidoConsola);
-
-				}
-
-			}
-
-			if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i)) && socketOriginal == -1){
-				nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-
-				// Agarro el tamanio del bloque
-				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-				int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
-				if(socketCopia != -1){
-					// Pido la copia
-					log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", string_substring_from(nodoYBloqueCopia[0],4) , nodoYBloqueCopia[1], i);
-					send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
-					sem_post(&binaryContenidoServidor);
-					sem_wait(&binaryContenidoConsola);
-
-				}
-			}
-
-
-			if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-				ok = 0;
-			}
-
-			if(ok != 0 && socketOriginal != -1 && socketCopia != -1){
-				log_error(log, "Los sockets no estan disponibles");
-				contenidoLeido = "Error";
-				ok = 0;
-			}
-
-			i++;
+		char **arrayPath = string_split(pathConNombre, "/");
+		int cant = 0;
+		while(arrayPath[cant] != NULL ){
+			cant++;
 		}
 
-		free(nodoYBloque);
-		free(nodoYBloqueCopia);
-		free(archivo_configuracion);
-		fclose(in);
+		// Agarro el nombre sin la extension
+		char *name = string_new();
+		name = arrayPath[cant - 1];
+
+		/*if(string_contains(name, ".")){
+			name = string_substring_until(name, strlen(name) - 4);
+		}*/
+
+		// Busco el indice de la carpeta de destino
+		int indice = findDirByname(arrayPath[cant - 2]);
+		// Concateno el path con el indice y el path de los archivos
+		char *indicePath = string_new();
+
+		// Entro al directorio de nombre:  numero de indice (Si no existe)
+		string_append(&indicePath, pathArchivos);
+		string_append(&indicePath, string_itoa(indice));
+
+		// Concateno el path con el nombre del archivo
+		string_append(&indicePath, "/");
+		string_append(&indicePath, name);
+
+		// Abro el archivo de configuracion que tiene la tabla del archivo
+		char *pathArchivoConfig = string_new();
+		string_append(&pathArchivoConfig, directorioRaiz);
+		string_append(&pathArchivoConfig, indicePath);
+		contenidoLeido = string_new();
+		FILE *in;
+		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
+			log_error(log, "No se encontro el archivo");
+			contenidoLeido = "Error";
+		}else{
+			t_config* archivo_configuracion = config_create(pathArchivoConfig);
+
+			char **nodoYBloque = malloc(sizeof(char*)*2);
+			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			int socketOriginal = -1;
+			int socketCopia = -1;
+			int ok = 1;
+			int i = 0;
+			while(ok == 1){
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
+					socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
+					if(socketOriginal != -1){
+						// Pido el original
+						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
+						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
+						sem_post(&binaryContenidoServidor);
+						sem_wait(&binaryContenidoConsola);
+
+					}
+
+				}
+
+				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i)) && socketOriginal == -1){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+
+					// Agarro el tamanio del bloque
+					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+
+					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
+					if(socketCopia != -1){
+						// Pido la copia
+						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", string_substring_from(nodoYBloqueCopia[0],4) , nodoYBloqueCopia[1], i);
+						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
+						sem_post(&binaryContenidoServidor);
+						sem_wait(&binaryContenidoConsola);
+
+					}
+				}
+
+
+				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+					ok = 0;
+				}
+
+				if(ok != 0 && socketOriginal != -1 && socketCopia != -1){
+					log_error(log, "Los sockets no estan disponibles");
+					contenidoLeido = "Error";
+					ok = 0;
+				}
+
+				i++;
+			}
+
+			free(nodoYBloque);
+			free(nodoYBloqueCopia);
+			free(archivo_configuracion);
+			fclose(in);
+		}
+		return contenidoLeido;
+	}else{
+		return "Error";
 	}
-	return contenidoLeido;
+
+
+
 }
 
 void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo){
@@ -1728,6 +1760,48 @@ int findDirByname(char* name){
 	return encontrado;
 }
 
+// Para fijarse si la ruta es una ruta valida dentro del YamaFS
+// Ruta sin nombre del archivo
+int esRutaYamaFS(char* path){
+	char **ruta = string_split(path, "/");
+	//int cant;
+	//cant = strlen(padres) / sizeof(char*); //Length de padres
+	int cant = 0;
+	while(ruta[cant] != NULL ){
+		if(findDirByname(ruta[cant]) == -1){
+			free(ruta);
+			log_error(log, "La ruta indicada no es una ruta valida en YamaFs");
+			return FRACASO;
+		}
+		cant++;
+	}
+
+	free(ruta);
+	return EXITO;
+
+}
+
+int esRutaYamaFSConNombre(char *pathConNombre){
+
+	char **arrayPath = string_split(pathConNombre, "/");
+	int cant = 0;
+	while(arrayPath[cant] != NULL ){
+		cant++;
+	}
+
+	char *rutaSinNombre = string_new();
+	string_append(&rutaSinNombre, arrayPath[0]);
+	int r;
+	for(r=1; r < cant-1; r++){
+		string_append(&rutaSinNombre, "/");
+		string_append(&rutaSinNombre, arrayPath[r]);
+	}
+
+	free(arrayPath);
+
+	return esRutaYamaFS(rutaSinNombre);
+}
+
 void createDirectory(char* path){
 	if(string_starts_with(path, "/")){
 		log_error(log, "Error al crear directorio. Se encuentra en root/");
@@ -1756,12 +1830,12 @@ void createDirectory(char* path){
 
 
 				if(findDirByname(padres[cant-1]) == -1){ //Si es -1 no existe
-
+					// TODO deberia borrar desde aca
 					struct stat st = {0};
 
 					if (stat(pathConcat, &st) == -1) { //Si no existe el path, lo creo
 						if(mkdir(pathConcat, 0700) == 0){
-
+					// hasta aca
 
 							if(cant == 1){
 								tablaDeDirectorios[indiceDisponible].indice = indiceDisponible;
@@ -1782,14 +1856,14 @@ void createDirectory(char* path){
 							}
 
 							log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
-
+						// TODO deberia borrar desde aca
 						}else{
 							log_error(log, "Error al crear directorio");
 						}
 					}
 					else{
 						log_error(log, "El directorio ya existe o no se pudo crear");
-					}
+					}// hasta aca
 
 					free(padres);
 				}else{

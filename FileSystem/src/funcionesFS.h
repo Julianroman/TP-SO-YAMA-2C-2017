@@ -149,6 +149,10 @@ void initTablaDeDirectorios();
 
 int findDirByname(char* name);
 
+int esRutaYamaFS(char* path);
+
+int esRutaYamaFSConNombre(char *pathConNombre);
+
 void createDirectory(char* path);
 
 void deleteDirectory(char* path);

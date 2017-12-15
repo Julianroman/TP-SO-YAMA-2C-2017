@@ -5,9 +5,17 @@
 #include <stdio.h>
 
 void md5_interface(char **comando){
-	char *rutaTemp = "/home/utnso/archivoTemp.txt";
+	int cant = 0;
+	while(comando[cant] != NULL){
+		cant++;
+	}
 
-	char *contenidoRecibido = leerContenidoArchivo(comando[1]);
+	if(cant != 5){
+		fprintf(stderr, "Comando erroneo. Podria probar con: md5 [path_archivo_yamafs]");
+	}else{
+		char *rutaTemp = "archivoTemp.txt";
+
+		char *contenidoRecibido = leerContenidoArchivo(comando[1]);
 		if(string_equals_ignore_case(contenidoRecibido, "Error")){
 			puts("Error al intentar leer el archivo (md5)");
 		}
@@ -22,10 +30,11 @@ void md5_interface(char **comando){
 
 			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", rutaTemp));
 
-
-
 			if(remove(rutaTemp) == -1){
 				//No se elimino
 			}
 		}
+	}
+
+
 };
