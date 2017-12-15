@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
+#include <stdio.h>
 
 char* pack_SOLICITUD_JOB(payload_SOLICITUD_JOB payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_nombreArchivo);
@@ -767,6 +768,8 @@ char* pack_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO payload,int* tamanio_paqu
     tamanio_envio = (payload.tamanio_tipo);
     memcpy(paquete+offset,payload.tipo,tamanio_envio);
     offset += tamanio_envio;
+
+    printf("Envio: %s/%s (%s)",payload.pathDestino,payload.nombre,payload.tipo);
 
     (* tamanio_paquete) = tamanio_total;
     return paquete;
