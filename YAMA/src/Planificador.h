@@ -12,6 +12,7 @@
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/senders.h>
 #include <utilidades/socket_utils.h>
+#include "serverYAMA/serverYAMA.h"
 
 extern t_yama* configYAMA;
 extern sem_t binarioSocketFS;
@@ -34,8 +35,8 @@ int terminoRedGlobal(t_job_master* job_master);
 
 //FUNCIONES DE JOB
 t_job *newJob();
-void abortarJob(t_job* job);
-void finalizarCorrectamente(t_job* job);
+void abortarJob(t_job_master* job_master);
+void finalizarCorrectamente(t_job_master* job_master);
 
 // UTILES
 char* castearTarea(Tarea tarea);
@@ -47,7 +48,7 @@ char* getNombreArchivoTemporalRedGlobal(int jobID, int masterID);
 int registroTerminoExitosamente(t_tablaEstados* registroEstado);
 t_infoBloque* buscarInfoBloque(t_list* bloques, int bloqueArchivo);
 void liberarMemoria(t_job* job);
-int existeEnLista(int nodoID);
+int existeEnLista(int nodoID, t_job_master* job_master);
 t_list* getNodosActivos(int jobID);
 
 // FUNCIONES DE NODO

@@ -17,7 +17,7 @@ sem_t binarioFS;
 sem_t binarioSocketFS;
 
 void leerConfiguracion(){
-	char* path = "/home/utnso/workspace/tp-2017-2c-Grupo-1---K3525/YAMA/Debug/yama-config.cfg";
+	char* path = "/home/utnso/tp-2017-2c-Grupo-1---K3525/YAMA/Debug/yama-config.cfg";
 	//char* path = "yama-config.cfg";
 	t_config* archivo_configuracion = config_create(path);
 	configYAMA = malloc(sizeof(t_yama));

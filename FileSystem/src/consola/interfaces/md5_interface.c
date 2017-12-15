@@ -10,7 +10,7 @@ void md5_interface(char **comando){
 		cant++;
 	}
 
-	if(cant != 5){
+	if(cant != 2){
 		fprintf(stderr, "Comando erroneo. Podria probar con: md5 [path_archivo_yamafs]");
 	}else{
 		char *rutaTemp = "archivoTemp.txt";
@@ -30,9 +30,9 @@ void md5_interface(char **comando){
 
 			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", rutaTemp));
 
-			if(remove(rutaTemp) == -1){
+			//if(remove(rutaTemp) == -1){
 				//No se elimino
-			}
+			//}
 		}
 	}
 

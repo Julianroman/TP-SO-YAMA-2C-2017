@@ -9,7 +9,7 @@ void mkdir_interface(char **comando){
 	if(cant != 2){
 		fprintf(stderr, "Comando erroneo. Podria probar con: mkdir [path_directorio]");
 	}else{
-		createDirectory(comando[1]);
+		createLogicDirectory(comando[1]);
 	}
 
 
