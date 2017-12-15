@@ -56,7 +56,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	// Recibo el script
 	payload_SCRIPT* script = receive(socket_cliente,&cabecera);
 	if(cabecera != SCRIPT){
-		log_error(logger,"Se esperaba un archivo");
+		log_error(logger,"No se pudo recibir el script");
 		send_FRACASO_OPERACION(socket_cliente);
 		exit(1);
 	}
@@ -92,12 +92,12 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     fclose(temporalFile);
 
     // Ejecuto la transformacion
-    log_info(logger,"Bloque: %d, %d bytes",(orden -> bloque),orden -> bytesocupados);
+    log_info(logger,"Transformando bloque %d, %d bytes..",(orden -> bloque),orden -> bytesocupados);
     char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
     if((system(transformationCommand))==-1){exit(1);};
 
     // Log intenso
-	log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+	log_trace(logger,"Transformacion OK | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
 
 	// Esito
     free(temporalPath);

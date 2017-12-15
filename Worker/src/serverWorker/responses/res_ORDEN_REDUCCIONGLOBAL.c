@@ -138,6 +138,6 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
     log_trace(logger,"Reduccion global OK -> %s generado",nombreReduccionGlobal);
     send_EXITO_OPERACION(socket_cliente);
-
+    exit(0);
 
 };

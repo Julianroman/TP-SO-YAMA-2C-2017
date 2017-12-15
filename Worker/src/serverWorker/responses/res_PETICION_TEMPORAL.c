@@ -67,6 +67,8 @@ void res_PETICION_TEMPORAL(int socket_cliente,HEADER_T header,void* data){
 	send_BLOQUE(socket_cliente,input_file_size,temporal,-1);
 	log_trace(logger, "Archivo enviado");
 
+	exit(0);
+
 
 };
 

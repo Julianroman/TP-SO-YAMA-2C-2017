@@ -89,4 +89,5 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 
 	// Cerrar socket
 	close(socketFS);
+	exit(0);
 };
