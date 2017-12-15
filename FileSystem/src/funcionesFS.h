@@ -99,6 +99,8 @@ char *leerContenidoArchivo(char *pathConNombre);
 
 void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo);
 
+int cantidadTotalDeArchivos();
+
 void nodosARestaurar();
 
 int esEstadoEstable();

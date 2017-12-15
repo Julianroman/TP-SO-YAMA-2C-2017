@@ -142,6 +142,7 @@ void servidorFs(int puerto){
 
 						if(cabecera == PRESENTACION_DATANODE){
 							//if(esEstadoEstable() == 1){
+
 								char* mensaje = "Bienvenido a FS!!";
 								send(i, mensaje, strlen(mensaje), 0);
 
@@ -157,6 +158,8 @@ void servidorFs(int puerto){
 
 								// Informo si es estado estable
 								esEstadoEstable();
+								//Cuando se conecta un nodo deja de estar formateado
+								formateado = 0;
 							//}else{
 								//TODO eliminar si no es nodo necesario para estado estable
 
@@ -1205,41 +1208,48 @@ int esEstadoEstable(){
 		log_trace(log, "El sistema se encuentra recien formateado ==> ESTABLE");
 		return 1;
 	}else{
+		if(cantidadTotalDeArchivos()==0){
+			log_trace(log, "El sistema se encuentra ESTABLE");
+			return 1;
+		}
+
 		int estable = 1;
 
 		char *stringNodosConectados = string_new();
 		stringNodosConectados = listaDeNodosAsArray();
 
 		//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
+		if(!list_is_empty(nodosParaEstable)){
+			int i;
+			for(i=0; i < list_size(nodosParaEstable); i++){
+				t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
+				int todosParaOriginal = 0;
+				int todosParaCopia = 0;
 
-		int i;
-		for(i=0; i < list_size(nodosParaEstable); i++){
-			t_nodos_por_archivo *nodosNecesarios = list_get(nodosParaEstable, i);
-			int todosParaOriginal = 0;
-			int todosParaCopia = 0;
-
-			int j;
-			for(j=0; j < list_size(nodosNecesarios->nodosOriginal); j++){
-				if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
-					todosParaOriginal = -1;
+				int j;
+				for(j=0; j < list_size(nodosNecesarios->nodosOriginal); j++){
+					if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosOriginal, j))){
+						todosParaOriginal = -1;
+					}
 				}
-			}
 
-			int k;
-			for(k=0; k < list_size(nodosNecesarios->nodosCopia); k++){
-				if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosCopia, k))){
-					todosParaCopia = -1;
+				int k;
+				for(k=0; k < list_size(nodosNecesarios->nodosCopia); k++){
+					if(!string_contains(stringNodosConectados, list_get(nodosNecesarios->nodosCopia, k))){
+						todosParaCopia = -1;
+					}
 				}
-			}
 
-			if(todosParaOriginal == -1 && todosParaCopia == -1){
-				estable = 0;
-			}
+				if(todosParaOriginal == -1 && todosParaCopia == -1){
+					estable = 0;
+				}
 
-			if((list_is_empty(nodosNecesarios->nodosOriginal) && todosParaCopia == -1) || (list_is_empty(nodosNecesarios->nodosCopia) && todosParaOriginal == -1)){
-				estable = 0;
+				if((list_is_empty(nodosNecesarios->nodosOriginal) && todosParaCopia == -1) || (list_is_empty(nodosNecesarios->nodosCopia) && todosParaOriginal == -1)){
+					estable = 0;
+				}
 			}
 		}
+
 
 		if(estable == 1)
 			log_trace(log, "El sistema se encuentra en estado ESTABLE");
@@ -1250,6 +1260,41 @@ int esEstadoEstable(){
 	}
 
 
+}
+
+int cantidadTotalDeArchivos(){
+	int cantidad = 0;
+	DIR *d;
+	struct dirent *dir;
+	// Abro el directorio que contiene todos los directorios de los archivos
+	d = opendir(string_from_format("%s%s", directorioRaiz, pathArchivos));
+	if (d){
+		while ((dir = readdir(d)) != NULL)
+		{
+			// Por cada directorio que contenga archivos
+			if(!string_equals_ignore_case(dir->d_name, ".") && !string_equals_ignore_case(dir->d_name, "..")){
+				//Es un directorio que contiene archivos
+
+				DIR *arch;
+				struct dirent *archivos;
+				arch = opendir(string_from_format("%s%s%s", directorioRaiz, pathArchivos, dir->d_name));
+				if (arch){
+					while ((archivos = readdir(arch)) != NULL){
+						// Por cada archivo del directorio lo sumo
+
+						cantidad ++;
+
+					}
+					closedir(arch);
+				}
+
+			}
+
+		}
+
+		closedir(d);
+	}
+	return cantidad;
 }
 
 void nodosARestaurar(){
@@ -1385,10 +1430,11 @@ void initFS(){
 void formatear(){
 	system(string_from_format("rm -r %s/*", directorioRaiz));
 
-	if(remove(PATHDIRECTORIOS) == -1){
+	// la tabla de directorios esta en el directorio raiz asi que ya se borra antes
+	/*if(remove(PATHDIRECTORIOS) == -1){
 		//No se elimino
-		log_error(log,"No se pudo eliminar la tabla de archivos");
-	}
+		log_error(log,"No se pudo eliminar la tabla de directorios");
+	}*/
 
 	//config_destroy(fileNodos);
 
