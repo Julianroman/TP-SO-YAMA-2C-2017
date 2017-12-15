@@ -95,7 +95,7 @@ void getInfoArchivo(char *pathConNombre);
 
 int getSocketNodoByName(int nroNodo);
 
-char *leerContenidoArchivo(char *pathConNombre);
+int leerContenidoArchivo(char *pathConNombre);
 
 void agregarNodoAListaSiNoExiste(t_list *lista, char *nodo);
 

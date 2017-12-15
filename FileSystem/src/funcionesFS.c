@@ -15,11 +15,12 @@ t_list *nodosParaEstable; // Lista de t_nodos_por_archivo para restaurar estado 
 static char *directorioRaiz = "root/";
 static char *pathArchivos = "metadata/archivos/";
 static char *pathTablaNodos = "root/metadata/nodos.bin";
+char *lecturaPathMD5 = "LECTURAFILEMD5.txt";
+
 
 t_config *fileNodos;
 
 int socketYama;
-char *contenidoLeido;
 
 pthread_mutex_t mutexContenido;
 sem_t binaryContenidoServidor;
@@ -198,7 +199,12 @@ void servidorFs(int puerto){
 							payload_BLOQUE * payload = data;
 
 							pthread_mutex_lock(&mutexContenido);
-							string_append(&contenidoLeido, payload->contenido);
+							//string_append(&contenidoLeido, payload->contenido);
+
+							FILE *archv = fopen(lecturaPathMD5, "a");
+							fwrite(payload->contenido, 1, payload->tamanio_bloque, archv);
+							fclose(archv);
+
 							pthread_mutex_unlock(&mutexContenido);
 							printf("Leido OK bloque %i \n", payload->numero_bloque);
 
@@ -360,7 +366,6 @@ static t_list *cortar_modo_texto(FILE *in){
 	int offset = 0;
 	int j = 0;
 	while ( (n=fread(buffer,1,tamanioBloques,in)) > 0 ) {
-		//-----------------------
 
 		j = n;
 		if(n == tamanioBloques){
@@ -377,7 +382,7 @@ static t_list *cortar_modo_texto(FILE *in){
 		t_pagina *nodo = malloc(sizeof(t_pagina));
 		nodo->tamanio = j;
 		nodo->contenido = malloc(j);
-		memcpy(nodo->contenido, string_substring(buffer, 0, j), j); //TODO
+		memcpy(nodo->contenido, string_substring(buffer, 0, j), j);
 		list_add(retVal, nodo);
 		offset += j;
 	}
@@ -714,11 +719,10 @@ void leerArchivo(char *pathConNombre){
 		char *pathArchivoConfig = string_new();
 		string_append(&pathArchivoConfig, directorioRaiz);
 		string_append(&pathArchivoConfig, indicePath);
-		contenidoLeido = string_new();
 		FILE *in;
 		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
 			log_error(log, "No se encontro el archivo");
-			contenidoLeido = "Error";
+
 			send_FRACASO_OPERACION(socketYama);
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
@@ -1065,7 +1069,7 @@ int getSocketNodoByName(int nroNodo){
 	return contenidoLeido;
 }*/
 
-char *leerContenidoArchivo(char *pathConNombre){
+int leerContenidoArchivo(char *pathConNombre){
 
 	if(esRutaYamaFSConNombre(pathConNombre)==1){
 		sem_init(&binaryContenidoConsola, 0, 0);
@@ -1105,11 +1109,14 @@ char *leerContenidoArchivo(char *pathConNombre){
 		char *pathArchivoConfig = string_new();
 		string_append(&pathArchivoConfig, directorioRaiz);
 		string_append(&pathArchivoConfig, indicePath);
-		contenidoLeido = string_new();
+
+		if(fopen(lecturaPathMD5, "r")){
+			remove(lecturaPathMD5);
+		}
+
 		FILE *in;
 		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
 			log_error(log, "No se encontro el archivo");
-			contenidoLeido = "Error";
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
@@ -1128,7 +1135,7 @@ char *leerContenidoArchivo(char *pathConNombre){
 					socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 					if(socketOriginal != -1){
 						// Pido el original
-						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
+						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i\n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i, tamanioBloque);
 						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
 						sem_post(&binaryContenidoServidor);
 						sem_wait(&binaryContenidoConsola);
@@ -1159,9 +1166,9 @@ char *leerContenidoArchivo(char *pathConNombre){
 					ok = 0;
 				}
 
-				if(ok != 0 && socketOriginal != -1 && socketCopia != -1){
+				if(ok != 0 && socketOriginal == -1 && socketCopia == -1){
 					log_error(log, "Los sockets no estan disponibles");
-					contenidoLeido = "Error";
+					return FRACASO;
 					ok = 0;
 				}
 
@@ -1173,9 +1180,9 @@ char *leerContenidoArchivo(char *pathConNombre){
 			free(archivo_configuracion);
 			fclose(in);
 		}
-		return contenidoLeido;
+		return EXITO;
 	}else{
-		return "Error";
+		return FRACASO;
 	}
 
 
