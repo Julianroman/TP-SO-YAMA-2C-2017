@@ -70,7 +70,7 @@ void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master
     }
   }
   else {
-    log_error(logYAMA, "LLEGO INFO DEL NODO %d QUE NO ESTOY TENIENDO EN CUENTA", infoMaster->id_nodo);
+    log_warning(logYAMA, "LLEGO INFO DEL NODO %d QUE NO ESTOY TENIENDO EN CUENTA", infoMaster->id_nodo);
   }
 }
 
@@ -192,7 +192,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
         infoBloque->copia = bloques->copia;
 
         list_add(infoNodo->infoBloques, infoBloque);
-        log_trace(logYAMA, "Se agregó al nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, bloques->ip);
+        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
       }
 
       else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
@@ -208,7 +208,8 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
         list_add(nodoInfo->infoBloques, infoBloque);
         list_add(nodosDisponibles, nodo);
-        log_trace(logYAMA, "Se agregó nodo %d con bloqueNodo %d, bloqueArchivo %d, copia %d  y IP: %s", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, bloques->ip);
+        log_trace(logYAMA, "NUEVO NODO %d", nodo->id);
+        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
       }
     data = receive(SocketFSGlobal,&header);
   }
