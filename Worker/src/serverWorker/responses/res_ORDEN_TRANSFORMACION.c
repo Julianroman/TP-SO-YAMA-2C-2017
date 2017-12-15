@@ -10,6 +10,7 @@
 #include <utilidades/protocol/receive.h>
 #include <commons/log.h>
 #include <commons/string.h>
+#include <commons/config.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -73,27 +74,33 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     // Le otorgo permisos de ejecucion
     char* chmodComand = string_from_format("chmod +x %s", scriptPath);
     system(chmodComand);
+    free(chmodComand);
 
-    int dataBin = open("../../data.bin", O_RDONLY);
+	t_config* archivo_configuracion = config_create("worker-config.cfg");
+	char* dataBinPath = config_get_string_value(archivo_configuracion, "RUTA_DATABIN");
+
+    // Obtengo el bloque a transformar
+    int dataBin = open(dataBinPath, O_RDONLY);
     char * bloqueATransformar = leerArchivo(orden->bytesocupados, orden->bloque, dataBin);
     close(dataBin);
+	config_destroy(archivo_configuracion);
 
-
+    // Creo un archivo intermedio
     char* temporalPath = string_from_format("temporalTransformacion%d",pid);
     FILE * temporalFile = fopen(temporalPath,"w+");
     fwrite(bloqueATransformar,1,orden->bytesocupados, temporalFile);
     fclose(temporalFile);
 
+    // Ejecuto la transformacion
     log_info(logger,"Bloque: %d, %d bytes",(orden -> bloque),orden -> bytesocupados);
     char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
-
     if((system(transformationCommand))==-1){exit(1);};
-    log_info(logger,"Comando: %s",transformationCommand);
-    free(temporalPath);
 
-	log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden ->bloque),(orden->nombreArchivoTemporal));
+    // Log intenso
+	log_trace(logger,"Transformacion OK // bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
 
 	// Esito
+    free(temporalPath);
 	send_EXITO_OPERACION(socket_cliente);
 	exit(EXIT_SUCCESS);
 
