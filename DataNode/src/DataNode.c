@@ -153,7 +153,7 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 	case PETICION_BLOQUE:
 		payloadLeer = data;
 		if(bloqueInvalido(payloadLeer->numero_bloque) == 1){
-			log_error(logger,"Bloque inexistente, no se puede leer");
+			log_error(logger,"Bloque (%i) inexistente, no se puede leer", payloadLeer->numero_bloque);
 		}else{
 			log_trace(logger, "Leyendo del bloque %i -- %i bytes", payloadLeer->numero_bloque, payloadLeer->tam_bloque);
 			bloque = leerArchivo(payloadLeer->tam_bloque, payloadLeer->numero_bloque);
@@ -163,13 +163,12 @@ void realizarPeticion(void * data, HEADER_T cabecera, int socket){
 		break;
 	case BLOQUE:
 		payloadEscribir = data;
-		if(bloqueInvalido(payloadLeer->numero_bloque)  == 1){
-			log_error(logger,"Bloque inexistente, no se puede escribir");
+		if(bloqueInvalido(payloadEscribir->numero_bloque)  == 1){
+			log_error(logger,"Bloque (%i) inexistente, no se puede leer", payloadEscribir->numero_bloque);
 			free(payloadEscribir->contenido);
-		}else{
-			log_trace(logger, "Escribiendo en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
-			escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		}
+		log_trace(logger, "Escribiendo en el bloque %i -- %i bytes", payloadEscribir->numero_bloque, payloadEscribir->tamanio_bloque);
+		escribirArchivo(payloadEscribir->contenido, payloadEscribir->tamanio_bloque, payloadEscribir->numero_bloque);
 		break;
 	case FIN_COMUNICACION:
 		log_error(logger, "Se desconecto el FS.");
