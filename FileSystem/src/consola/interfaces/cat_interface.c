@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+extern char *lecturaPathMD5;
 
 void cat_interface(char **comando){
 
@@ -11,19 +12,21 @@ void cat_interface(char **comando){
 		cant++;
 	}
 
-	printf("comando <cat> reconocido / Implementacion en proceso\n");
 
-	char *contenidoRecibido = leerContenidoArchivo(comando[1]);
-	if(string_equals_ignore_case(contenidoRecibido, "Error") == 0){
+	if(cant != 2){
+		fprintf(stderr, "Comando erroneo. Podria probar con: cat [path_archivo]");
+	}else{
 
-	}
-	else{
-		FILE *archivo;
-		archivo = fopen("/home/utnso/archivo.bin", "wb+");
-		fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
+		if(leerContenidoArchivo(comando[1])){
+			system(string_from_format("cat %s", lecturaPathMD5));
 
-		free(contenidoRecibido); // TODO: No esta haciendo el free
-		fclose(archivo);
+			remove(lecturaPathMD5);
+		}else{
+			perror("No se pudo concretar la operacion");
+		}
+
+
+
 	}
 
 

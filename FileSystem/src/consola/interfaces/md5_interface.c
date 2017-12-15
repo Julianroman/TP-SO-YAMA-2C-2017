@@ -3,6 +3,12 @@
  */
 
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+extern char *lecturaPathMD5;
 
 void md5_interface(char **comando){
 	int cant = 0;
@@ -13,30 +19,17 @@ void md5_interface(char **comando){
 	if(cant != 2){
 		fprintf(stderr, "Comando erroneo. Podria probar con: md5 [path_archivo_yamafs]");
 	}else{
-		char *rutaTemp = "archivoTemp.txt";
 
-		char *contenidoRecibido = leerContenidoArchivo(comando[1]);
-		int rec = string_equals_ignore_case(contenidoRecibido, "Error");
+		if(leerContenidoArchivo(comando[1])){
+			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", lecturaPathMD5));
 
-		if(rec == 1){
-			puts("Error al intentar leer el archivo (md5)");
+			remove(lecturaPathMD5);
+		}else{
+			perror("No se pudo concretar la operacion");
 		}
-		else{
-			FILE *archivo;
-			archivo = fopen(rutaTemp, "w");
-			fwrite(contenidoRecibido, strlen(contenidoRecibido)*sizeof(char),1, archivo);
-
-			free(contenidoRecibido); // TODO: No esta haciendo el free
-			fclose(archivo);
 
 
-			system(string_from_format("md5sum %s | awk '{print \"MD5:\" $1}'", rutaTemp));
 
-			if(remove(rutaTemp) == -1){
-				//No se elimino
-			}
-		}
 	}
-
 
 };
