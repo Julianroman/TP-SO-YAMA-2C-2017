@@ -28,7 +28,7 @@ endif
 all: FileSystem
 
 dependents:
-	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) clean all
+	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) all
 
 # Tool invocations
 FileSystem: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so
