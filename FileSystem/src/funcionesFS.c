@@ -145,7 +145,6 @@ void servidorFs(int puerto){
 							//if(esEstadoEstable() == 1){
 								char* mensaje = "Bienvenido a FS!!";
 								send(i, mensaje, strlen(mensaje), 0);
-								free(mensaje);
 
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
@@ -798,10 +797,14 @@ void leerArchivo(char *pathConNombre){
 			free(nodoYBloque);
 			free(nodoYBloqueCopia);
 			free(archivo_configuracion);
-			free(arrayPath);
+
+
 			fclose(in);
 			send_FIN_LISTA(socketYama);
 		}
+		free(indicePath);
+		free(arrayPath);
+		free(name);
 	}
 
 }
