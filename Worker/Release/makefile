@@ -34,7 +34,7 @@ dependents:
 Worker: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
