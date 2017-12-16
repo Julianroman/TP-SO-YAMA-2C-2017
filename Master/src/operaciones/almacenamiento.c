@@ -34,12 +34,16 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
 	}
 
-	puts("Ingrese la ruta donde desea guardar la transformacion:\n");
-	char * rutaAlmacenamiento = inputGet();
-	puts("Ingrese el nombre del archivo almacenado:\n");
-	char * nombreAlmacenamiento = inputGet();
+	char rutaAlmacenado [1000];
+	puts("Ingrese la ruta donde guardar el job:");
+	scanf("%s",rutaAlmacenado);
+	char nombreAlmacenado [1000];
+	puts("Ingrese la ruta donde guardar el job:");
+	scanf("%s",nombreAlmacenado);
 
-	send_ORDEN_ALMACENAMIENTO(socketWorker,rutaAlmacenamiento,nombreAlmacenamiento,payload->nombreTemporal_ReduccionGlobal);
+
+	// ENVIAR ORDEN DE ALMACENAMIENTO
+	send_ORDEN_ALMACENAMIENTO(socketWorker,rutaAlmacenado,nombreAlmacenado,payload->nombreTemporal_ReduccionGlobal);
 
 	HEADER_T header;
 	receive(socketWorker,&header);
@@ -50,9 +54,6 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
 	}
-
-	free(nombreAlmacenamiento);
-	free(rutaAlmacenamiento);
 
 
 	close(socketWorker);

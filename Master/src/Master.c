@@ -41,6 +41,9 @@ int masterID;
 char* rutaTransformador;
 char* rutaReductor;
 
+char* rutaAlmacenado;
+char* nombreAlmacenado;
+
 char* scriptTransformador;
 char* scriptReductor;
 
