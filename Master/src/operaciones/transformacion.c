@@ -77,6 +77,7 @@ void* rutina_transformacion(void* args){
 	}
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
 
+	// Envio de script
 	int scriptFD = open(rutaTransformador,O_RDONLY,0);
 	int scriptSize = getScritptSize(rutaTransformador);
 	char * contenidoScript = leerScript(scriptSize, scriptFD);
@@ -95,7 +96,9 @@ void* rutina_transformacion(void* args){
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,0);
 	}
 	close(socketWorker);
-	// TODO Destruir payload
+
+	// Destruir payload
+	destroy_INFO_TRANSFORMACION(payload);
 
 	// Parar timer y actualizar
 	time (&finEtapa);

@@ -10,11 +10,13 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/destroy.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include "operaciones.h"
+#include "../funcionesMaster.h"
 
 extern sem_t fin_job;
 extern t_log* logger;
@@ -31,6 +33,14 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 		log_error(logger, "Almacenamiento de <%s> interrumpido por %s:%d",payload->nombreTemporal_ReduccionGlobal,payload->IP_Worker,payload->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
 	}
+
+	puts("Ingrese la ruta donde desea guardar la transformacion:\n");
+	char * rutaAlmacenamiento = inputGet();
+	puts("Ingrese el nombre del archivo almacenado:\n");
+	char * nombreAlmacenamiento = inputGet();
+	free(nombreAlmacenamiento);
+	free(rutaAlmacenamiento);
+
 	send_ORDEN_ALMACENAMIENTO(socketWorker,payload->nombreTemporal_ReduccionGlobal);
 
 	HEADER_T header;
@@ -46,7 +56,10 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 
 
 	close(socketWorker);
-	// TODO destruir payload
+
+	// Destruir payload
+	destroy_INFO_ALMACENAMIENTO(payload);
+
 	log_trace(logger, "Almacenamiento finalizado");
 	time (&finEtapa);
 	tiempoAlmacenamiento += difftime(finEtapa,inicioEtapa);

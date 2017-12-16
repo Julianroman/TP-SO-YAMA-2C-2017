@@ -39,6 +39,7 @@ int operaciones;
 int masterID;
 
 char* rutaTransformador;
+char* rutaReductor;
 
 char* scriptTransformador;
 char* scriptReductor;
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Inicializar semaforo de fin de job
-	sem_init(&balancer, 0, 25);
+	sem_init(&balancer, 0, 20);
 	sem_init(&fin_job, 0, 0);
 	sem_init(&recepcionSem, 0, 0);
 
@@ -89,9 +90,9 @@ int main(int argc, char **argv) {
 
 	// Abrir archivos
 	rutaTransformador = argv[2];
-	char* ruta_reductor      = argv[3];
+	rutaReductor      = argv[3];
 	scriptTransformador = scriptToChar(rutaTransformador);
-	scriptReductor = scriptToChar(ruta_reductor);
+	scriptReductor = scriptToChar(rutaReductor);
 
 
 	// Inicializar logs

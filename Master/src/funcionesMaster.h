@@ -14,5 +14,6 @@ void tituloMaster();
 STATUS_MASTER recibirJob(int socketYama, int* masterID);
 char *leerScript(int size, int nodeFD);
 int getScritptSize(char * rutaTransformador);
+char * inputGet();
 
 #endif /* FUNCIONESMASTER_H_ */

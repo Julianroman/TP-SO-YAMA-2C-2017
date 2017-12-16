@@ -13,9 +13,12 @@
 #include <utilidades/protocol/destroy.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include "operaciones.h"
+#include "../funcionesMaster.h"
 
 extern t_log* logger;
 extern double tiempoReduxLocal;
@@ -28,7 +31,7 @@ extern int maxReduxLocalesEnProceso;
 extern int maxParalelasEnProceso;
 extern int masterID;
 extern sem_t recepcionSem;
-
+extern char* rutaReductor;
 
 int YAMAsocket;
 
@@ -113,8 +116,13 @@ void* rutina_reduccionLocal(void* args){
 	sem_post(&recepcionSem);
 
 
-	// Enviar script
-	send_SCRIPT(socketWorker,scriptReductor);
+	// Envio de script
+	int scriptFD = open(rutaReductor,O_RDONLY,0);
+	int scriptSize = getScritptSize(rutaReductor);
+	char * contenidoScript = leerScript(scriptSize, scriptFD);
+
+	//Enviar contenido
+	send_BLOQUE(socketWorker,scriptSize,contenidoScript,0);
 
 
 	// Recibir resultado
