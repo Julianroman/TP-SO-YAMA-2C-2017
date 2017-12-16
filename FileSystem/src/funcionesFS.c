@@ -770,7 +770,9 @@ void leerArchivo(char *pathConNombre){
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 
 					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
+					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
+					free(bloquesBytes);
 
 					// Se envia a YAMA
 					int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
@@ -783,7 +785,9 @@ void leerArchivo(char *pathConNombre){
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 
 					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
+					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
+					free(bloquesBytes);
 
 					// Se envia a YAMA
 					int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
@@ -878,10 +882,12 @@ void getInfoArchivo(char *pathConNombre){
 				char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
 				char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iBYTES", i))){
+				char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
+				if(config_has_property(archivo_configuracion ,bloquesBytes)){
 					log_info(log, "Bloque %i", i);
-					log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i)));
+					log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, bloquesBytes));
 				}
+				free(bloquesBytes);
 
 
 				if(config_has_property(archivo_configuracion ,copiaCero)){
@@ -1022,7 +1028,9 @@ int leerContenidoArchivo(char *pathConNombre){
 				if(config_has_property(archivo_configuracion ,copiaCero)){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
 					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
+					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
+					free(bloquesBytes);
 
 					socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
 					if(socketOriginal != -1){
@@ -1040,7 +1048,9 @@ int leerContenidoArchivo(char *pathConNombre){
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaUno));
 
 					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
+					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
+					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
+					free(bloquesBytes);
 
 					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
 					if(socketCopia != -1){
