@@ -394,7 +394,9 @@ static t_list *cortar_modo_texto(FILE *in){
 		t_pagina *nodo = malloc(sizeof(t_pagina));
 		nodo->tamanio = j;
 		nodo->contenido = malloc(j);
-		memcpy(nodo->contenido, string_substring(buffer, 0, j), j);
+		char* textoACopiar = string_substring(buffer, 0, j);
+		memcpy(nodo->contenido, textoACopiar, j);
+		free(textoACopiar);
 		list_add(retVal, nodo);
 		offset += j;
 	}
@@ -906,6 +908,9 @@ void getInfoArchivo(char *pathConNombre){
 			config_destroy(archivo_configuracion);
 			fclose(in);
 		}
+		free(indicePath);
+		free(arrayPath);
+		free(name);
 	}
 
 
@@ -1028,7 +1033,7 @@ int leerContenidoArchivo(char *pathConNombre){
 						sem_wait(&binaryContenidoConsola);
 
 					}
-
+					free(nodoYBloque);
 				}
 
 				if(config_has_property(archivo_configuracion ,copiaUno) && socketOriginal == -1){
@@ -1046,6 +1051,7 @@ int leerContenidoArchivo(char *pathConNombre){
 						sem_wait(&binaryContenidoConsola);
 
 					}
+					free(nodoYBloqueCopia);
 				}
 
 
@@ -1069,12 +1075,13 @@ int leerContenidoArchivo(char *pathConNombre){
 				i++;
 			}
 
-			free(nodoYBloque);
-			free(nodoYBloqueCopia);
-			free(archivo_configuracion);
-			fclose(in);
 			config_destroy(archivo_configuracion);
+			fclose(in);
 		}
+		free(indicePath);
+		free(arrayPath);
+		free(name);
+
 		return EXITO;
 	}else{
 		return FRACASO;
