@@ -8,9 +8,8 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/serverWorker/responses/subdir.mk
--include src/serverWorker/subdir.mk
--include src/subdir.mk
+-include utilidades/protocol/subdir.mk
+-include utilidades/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -25,26 +24,22 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: Worker
-
-dependents:
-	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) clean all
+all: libUtilidades.so
 
 # Tool invocations
-Worker: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so
+libUtilidades.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -shared -o "libUtilidades.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Worker
+	-$(RM) $(OBJS)$(C_DEPS)$(LIBRARIES) libUtilidades.so
 	-@echo ' '
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so:
 
 -include ../makefile.targets
