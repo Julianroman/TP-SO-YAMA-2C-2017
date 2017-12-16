@@ -230,6 +230,10 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
     log_error(logYAMA, "FS no esta estable, me rechazó.");
     exit(1);
   }
+  if(header == FRACASO_OPERACION){
+	  log_error(logYAMA, "No se pudo concretar la operacion");
+	  exit(1);
+  }
 
   if(header == FIN_LISTA){
     log_trace(logYAMA, "Se cargaron los nodos correctamente");
