@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
-#include <stdio.h>
 
 char* pack_SOLICITUD_JOB(payload_SOLICITUD_JOB payload,int* tamanio_paquete){
     int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_nombreArchivo);
@@ -138,7 +137,7 @@ char* pack_ORDEN_REDUCCIONGLOBAL(payload_ORDEN_REDUCCIONGLOBAL payload,int* tama
 };
 
 char* pack_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO payload,int* tamanio_paquete){
-    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal);
+    int tamanio_total = sizeof(HEADER_T) + sizeof(int) + (payload.tamanio_rutaAlmacenamiento) + sizeof(int) + (payload.tamanio_nombreAlamcenamiento) + sizeof(int) + (payload.tamanio_nombreTemporal_ReduccionGlobal);
     char* paquete = malloc(tamanio_total);
 
     int offset = 0;
@@ -146,6 +145,22 @@ char* pack_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO payload,int* tamani
     HEADER_T cabecera = ORDEN_ALMACENAMIENTO;
     tamanio_envio = (sizeof(HEADER_T));
     memcpy(paquete+offset,&cabecera,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.tamanio_rutaAlmacenamiento),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_rutaAlmacenamiento);
+    memcpy(paquete+offset,payload.rutaAlmacenamiento,tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = sizeof(int);
+    memcpy(paquete+offset,&(payload.tamanio_nombreAlamcenamiento),tamanio_envio);
+    offset += tamanio_envio;
+
+    tamanio_envio = (payload.tamanio_nombreAlamcenamiento);
+    memcpy(paquete+offset,payload.nombreAlamcenamiento,tamanio_envio);
     offset += tamanio_envio;
 
     tamanio_envio = sizeof(int);
@@ -768,8 +783,6 @@ char* pack_ALMACENAR_ARCHIVO(payload_ALMACENAR_ARCHIVO payload,int* tamanio_paqu
     tamanio_envio = (payload.tamanio_tipo);
     memcpy(paquete+offset,payload.tipo,tamanio_envio);
     offset += tamanio_envio;
-
-    printf("Envio: %s/%s (%s)",payload.pathDestino,payload.nombre,payload.tipo);
 
     (* tamanio_paquete) = tamanio_total;
     return paquete;

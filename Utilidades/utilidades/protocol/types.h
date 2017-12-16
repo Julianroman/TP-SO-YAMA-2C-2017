@@ -37,6 +37,10 @@ typedef struct {
 }payload_ORDEN_REDUCCIONGLOBAL;
 
 typedef struct { 
+    int tamanio_rutaAlmacenamiento; 
+    char* rutaAlmacenamiento; 
+    int tamanio_nombreAlamcenamiento; 
+    char* nombreAlamcenamiento; 
     int tamanio_nombreTemporal_ReduccionGlobal; 
     char* nombreTemporal_ReduccionGlobal; 
 }payload_ORDEN_ALMACENAMIENTO;

@@ -11,7 +11,7 @@ void send_SOLICITUD_JOB(int socket  , char* nombreArchivo);
 void send_ORDEN_TRANSFORMACION(int socket  , int bloque , int bytesocupados , char* nombreArchivoTemporal);
 void send_ORDEN_REDUCCIONLOCAL(int socket  , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal);
 void send_ORDEN_REDUCCIONGLOBAL(int socket  , int PUERTO_Nodo , char* IP_Nodo , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado);
-void send_ORDEN_ALMACENAMIENTO(int socket  , char* nombreTemporal_ReduccionGlobal);
+void send_ORDEN_ALMACENAMIENTO(int socket  , char* rutaAlmacenamiento , char* nombreAlamcenamiento , char* nombreTemporal_ReduccionGlobal);
 void send_INFO_TRANSFORMACION(int socket  , int PUERTO_Worker , char* IP_Worker , int bloque , int bytesocupados , char* nombreArchivoTemporal , int ID_Nodo);
 void send_INFO_REDUCCIONLOCAL(int socket  , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_Transformacion , char* nombreTemporal_ReduccionLocal , int ID_Nodo);
 void send_INFO_REDUCCIONGLOBAL(int socket  , int PUERTO_Worker , char* IP_Worker , char* nombreTemporal_ReduccionLocal , char* nombreTemporal_ReduccionGlobal , int encargado , int ID_Nodo);
