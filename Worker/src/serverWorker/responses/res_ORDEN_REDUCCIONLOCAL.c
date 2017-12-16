@@ -84,8 +84,8 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 
 
 	// Recibir script
-	payload_SCRIPT* script = receive(socket_cliente,&cabecera);
-	if(cabecera != SCRIPT){
+	payload_BLOQUE* script = receive(socket_cliente,&cabecera);
+	if(cabecera != BLOQUE){
 		log_error(logger,"Se esperaba un archivo");
 		send_FRACASO_OPERACION(socket_cliente);
 		exit(1);

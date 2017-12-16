@@ -70,6 +70,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     }
 	fwrite(contenido,script -> tamanio_bloque,1,scriptFile);
 	fclose(scriptFile);
+	destroy_BLOQUE(script);
 
     // Le otorgo permisos de ejecucion
     char* chmodComand = string_from_format("chmod +x %s", scriptPath);
@@ -96,6 +97,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     	log_error(logger,"Transformacion ERR | No se pudo crear archivo intermedio | Bloque: %d",(orden -> bloque));
     	exit(1);
     }
+    free(bloqueATransformar);
     fclose(temporalFile);
 
     // Ejecuto la transformacion

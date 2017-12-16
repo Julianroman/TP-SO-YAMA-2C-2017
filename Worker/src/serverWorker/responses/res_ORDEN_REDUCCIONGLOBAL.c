@@ -48,7 +48,6 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 	payload_BLOQUE* temporalPayload;
 	pid_t pid = getpid();
 	int socketSubordinado;
-	t_list* listaTemporales = list_create();
 	char* nombreReduccionGlobal = orden -> nombreTemporal_ReduccionGlobal;
 
 	// Cargar el temporal local
@@ -107,8 +106,8 @@ void res_ORDEN_REDUCCIONGLOBAL(int socket_cliente,HEADER_T header,void* data){
 
 
 	// Recibir archivo reductor
-	payload_SCRIPT* script = receive(socket_cliente,&header);
-	if(header != SCRIPT){
+	payload_BLOQUE* script = receive(socket_cliente,&header);
+	if(header != BLOQUE){
 		log_error(logger,"Se esperaba un archivo");
 		send_FRACASO_OPERACION(socket_cliente);
 		exit(1);
