@@ -30,6 +30,8 @@
 #include "operaciones/operaciones.h"
 #include "funcionesMaster.h"
 
+#define BACKLOGTRANS 12
+
 sem_t recepcionSem;
 sem_t balancer;
 
@@ -78,7 +80,6 @@ int main(int argc, char **argv) {
 	}
 
 	// Inicializar semaforo de fin de job
-	sem_init(&balancer, 0, 12);
 	sem_init(&fin_job, 0, 0);
 	sem_init(&recepcionSem, 0, 0);
 
@@ -103,8 +104,10 @@ int main(int argc, char **argv) {
 	// Leer configuracion
 	int puertoYama;
 	char* ipYama;
-	leerConfiguracion("master-config.cfg", &ipYama,&puertoYama);
+	int balanceo;
+	leerConfiguracion("master-config.cfg", &ipYama,&puertoYama,&balanceo);
 	log_trace(logger, "Configuracion leida");
+	sem_init(&balancer, 0, balanceo);
 
 	// Conectarse al YAMA
 	int socketYAMA = crear_conexion(ipYama,puertoYama);
