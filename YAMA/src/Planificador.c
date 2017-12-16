@@ -195,11 +195,11 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job_master* job_master)
         t_worker* nodo = getNodo(bloques->numero_nodo);
         if(!tengoInfoNodo(nodo, job_master->job)){
         	infoNodo = newInfoNodo(nodo, job_master->job);
+        	list_add(nodo->infoNodos, infoNodo);
         }
         else{
         	infoNodo = getInfoNodo(nodo, job_master->job);
         }
-        list_add(nodo->infoNodos, infoNodo);
         t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
         infoBloque->bloqueNodo = bloques->bloque_nodo;
         infoBloque->tamanioBloque = bloques->tam_bloque;
@@ -404,15 +404,12 @@ void realizarAlmacenadoFinal(t_job_master* job_master){
 }
 
 t_worker* getEncargado(t_job* job){
-  int getInfoNodoConJob(t_infoNodo* info){
-    return info->job->id = job->id;
-  }
   int buscarEncargadoDeJob(t_worker* worker){
-    t_infoNodo* infoNodo = list_find(worker->infoNodos, (void*)getInfoNodoConJob);
-    return infoNodo->encargado == 1;
+	  t_infoNodo* infoNodo = getInfoNodo(worker, job);
+	  return infoNodo->encargado == 1;
   }
-
-  t_worker* encargado = list_find(getNodosActivos(job->id), (void*)buscarEncargadoDeJob);
+  t_list* nodosActivos = getNodosActivos(job->id);
+  t_worker* encargado = list_find(nodosActivos, (void*)buscarEncargadoDeJob);
   return encargado;
 }
 
