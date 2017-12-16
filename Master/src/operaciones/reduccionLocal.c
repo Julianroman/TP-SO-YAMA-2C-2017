@@ -122,6 +122,7 @@ void* rutina_reduccionLocal(void* args){
 	char * contenidoScript = leerScript(scriptSize, scriptFD);
 
 	//Enviar contenido
+	log_info(logger,"Enviando script: %s (%d bytes)",rutaReductor,scriptSize);
 	send_BLOQUE(socketWorker,scriptSize,contenidoScript,0);
 
 
