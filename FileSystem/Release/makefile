@@ -28,13 +28,13 @@ endif
 all: FileSystem
 
 dependents:
-	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) all
+	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) clean all
 
 # Tool invocations
 FileSystem: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -o "FileSystem" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -L/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug -o "FileSystem" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
