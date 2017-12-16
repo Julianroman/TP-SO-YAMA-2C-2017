@@ -753,14 +753,18 @@ void leerArchivo(char *pathConNombre){
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			char **nodoYBloque;
+			char **nodoYBloqueCopia;
 
 			int ok = 1;
 			int i = 0;
 			while(ok == 1){
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+
+				char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
+				char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
+
+				if(config_has_property(archivo_configuracion ,copiaCero)){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
 
 					// Agarro el tamanio del bloque
@@ -769,10 +773,11 @@ void leerArchivo(char *pathConNombre){
 					// Se envia a YAMA
 					int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
 					enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
+					free(nodoYBloque);
 				}
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+				if(config_has_property(archivo_configuracion ,copiaUno)){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaUno));
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 
 					// Agarro el tamanio del bloque
@@ -781,22 +786,24 @@ void leerArchivo(char *pathConNombre){
 					// Se envia a YAMA
 					int nroNodoCopia = atoi(string_substring_from(nodoYBloqueCopia[0],4));
 					enviarAYama(nroNodoCopia, atoi(nodoYBloqueCopia[1]), i, 1, getIpNodoByName(nroNodoCopia), tamanioBloque);
+					free(nodoYBloqueCopia);
 				}
 
-				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				if(!config_has_property(archivo_configuracion ,copiaCero) && !config_has_property(archivo_configuracion ,copiaUno)){
 					if(i == 0){
 						log_error(log, "No se encontro el archivo en la ruta indicada");
 					}
 
 					ok = 0;
 				}
-
+				free(copiaCero);
+				free(copiaUno);
 				i++;
 			}
 
-			free(nodoYBloque);
-			free(nodoYBloqueCopia);
-			free(archivo_configuracion);
+			//free(nodoYBloque);
+			//free(nodoYBloqueCopia);
+			config_destroy(archivo_configuracion);
 
 
 			fclose(in);
@@ -853,8 +860,8 @@ void getInfoArchivo(char *pathConNombre){
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			char **nodoYBloque;
+			char **nodoYBloqueCopia;
 
 			if(config_has_property(archivo_configuracion ,"TAMANIO")){
 				log_info(log, "TAMANIO: %i", config_get_int_value(archivo_configuracion ,"TAMANIO"));
@@ -866,6 +873,8 @@ void getInfoArchivo(char *pathConNombre){
 			int ok = 1;
 			int i = 0;
 			while(ok == 1){
+				char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
+				char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
 
 				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iBYTES", i))){
 					log_info(log, "Bloque %i", i);
@@ -873,27 +882,28 @@ void getInfoArchivo(char *pathConNombre){
 				}
 
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+				if(config_has_property(archivo_configuracion ,copiaCero)){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
 					log_info(log, "ORIGINAL: %s -- Bloque %s\n", nodoYBloque[0], nodoYBloque[1], i);
+					free(nodoYBloque);
 				}
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+				if(config_has_property(archivo_configuracion ,copiaUno)){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaUno));
 					log_info(log, "COPIA: %s -- Bloque %s\n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-
+					free(nodoYBloqueCopia);
 				}
 
-				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				if(!config_has_property(archivo_configuracion ,copiaCero) && !config_has_property(archivo_configuracion ,copiaUno)){
 					ok = 0;
 				}
+				free(copiaCero);
+				free(copiaUno);
 
 				i++;
 			}
 
-			free(nodoYBloque);
-			free(nodoYBloqueCopia);
-			free(archivo_configuracion);
+			config_destroy(archivo_configuracion);
 			fclose(in);
 		}
 	}
@@ -994,15 +1004,18 @@ int leerContenidoArchivo(char *pathConNombre){
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
-			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
+			char **nodoYBloque;
+			char **nodoYBloqueCopia;
 			int socketOriginal = -1;
 			int socketCopia = -1;
 			int ok = 1;
 			int i = 0;
 			while(ok == 1){
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
+				char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
+				char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
+
+				if(config_has_property(archivo_configuracion ,copiaCero)){
+					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
 					// Agarro el tamanio del bloque
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
 
@@ -1018,8 +1031,8 @@ int leerContenidoArchivo(char *pathConNombre){
 
 				}
 
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i)) && socketOriginal == -1){
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
+				if(config_has_property(archivo_configuracion ,copiaUno) && socketOriginal == -1){
+					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaUno));
 
 					// Agarro el tamanio del bloque
 					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
@@ -1036,7 +1049,7 @@ int leerContenidoArchivo(char *pathConNombre){
 				}
 
 
-				if(!config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
+				if(!config_has_property(archivo_configuracion ,copiaCero) && !config_has_property(archivo_configuracion ,copiaUno)){
 					ok = 0;
 				}
 
@@ -1051,6 +1064,8 @@ int leerContenidoArchivo(char *pathConNombre){
 					ok = 0;
 				}
 
+				free(copiaCero);
+				free(copiaUno);
 				i++;
 			}
 
@@ -1177,9 +1192,12 @@ void nodosARestaurar(){
 							int ok = 1;
 							int i = 0;
 							while(ok == 1){
-								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i))){
-									char **nodoYBloque = malloc(sizeof(char*)*2);
-									nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, string_from_format("BLOQUE%iCOPIA0", i)));
+								char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
+								char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
+
+								if(config_has_property(currFile ,copiaCero)){
+									//char **nodoYBloque = malloc(sizeof(char*)*2);
+									char **nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, copiaCero));
 
 									printf("Necesito nodo %i para la copia 0 \n", atoi(string_substring_from(nodoYBloque[0],4)));
 
@@ -1190,9 +1208,9 @@ void nodosARestaurar(){
 
 								}
 
-								if(config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){
-									char **nodoYBloque = malloc(sizeof(char*)*2);
-									nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, string_from_format("BLOQUE%iCOPIA1", i)));
+								if(config_has_property(currFile ,copiaUno)){
+									//char **nodoYBloque = malloc(sizeof(char*)*2);
+									char** nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, copiaUno));
 
 									printf("Necesito nodo %i para la copia 1 \n", atoi(string_substring_from(nodoYBloque[0],4)));
 
@@ -1201,9 +1219,11 @@ void nodosARestaurar(){
 									free(nodoYBloque);
 								}
 
-								if(!config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA0", i)) && !config_has_property(currFile ,string_from_format("BLOQUE%iCOPIA1", i))){
+								if(!config_has_property(currFile , copiaCero) && !config_has_property(currFile , copiaUno)){
 									ok = 0;
 								}
+								free(copiaCero);
+								free(copiaUno);
 
 								i++;
 							}
