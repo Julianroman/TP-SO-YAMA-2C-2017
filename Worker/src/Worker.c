@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 	leerConfiguracion("worker-config.cfg");
 
 	// Vaciar scripts
-	system("rm -r scripts/");
+	system("rm -rf scripts/");
 
 	// Creao carpetas (si no existen)
 	struct stat st = {0};
