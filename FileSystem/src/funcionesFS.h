@@ -89,7 +89,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 
 void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia, char *ipDatanode, int tamanioBloque);
 
-void leerArchivo(char *pathConNombre);
+int leerArchivo(char *pathConNombre);
 
 void getInfoArchivo(char *pathConNombre);
 
@@ -155,7 +155,7 @@ int esRutaYamaFSConNombre(char *pathConNombre);
 
 void createDirectory(char* path);
 
-void deleteDirectory(char* path);
+int deleteDirectory(char* path);
 
 int getIndiceNodoBySocket(int socket);
 
