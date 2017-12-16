@@ -6,20 +6,39 @@
 
 void rm_interface(char** comando){
 	//TODO flags
-	if(string_equals_ignore_case(comando[1], "-d")){
-		deleteDirectory(comando[2]);
+	int cant = 0;
+	while(comando[cant] != NULL){
+		cant++;
 	}
-	else if(string_equals_ignore_case(comando[1], "-b")){
-		printf("Delete file");
-	}
-	else{
 
-		//TODO Asi tambien borra directorios???
-		if(remove(comando[1]) == 0){
-			printf("El archivo o directorio %s fue eliminado.\n", comando[1]);
+	if(cant != 2){
+		fprintf(stderr, "Comando erroneo. Podria probar con: rm [path_archivo] \n");
+	}else{
+		char **pathSplit = string_split(comando[1], "/");
+		int cant = 0;
+		while(pathSplit[cant] != NULL){
+			cant ++;
 		}
-		else{
-			fprintf(stderr, "No se pudo eliminar el archivo %s.\n", comando[1]);
-		}
+		int indice = findDirByname(pathSplit[cant - 1]);
+
+		/*if(indice != -1){
+			//Es un directorio
+			printf("%s", comando[1]);
+			if(esRutaYamaFS(comando[1])==1){
+				renameDirectory(indice, comando[2]);
+			}
+
+		}else{*/
+			if(esRutaYamaFSConNombre(comando[1])==1){
+				indice = findDirByname(pathSplit[cant - 2]);
+				char *ruta = string_from_format("root/metadata/archivos/%i/%s", indice, pathSplit[cant-1]);
+
+				if(remove(ruta) == -1){
+					printf("No se pudo eliminar");
+				}
+				free(ruta);
+			}
+
+		//}
 	}
 };

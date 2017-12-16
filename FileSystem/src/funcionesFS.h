@@ -157,6 +157,10 @@ void createDirectory(char* path);
 
 int deleteDirectory(char* path);
 
+void renameDirectory(int indice, char *newName);
+
+void moveDirectory(char* rutaInicial, char* rutaFinal);
+
 int getIndiceNodoBySocket(int socket);
 
 char *getIpNodoByName(int name);
