@@ -1721,7 +1721,7 @@ int esRutaYamaFS(char* path){
 	int cant = 0;
 	while(ruta[cant] != NULL ){
 		if(findDirByname(ruta[cant]) == -1){
-			free(ruta);
+
 			log_error(log, "La ruta indicada no es una ruta valida en YamaFs");
 			fprintf(stderr, "La ruta indicada no es una ruta valida en YamaFs \n");
 			return FRACASO;
