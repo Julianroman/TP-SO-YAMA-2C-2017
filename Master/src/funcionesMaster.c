@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <semaphore.h>
 #include <pthread.h>
+#include <sys/mman.h>
+
 
 #include <utilidades/socket_utils.h>
 #include <utilidades/protocol/senders.h>
@@ -68,3 +70,26 @@ STATUS_MASTER recibirJob(int socketYAMA,int* masterID){
 	return EXITO;
 }
 
+char *leerScript(int size, int nodeFD){
+	int offset = 0;
+	char* lectura = malloc(size);
+	char * map;
+	if((map = mmap(NULL, size, PROT_READ, MAP_PRIVATE, nodeFD, offset)) == MAP_FAILED){
+		perror("mmap");
+		return NULL;
+	}
+	memcpy(lectura, map, size);
+	if (munmap(map, size) == -1)
+	{
+		puts( "No se pudo liberar el map");
+		return NULL;
+	}
+	close(nodeFD);
+	return lectura;
+}
+
+int getScritptSize(char * rutaTransformador){
+	struct stat st;
+	stat(rutaTransformador,&st);
+	return st.st_size;
+};

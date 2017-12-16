@@ -12,5 +12,7 @@ void leerConfiguracion(char* path, char** ipYama,int* puertoYama);
 char* scriptToChar(char* path);
 void tituloMaster();
 STATUS_MASTER recibirJob(int socketYama, int* masterID);
+char *leerScript(int size, int nodeFD);
+int getScritptSize(char * rutaTransformador);
 
 #endif /* FUNCIONESMASTER_H_ */

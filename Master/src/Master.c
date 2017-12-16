@@ -38,6 +38,8 @@ t_log* logger;
 int operaciones;
 int masterID;
 
+char* rutaTransformador;
+
 char* scriptTransformador;
 char* scriptReductor;
 
@@ -86,9 +88,9 @@ int main(int argc, char **argv) {
 
 
 	// Abrir archivos
-	char* ruta_transformador = argv[2];
+	rutaTransformador = argv[2];
 	char* ruta_reductor      = argv[3];
-	scriptTransformador = scriptToChar(ruta_transformador);
+	scriptTransformador = scriptToChar(rutaTransformador);
 	scriptReductor = scriptToChar(ruta_reductor);
 
 
