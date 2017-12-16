@@ -35,10 +35,10 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	}
 
 	char rutaAlmacenado [1000];
-	puts("Ingrese la ruta donde guardar el job:");
+	puts("En que ruta desea guardar el resultado?");
 	scanf("%s",rutaAlmacenado);
 	char nombreAlmacenado [1000];
-	puts("Ingrese la ruta donde guardar el job:");
+	puts("Que nombre desea ponerle al resultado?");
 	scanf("%s",nombreAlmacenado);
 
 
