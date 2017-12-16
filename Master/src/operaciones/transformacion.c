@@ -27,11 +27,14 @@ extern int paralelasEnProceso;
 extern int maxTransformacionesEnProceso;
 extern int maxParalelasEnProceso;
 extern int masterID;
+extern sem_t balancer;
+
 int YAMAsocket;
 
 void* rutina_transformacion(void* args);
 
 STATUS_MASTER transformacion (int socketYAMA, payload_INFO_TRANSFORMACION* data){
+	sem_wait(&balancer);
 	YAMAsocket = socketYAMA;
 	pthread_t           tid;
 	pthread_attr_t      attr;
@@ -94,6 +97,8 @@ void* rutina_transformacion(void* args){
 	// Verificacion para estadisticas
 	transformacionesEnProceso --;
 	paralelasEnProceso--;
+
+	sem_post(&balancer);
 
 	pthread_exit(0);
 }

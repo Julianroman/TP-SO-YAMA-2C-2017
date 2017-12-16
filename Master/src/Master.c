@@ -31,6 +31,7 @@
 #include "funcionesMaster.h"
 
 sem_t recepcionSem;
+sem_t balancer;
 
 t_log* logger;
 
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Inicializar semaforo de fin de job
+	sem_init(&balancer, 0, 25);
 	sem_init(&fin_job, 0, 0);
 	sem_init(&recepcionSem, 0, 0);
 
