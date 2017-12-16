@@ -10,7 +10,7 @@ void info_interface(char **comando){
 		cant++;
 	}
 
-	if(cant != 1){
+	if(cant != 2){
 		fprintf(stderr, "Comando erroneo. Podria probar con: info [path_archivo] \n");
 	}else{
 		getInfoArchivo(comando[1]);
