@@ -8,12 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
+#include <signal.h>
 
 #include <utilidades/socket_utils.h>
 
 #include "../serverWorker/serverChild.h"
 
-#define BACKLOG       5
+#define BACKLOG 5
 
 extern t_log* logger;
 
@@ -22,7 +23,7 @@ void init_serverMaster(int puertoEscucha){
 	// Recibir conexion
 	int socket_listener = crear_listener(puertoEscucha);
 	int socket_cliente = escuchar_socket(socket_listener,BACKLOG);
-	signal(SIGCHILD,SIG_IGN);
+	signal(SIGCHLD,SIG_IGN);
 
 	while(1){
 		pid_t pid = fork();

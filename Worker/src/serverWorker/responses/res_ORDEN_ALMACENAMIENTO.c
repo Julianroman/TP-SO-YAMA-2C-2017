@@ -82,10 +82,9 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	receive(socketFS,&header);
 
 	if(header == EXITO_OPERACION){
-		send_EXITO_OPERACION(socketFS);
+		send_EXITO_OPERACION(socket_cliente);
 	}else{
-		log_warning(logger ,"Header : %d",header);
-		send_FRACASO_OPERACION(socketFS);
+		send_FRACASO_OPERACION(socket_cliente);
 	}
 
 	// Cerrar socket
