@@ -32,16 +32,14 @@ char *leerArchivo(int size, int nroBloque, int nodeFD){
 	char * map;
 	if((map = mmap(NULL, size, PROT_READ, MAP_PRIVATE, nodeFD, offset)) == MAP_FAILED){
 		perror("mmap");
-		log_error(logger,"No se pudo mappear archivo");
+		return NULL;
 	}
 	memcpy(lectura, map, size);
 	if (munmap(map, size) == -1)
 	{
 		log_error(logger, "No se pudo liberar el map");
+		return NULL;
 	}
-	char* mensajeLectura = string_from_format("Lectura completa en el bloque %i -- %i bytes",nroBloque,size);
-	log_trace(logger, mensajeLectura);
-	free(mensajeLectura);
 	close(nodeFD);
 	return lectura;
 }
@@ -82,19 +80,29 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     // Obtengo el bloque a transformar
     int dataBin = open(dataBinPath, O_RDONLY);
     char * bloqueATransformar = leerArchivo(orden->bytesocupados, orden->bloque, dataBin);
+    if(bloqueATransformar == NULL){
+    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	exit(1);
+    }
     close(dataBin);
 	config_destroy(archivo_configuracion);
 
     // Creo un archivo intermedio
     char* temporalPath = string_from_format("temporalTransformacion%d",pid);
     FILE * temporalFile = fopen(temporalPath,"w+");
-    fwrite(bloqueATransformar,1,orden->bytesocupados, temporalFile);
+    if ((fwrite(bloqueATransformar,1,orden->bytesocupados, temporalFile))<(orden->bytesocupados)){
+    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	exit(1);
+    }
     fclose(temporalFile);
 
     // Ejecuto la transformacion
     log_info(logger,"Transformando bloque %d, %d bytes..",(orden -> bloque),orden -> bytesocupados);
     char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
-    if((system(transformationCommand))==-1){exit(1);};
+    if((system(transformationCommand))==-1){
+    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	exit(1);
+    };
 
     // Log intenso
 	log_trace(logger,"Transformacion OK | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
@@ -105,4 +113,3 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	exit(EXIT_SUCCESS);
 
 };
-
