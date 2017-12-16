@@ -64,7 +64,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 
 	// Guardo el script
 	char* scriptPath = string_from_format("scripts/transformador%d", pid);
-    FILE *scriptFile = fopen(scriptPath, "ab");
+    FILE *scriptFile = fopen(scriptPath, "w+");
     if (scriptFile == NULL){
     	log_error(logger,"Transformacion ERR | No se puede guardar el script | Bloque: %d",(orden -> bloque));
     	exit(1);
