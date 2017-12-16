@@ -149,6 +149,7 @@ void servidorFs(int puerto){
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
 								log_trace(log,"Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
+								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
 								char *puntero = malloc(payload->tamanio_ipDatanode);
 								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
@@ -867,7 +868,7 @@ void getInfoArchivo(char *pathConNombre){
 
 		FILE *in;
 		if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
-			log_error(log, "No se encontro el archivo");
+			perror("No se encontro el archivo \n");
 		}else{
 			t_config* archivo_configuracion = config_create(pathArchivoConfig);
 
@@ -875,10 +876,10 @@ void getInfoArchivo(char *pathConNombre){
 			char **nodoYBloqueCopia;
 
 			if(config_has_property(archivo_configuracion ,"TAMANIO")){
-				log_info(log, "TAMANIO: %i", config_get_int_value(archivo_configuracion ,"TAMANIO"));
+				printf("TAMANIO: %i \n", config_get_int_value(archivo_configuracion ,"TAMANIO"));
 			}
 			if(config_has_property(archivo_configuracion ,"TIPO")){
-				log_info(log, "TIPO: %s", config_get_string_value(archivo_configuracion ,"TIPO"));
+				printf("TIPO: %s \n", config_get_string_value(archivo_configuracion ,"TIPO"));
 			}
 
 			int ok = 1;
@@ -889,15 +890,15 @@ void getInfoArchivo(char *pathConNombre){
 
 				char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
 				if(config_has_property(archivo_configuracion ,bloquesBytes)){
-					log_info(log, "Bloque %i", i);
-					log_info(log, "Tamanio bloque: %i", config_get_int_value(archivo_configuracion, bloquesBytes));
+					printf("Bloque %i \n", i);
+					printf("Tamanio bloque: %i \n", config_get_int_value(archivo_configuracion, bloquesBytes));
 				}
 				free(bloquesBytes);
 
 
 				if(config_has_property(archivo_configuracion ,copiaCero)){
 					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
-					log_info(log, "ORIGINAL: %s -- Bloque %s\n", nodoYBloque[0], nodoYBloque[1], i);
+					printf("ORIGINAL: %s -- Bloque %s \n", nodoYBloque[0], nodoYBloque[1], i);
 					free(nodoYBloque);
 				}
 
@@ -1041,7 +1042,7 @@ int leerContenidoArchivo(char *pathConNombre){
 					free(nombreNodo);
 					if(socketOriginal != -1){
 						// Pido el original
-						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i\n", nombreNodo , nodoYBloque[1], i, tamanioBloque);
+						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i \n", nombreNodo , nodoYBloque[1], i, tamanioBloque);
 						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
 						sem_post(&binaryContenidoServidor);
 						sem_wait(&binaryContenidoConsola);
@@ -1076,12 +1077,13 @@ int leerContenidoArchivo(char *pathConNombre){
 				}
 
 				if(ok != 0 && socketOriginal == -1 && socketCopia == -1){
-					free(nodoYBloque);
-					free(nodoYBloqueCopia);
-					free(archivo_configuracion);
+					//free(nodoYBloque);
+					//free(nodoYBloqueCopia);
+
 					fclose(in);
 					config_destroy(archivo_configuracion);
 					log_error(log, "Los sockets no estan disponibles");
+					fprintf(stderr, "No se encontraron nodos disponibles \n");
 					return FRACASO;
 					ok = 0;
 				}
@@ -1131,6 +1133,7 @@ int esEstadoEstable(){
 	if(formateado == 1){
 		//Si recien esta formateado esta estable
 		log_trace(log, "El sistema se encuentra recien formateado ==> ESTABLE");
+		printf("El sistema se encuentra recien formateado ==> ESTABLE \n" );
 		return 1;
 	}else{
 		int estable = 1;
@@ -1169,10 +1172,14 @@ int esEstadoEstable(){
 			}
 		}
 
-		if(estable == 1)
+		if(estable == 1){
 			log_trace(log, "El sistema se encuentra en estado ESTABLE");
-		else
+			printf("El sistema se encuentra ESTABLE \n" );
+		}else{
 			log_trace(log, "El sistema se encuentra en estado NO ESTABLE");
+			printf("El sistema se encuentra NO ESTABLE \n" );
+		}
+
 
 		free(stringNodosConectados);
 		return estable;
@@ -1278,10 +1285,12 @@ int existeEstadoAnterior(){
 	struct stat st = {0};
 	if (stat(PATHDIRECTORIOS, &st) == -1) { //Si no existe el path
 		log_info(log, "No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
+		printf("No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
 		return 1;
 	}
 	else if(stat(pathTablaNodos, &st) == -1){
 		log_info(log, "No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
+		printf("No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
 		return 1;
 	}
 	else{
@@ -1297,6 +1306,7 @@ void initOrRestoreFS(){
 		initFS();
 		nodosARestaurar();
 		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
+		printf("Se encontro un estado anterior. Esperando nodos...");
 	}
 }
 
@@ -1491,7 +1501,7 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 
 			fclose(bitmap);
 		}
-		log_info(log, "El bitmap del nodo%i fue leido con exito.", nroNodo);
+		log_info(log, "El bitmap del Nodo %i fue leido con exito.", nroNodo);
 	}
 	free(pathNewBitmap);
 	return unBitarray;
@@ -1614,6 +1624,7 @@ void printLs(char* path){
 	int indice = findDirByname(padres[cant - 1]);
 	if(indice == -1){
 		log_error(log, "No se encontro el directorio");
+		fprintf(stderr, "No se encontro el directorio \n");
 	}
 	else{
 		int i;
@@ -1637,6 +1648,7 @@ void printTablaDeDirectorios(){
 		}
 
 	}
+	printf("\n");
 }
 void saveTablaDeDirectorios(){
 	FILE* tabla;
@@ -1710,6 +1722,7 @@ int esRutaYamaFS(char* path){
 		if(findDirByname(ruta[cant]) == -1){
 			free(ruta);
 			log_error(log, "La ruta indicada no es una ruta valida en YamaFs");
+			fprintf(stderr, "La ruta indicada no es una ruta valida en YamaFs \n");
 			return FRACASO;
 		}
 		cant++;
@@ -1744,6 +1757,7 @@ int esRutaYamaFSConNombre(char *pathConNombre){
 void createDirectory(char* path){
 	if(string_starts_with(path, "/")){
 		log_error(log, "Error al crear directorio. Se encuentra en root/");
+
 	}
 	else{
 		char* pathConcat = string_new();
@@ -1758,6 +1772,7 @@ void createDirectory(char* path){
 			}
 			if(indiceDisponible == -1){
 				log_error(log, "La tabla de directorios esta completa");
+
 			}else{
 				char **padres = string_split(path, "/");
 				//int cant;
@@ -1795,13 +1810,16 @@ void createDirectory(char* path){
 							}
 
 							log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
+
 						// TODO deberia borrar desde aca
 						}else{
 							log_error(log, "Error al crear directorio");
+
 						}
 					}
 					else{
 						log_error(log, "El directorio ya existe o no se pudo crear");
+
 					}// hasta aca
 
 					free(padres);
@@ -1819,6 +1837,7 @@ void createDirectory(char* path){
 void createLogicDirectory(char* path){
 	if(string_starts_with(path, "/")){
 		log_error(log, "Error al crear directorio. Se encuentra en root/");
+		fprintf(stderr, "Error al crear directorio. Se encuentra en root/ \n");
 	}
 	else{
 		char* pathConcat = string_new();
@@ -1833,6 +1852,8 @@ void createLogicDirectory(char* path){
 			}
 			if(indiceDisponible == -1){
 				log_error(log, "La tabla de directorios esta completa");
+				fprintf(stderr, "La tabla de directorios esta completa \n");
+
 			}else{
 				char **padres = string_split(path, "/");
 				//int cant;
@@ -1864,10 +1885,12 @@ void createLogicDirectory(char* path){
 					}
 
 					log_trace(log, "El directorio %s fue creado con exito.", pathConcat);
+					printf("El directorio %s fue creado con exito \n", pathConcat);
 
 					free(padres);
 				}else{
 					log_error(log, "El directorio que intenta crear ya existe");
+					fprintf(stderr, "El directorio que intenta crear ya existe \n");
 				}
 
 			}
@@ -1879,7 +1902,7 @@ void createLogicDirectory(char* path){
 
 int deleteDirectory(char* path){
 	if(string_starts_with(path, "/")){
-		log_error(log, "Error al crear directorio. Se encuentra en root/");
+		log_error(log, "Error al eliminar directorio. Se encuentra en root/");
 		return FRACASO;
 	}else{
 		char* pathConcat = string_new();
