@@ -145,6 +145,7 @@ void servidorFs(int puerto){
 							//if(esEstadoEstable() == 1){
 								char* mensaje = "Bienvenido a FS!!";
 								send(i, mensaje, strlen(mensaje), 0);
+								free(mensaje);
 
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
@@ -152,7 +153,7 @@ void servidorFs(int puerto){
 
 								char *puntero = malloc(payload->tamanio_ipDatanode);
 								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
-
+								free(payload->ipDatanode);
 
 								inicializarNodo(payload->id_dataNode, i, payload->cantidad_bloques, puntero);
 
@@ -204,6 +205,8 @@ void servidorFs(int puerto){
 							FILE *archv = fopen(lecturaPathMD5, "a");
 							fwrite(payload->contenido, 1, payload->tamanio_bloque, archv);
 							fclose(archv);
+							free(payload->contenido);
+							free(payload);
 
 							pthread_mutex_unlock(&mutexContenido);
 							printf("Leido OK bloque %i \n", payload->numero_bloque);
@@ -307,52 +310,62 @@ int enviarADataNode(t_pagina *unaPagina, t_config *fileExport, int nroBloque){
 	// Busco 2 nodos con bloques libres
 	t_bloque_libre *bloquesLibres = traerBloquesLibres();
 
-	// Envio el original
-	nombreBloque = string_new();
-	almacenamientoBloque = string_new();
-
-	string_append(&nombreBloque, "BLOQUE");
-	string_append(&nombreBloque, string_itoa(nroBloque));
-	string_append(&nombreBloque, "COPIA");
-	string_append(&nombreBloque, "0");
-	log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[0].nodo->nroNodo, bloquesLibres[0].bloque);
-	string_append(&almacenamientoBloque, "[Nodo");
-	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].nodo->nroNodo));
-	string_append(&almacenamientoBloque, ", ");
-	string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].bloque));
-	string_append(&almacenamientoBloque, "]");
-	config_set_value(fileExport, nombreBloque, almacenamientoBloque);
-
-	//Envio el original al primer nodo
-	send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].bloque);
-
-	if(list_size(listaDeNodos) > 1){ //TODO validar que no sea -1
-		// Envio la copia
+	if(bloquesLibres[0].bloque != -1){ // TODO
+		// Envio el original
 		nombreBloque = string_new();
 		almacenamientoBloque = string_new();
 
 		string_append(&nombreBloque, "BLOQUE");
 		string_append(&nombreBloque, string_itoa(nroBloque));
 		string_append(&nombreBloque, "COPIA");
-		string_append(&nombreBloque, "1");
-		log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+		string_append(&nombreBloque, "0");
+		log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[0].nodo->nroNodo, bloquesLibres[0].bloque);
 		string_append(&almacenamientoBloque, "[Nodo");
-		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
+		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].nodo->nroNodo));
 		string_append(&almacenamientoBloque, ", ");
-		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
+		string_append(&almacenamientoBloque, string_itoa(bloquesLibres[0].bloque));
 		string_append(&almacenamientoBloque, "]");
 		config_set_value(fileExport, nombreBloque, almacenamientoBloque);
 
-		//Envio la copia al segundo nodo
-		send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].bloque);
+		//Envio el original al primer nodo
+		send_BLOQUE(bloquesLibres[0].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[0].bloque);
+
+		free(nombreBloque);
+		free(almacenamientoBloque);
 	}
 
 
+	if(list_size(listaDeNodos) > 1){ //TODO validar que no sea -1
+		// Envio la copia
+
+		if(bloquesLibres[1].bloque != -1){
+			nombreBloque = string_new();
+			almacenamientoBloque = string_new();
+
+			string_append(&nombreBloque, "BLOQUE");
+			string_append(&nombreBloque, string_itoa(nroBloque));
+			string_append(&nombreBloque, "COPIA");
+			string_append(&nombreBloque, "1");
+			log_info(log, "Enviado a nodo: %i -- bloque %i \n", bloquesLibres[1].nodo->nroNodo, bloquesLibres[1].bloque);
+			string_append(&almacenamientoBloque, "[Nodo");
+			string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].nodo->nroNodo));
+			string_append(&almacenamientoBloque, ", ");
+			string_append(&almacenamientoBloque, string_itoa(bloquesLibres[1].bloque));
+			string_append(&almacenamientoBloque, "]");
+			config_set_value(fileExport, nombreBloque, almacenamientoBloque);
+
+			//Envio la copia al segundo nodo
+			send_BLOQUE(bloquesLibres[1].nodo->socket, unaPagina->tamanio, unaPagina->contenido, bloquesLibres[1].bloque);
+
+			free(nombreBloque);
+			free(almacenamientoBloque);
+		}
+
+
+	}
+
 	// Libero la estructura
 	free(bloquesLibres);
-	free(nombreBloque);
-	free(almacenamientoBloque);
-
 
 	return 0;
 
@@ -517,6 +530,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 					free(pagina);
 					//free(bloqueNro);
 				}
+
 			}else{
 				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
 				for ( i=0; i<list_size(lista_de_paginas); i++){
@@ -526,6 +540,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 					//free(bloqueNro);
 				}
 			}
+			list_destroy(lista_de_paginas);
 
 			config_save(fileExport);
 			config_save_in_file(fileExport, indicePath);
@@ -601,6 +616,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 			archivoTemp = fopen(pathTemp, "w");
 			fwrite(contenido, tamanioContenido ,1, archivoTemp);
 			fclose(archivoTemp);
+			free(contenido);
 
 
 
@@ -923,162 +939,6 @@ int getSocketNodoByName(int nroNodo){
 	return socket;
 }
 
-/*char *leerContenidoArchivo(char *pathConNombre){
-	int cantidadDeBloques;
-
-	sem_init(&binaryContenidoConsola, 0, 0);
-	sem_init(&binaryContenidoServidor, 0, 0);
-
-	// Para leer la tabla de archivos
-	// Separo el path con las /
-
-	char **arrayPath = string_split(pathConNombre, "/");
-	int cant = 0;
-	while(arrayPath[cant] != NULL ){
-		cant++;
-	}
-
-	// Agarro el nombre sin la extension
-	char *name = string_new();
-	name = arrayPath[cant - 1];
-
-	// Busco el indice de la carpeta de destino
-	int indice = findDirByname(arrayPath[cant - 2]);
-	// Concateno el path con el indice y el path de los archivos
-	char *indicePath = string_new();
-
-	// Entro al directorio de nombre:  numero de indice (Si no existe)
-	string_append(&indicePath, pathArchivos);
-	string_append(&indicePath, string_itoa(indice));
-
-	// Concateno el path con el nombre del archivo
-	string_append(&indicePath, "/");
-	string_append(&indicePath, name);
-
-	// Abro el archivo de configuracion que tiene la tabla del archivo
-	char *pathArchivoConfig = string_new();
-	string_append(&pathArchivoConfig, directorioRaiz);
-	string_append(&pathArchivoConfig, indicePath);
-	contenidoLeido = string_new();
-	FILE *in;
-	if ( (in = fopen(pathArchivoConfig, "r") ) == NULL ) {
-		log_error(log, "No se encontro el archivo");
-		contenidoLeido = "Error";
-	}else{
-		t_config* archivo_configuracion = config_create(pathArchivoConfig);
-
-		int tamanio;
-		tamanio = config_get_int_value(archivo_configuracion, "TAMANIO");
-
-		pthread_mutex_lock(&mutexContenido);
-
-		//contenidoLeido = malloc(tamanio);
-
-
-		pthread_mutex_unlock(&mutexContenido);
-
-		char *tipo = string_new();
-		tipo = config_get_string_value(archivo_configuracion, "TIPO");
-
-		if(string_equals_ignore_case(tipo, "BINARIO")){
-			if ( tamanio % tamanioBloques != 0 )
-				cantidadDeBloques = tamanio/tamanioBloques +1;
-			else
-				cantidadDeBloques = tamanio/tamanioBloques;
-
-			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-			int i;
-			for( i=0; i < cantidadDeBloques; i++ ){
-				// Agarro el tamanio del bloque
-				int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-				nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-				// Pido el original
-				printf("Pedido a %s -- bloque %s -- ORDEN %i -- Original \n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i);
-
-				int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
-				if(socketOriginal != -1){
-					send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
-					sem_post(&binaryContenidoServidor);
-					sem_wait(&binaryContenidoConsola);
-
-				}
-				else{
-
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-					// Si no se pudo agarrar el original, pido la copia
-					printf("Pedido a %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-
-					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
-					if(socketCopia != -1){
-						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
-						sem_post(&binaryContenidoServidor);
-						sem_wait(&binaryContenidoConsola);
-					}
-
-				}
-
-			}
-			free(nodoYBloque);
-			free(nodoYBloqueCopia);
-
-
-
-		}else{
-			char **nodoYBloque = malloc(sizeof(char*)*2);
-			char **nodoYBloqueCopia = malloc(sizeof(char*)*2);
-			int ok = 0;
-			int i = 0;
-			while(ok == 0){
-				int leidoOriginal = 0;
-				if(config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA0", i))){
-					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA0", i)));
-					printf("Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
-
-					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-					int socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
-					if(socketOriginal != -1){
-						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
-						sem_post(&binaryContenidoServidor);
-						sem_wait(&binaryContenidoConsola);
-					}else{
-						leidoOriginal = 1;
-					}
-				}
-
-				if(leidoOriginal == 1 && config_has_property(archivo_configuracion ,string_from_format("BLOQUE%iCOPIA1", i))){
-					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, string_from_format("BLOQUE%iCOPIA1", i)));
-					printf("Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
-
-					// Agarro el tamanio del bloque
-					int tamanioBloque = config_get_int_value(archivo_configuracion, string_from_format("BLOQUE%iBYTES", i));
-
-					int socketCopia = getSocketNodoByName(atoi(string_substring_from(nodoYBloqueCopia[0],4)));
-					if(socketCopia != -1){
-						send_PETICION_BLOQUE(socketCopia,atoi(nodoYBloqueCopia[1]), tamanioBloque);
-						sem_post(&binaryContenidoServidor);
-						sem_wait(&binaryContenidoConsola);
-					}else{
-						ok = 1;
-					}
-				}else{
-					if(leidoOriginal == 1){
-						ok = 1;
-					}
-				}
-
-				i++;
-			}
-		}
-		free(tipo);
-		//config_destroy(archivo_configuracion);
-		fclose(in);
-	}
-	return contenidoLeido;
-}*/
 
 int leerContenidoArchivo(char *pathConNombre){
 
@@ -1178,6 +1038,11 @@ int leerContenidoArchivo(char *pathConNombre){
 				}
 
 				if(ok != 0 && socketOriginal == -1 && socketCopia == -1){
+					free(nodoYBloque);
+					free(nodoYBloqueCopia);
+					free(archivo_configuracion);
+					fclose(in);
+					config_destroy(archivo_configuracion);
 					log_error(log, "Los sockets no estan disponibles");
 					return FRACASO;
 					ok = 0;
@@ -1190,6 +1055,7 @@ int leerContenidoArchivo(char *pathConNombre){
 			free(nodoYBloqueCopia);
 			free(archivo_configuracion);
 			fclose(in);
+			config_destroy(archivo_configuracion);
 		}
 		return EXITO;
 	}else{
