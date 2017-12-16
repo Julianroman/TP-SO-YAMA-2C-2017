@@ -24,7 +24,6 @@
 #include "../YAMA.h"
 
 int idUltimoMasterCreado = 1;
-
 #define BACKLOG       5
 
 void agregarAListado(int socket){
@@ -44,11 +43,16 @@ void eliminarMaster(int masterID){
 }
 
 int getMasterID(int socketMaster){
-	int buscar(t_job_master* job_master){
-		return job_master->master_socket == socketMaster;
+
+	if(list_size(MastersJobs) > 0){
+		int buscar(t_job_master* job_master){
+			return job_master->master_socket == socketMaster;
+		}
+		t_job_master* master = list_find(MastersJobs, (void*)buscar);
+		return master->master_id;
 	}
-	t_job_master* master = list_find(MastersJobs, (void*)buscar);
-	return master->master_id;
+
+	return -1;
 }
 
 void init_serverYAMA(int puertoEscucha){
@@ -103,11 +107,17 @@ void init_serverYAMA(int puertoEscucha){
 					} else { // Escuchar mensaje
 						void* data = receive(i,&header);
 						if (header == FIN_COMUNICACION){ //Si header es FIN_COMUNICACION es porque se cerro la conexion
-							FD_CLR(i,&master); // Eliminar de la lista
+
 							int masterID = getMasterID(i);
-							eliminarMaster(masterID);
-							log_error(logYAMA, "Se desconecto Master %d", masterID);
-							break;
+							if(masterID == -1){
+								log_error(logYAMA, "Master Inexistente");
+							}
+							else{
+								eliminarMaster(masterID);
+								log_error(logYAMA, "Se desconecto Master %d", masterID);
+							}
+							FD_CLR(i,&master); // Eliminar de la lista
+							close(i);
 						}
 						else{
 							responder_SOLICITUD(i, data, header); // Responder solicitud

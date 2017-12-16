@@ -40,6 +40,7 @@ typedef struct{
 	int id;
 	YAMA_STATUS estado;
 	Tarea etapa;
+	int cantidadBloquesArchivo;
 }t_job;
 
 typedef struct {

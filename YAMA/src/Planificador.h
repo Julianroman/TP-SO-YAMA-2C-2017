@@ -23,7 +23,7 @@ t_list* nodosDisponibles;
 void iniciarPlanificacion(char* nombreArchivo, t_job_master* job_master);
 void responderSolicitudMaster(payload_RESPUESTA_MASTER* infoMaster, t_job_master* job_master);
 void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo);
-void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job);
+void cargarNodosParaPlanificacion(char* nombreArchivo, t_job_master* job_master);
 t_worker* elegirEncargadoRedGlobal(t_job* job);
 void realizarAlmacenadoFinal(t_job_master* job_master);
 void realizarReduccionGlobal(t_job_master* job_master);
@@ -61,6 +61,8 @@ t_worker* getNodo(int nodoID);
 int estaActivo(t_worker* worker);
 void aumentarCarga(t_worker* nodo);
 void disminuirCarga(t_worker* nodo);
+t_infoNodo* newInfoNodo(t_worker* nodo, t_job* job);
+int tengoInfoNodo(t_worker* nodo, t_job* job);
 
 // ACTUALIZACIONES
 void actualizarEstados(payload_RESPUESTA_MASTER* respuesta, t_job_master* job_master);

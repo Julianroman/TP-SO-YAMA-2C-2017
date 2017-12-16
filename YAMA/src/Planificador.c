@@ -95,16 +95,14 @@ Tarea etapaActiva(t_worker* nodo, t_job* job){
 void abortarJob(t_job_master* job_master){
   job_master->job->estado = ERROR;
   log_error(logYAMA, "JOB %d ABORTADO", job_master->job->id);
-  eliminarMaster(job_master->master_id);
-  liberarMemoria(job_master->job);
-  exit(1);
+  //liberarMemoria(job_master->job);
 }
 
 void finalizarCorrectamente(t_job_master* job_master){
   job_master->job->estado = EXITO;
   log_trace(logYAMA, "JOB %d TERMINADO CORRECTAMENTE", job_master->job->id);
-  eliminarMaster(job_master->master_id);
-  liberarMemoria(job_master->job);
+  //eliminarMaster(job_master->master_id);
+  //liberarMemoria(job_master->job);
 }
 
 void liberarMemoria(t_job* job){
@@ -149,7 +147,7 @@ void inicializarPlanificador(t_job_master* job_master, char* nombreArchivo){
   }
   job_master->job = newJob();
   job_master->nodosActivos = list_create();
-  cargarNodosParaPlanificacion(nombreArchivo, job_master->job);
+  cargarNodosParaPlanificacion(nombreArchivo, job_master);
 }
 
 t_job *newJob(){
@@ -158,6 +156,7 @@ t_job *newJob(){
   job->id = idUltimoJobCreado;
   job->estado = EN_EJECUCION;
   job->etapa = TRANSFORMACION;
+  job->cantidadBloquesArchivo = 0;
   return job;
 }
 
@@ -174,7 +173,7 @@ t_worker* newNodo(int id, int puerto, char* ip){
   return nodo;
 }
 
-void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
+void cargarNodosParaPlanificacion(char* nombreArchivo, t_job_master* job_master){
   HEADER_T header;
   //int socketFS = crear_conexion(configYAMA->FS_IP, configYAMA->FS_PUERTO);
   //sem_wait(&binarioSocketFS);
@@ -184,14 +183,23 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
   while (header == UBICACION_BLOQUE){
 
       payload_UBICACION_BLOQUE* bloques = data;
+      /*if(bloques->copia == 0){
+    	  job_master->job->cantidadBloquesArchivo++;
+      }*/
       int nodoConID(t_worker* worker){
         return worker->id == bloques->numero_nodo;
       }
 
       if(list_any_satisfy(nodosDisponibles, (void*)nodoConID)){ //SI YA LO TENGO AGREGO EL BLOQUE NUEVO
+    	t_infoNodo* infoNodo;
         t_worker* nodo = getNodo(bloques->numero_nodo);
-        t_infoNodo* infoNodo = getInfoNodo(nodo, job);
-
+        if(!tengoInfoNodo(nodo, job_master->job)){
+        	infoNodo = newInfoNodo(nodo, job_master->job);
+        }
+        else{
+        	infoNodo = getInfoNodo(nodo, job_master->job);
+        }
+        list_add(nodo->infoNodos, infoNodo);
         t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
         infoBloque->bloqueNodo = bloques->bloque_nodo;
         infoBloque->tamanioBloque = bloques->tam_bloque;
@@ -204,7 +212,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
 
       else{ // SI NO LO TENGO EN LA LISTA LO CREO Y LO AGREGO A LA LISTA
         t_worker* nodo = newNodo(bloques->numero_nodo, bloques->puerto, bloques->ip);
-        t_infoNodo* nodoInfo = getInfoNodo(nodo, job);
+        t_infoNodo* nodoInfo = newInfoNodo(nodo, job_master->job);
         list_add(nodo->infoNodos, nodoInfo);
 
         t_infoBloque* infoBloque = malloc(sizeof(t_infoBloque));
@@ -216,7 +224,7 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
         list_add(nodoInfo->infoBloques, infoBloque);
         list_add(nodosDisponibles, nodo);
         log_trace(logYAMA, "NUEVO NODO %d", nodo->id);
-        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia);
+        log_trace(logYAMA, "Nodo %d bloqueNodo %d, bloqueArchivo %d, copia %d - JOB %d", nodo->id, infoBloque->bloqueNodo, infoBloque->bloqueArchivo, infoBloque->copia, nodoInfo->job->id);
       }
     data = receive(SocketFSGlobal,&header);
   }
@@ -225,18 +233,19 @@ void cargarNodosParaPlanificacion(char* nombreArchivo, t_job* job){
     log_error(logYAMA, "Se desconecto el FS.");
     exit(1);
   }
-
-  if (header == RECHAZO_CONEXION){ //Si header es RECHAZO_CONEXION es porque el fs no esta estable
+  else if (header == RECHAZO_CONEXION){ //Si header es RECHAZO_CONEXION es porque el fs no esta estable
     log_error(logYAMA, "FS no esta estable, me rechazó.");
     exit(1);
   }
-  if(header == FRACASO_OPERACION){
+  else if(header == FRACASO_OPERACION){
 	  log_error(logYAMA, "No se pudo concretar la operacion");
-	  exit(1);
+	  abortarJob(job_master);
   }
-
-  if(header == FIN_LISTA){
+  else if(header == FIN_LISTA){
     log_trace(logYAMA, "Se cargaron los nodos correctamente");
+  }
+  else{
+	  log_error(logYAMA, "OPERACION DESCONOCIDA");
   }
 }
 
@@ -572,24 +581,29 @@ t_worker* getNodo(int nodoID){
   return nodo;
 }
 
+int tengoInfoNodo(t_worker* nodo, t_job* job){
+	int buscarInfo(t_infoNodo* infoNodo){
+	    return infoNodo->job->id == job->id;
+	  }
+	return list_any_satisfy(nodo->infoNodos, (void*)buscarInfo);
+}
+
+t_infoNodo* newInfoNodo(t_worker* nodo, t_job* job){
+		t_infoNodo* info = malloc(sizeof(t_infoNodo));
+	  info->job = job;
+	  info->infoBloques = list_create();
+	  info->bloquesAEjecutar = list_create();
+	  info->etapaNodo = TRANSFORMACION;
+	  info->encargado = 0;
+	  return info;
+}
+
 t_infoNodo* getInfoNodo(t_worker* nodo, t_job* job){
   int buscarInfo(t_infoNodo* infoNodo){
     return infoNodo->job->id == job->id;
   }
-
-  if(list_any_satisfy(nodo->infoNodos, (void*)buscarInfo)){
-      t_infoNodo* info = list_find(nodo->infoNodos, (void*)buscarInfo);
-      return info;
-    }
-    else {
-      t_infoNodo* info = malloc(sizeof(t_infoNodo));
-      info->job = job;
-      info->infoBloques = list_create();
-      info->bloquesAEjecutar = list_create();
-      info->etapaNodo = TRANSFORMACION;
-      info->encargado = 0;
-      return info;
-    }
+  t_infoNodo* info = list_find(nodo->infoNodos, (void*)buscarInfo);
+  return info;
 }
 
 char* getArchivoTemporal(payload_RESPUESTA_MASTER* infoMaster){
@@ -640,11 +654,12 @@ void planificacionWClock(t_job_master* job_master){
       contador = 0;
     }
   }
+
   int bloqueArchivo;
   int cantidadTotalBloquesArchivo = getTotalBloquesArchivo(job_master->job->id);
-
+  //int cantidadTotalBloquesArchivo = 212;
+  //int cantidadTotalBloquesArchivo = job_master->job->cantidadBloquesArchivo;
   for(bloqueArchivo = 0; bloqueArchivo < cantidadTotalBloquesArchivo; bloqueArchivo++){
-
     while(1){
       t_worker* workerActual = list_get(nodosDisponibles, contador);
       t_infoNodo* infoNodo = getInfoNodo(workerActual, job_master->job);
