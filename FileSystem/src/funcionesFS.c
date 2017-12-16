@@ -60,7 +60,7 @@ void desconectarNodo(int id_dataNode){
 			nodo_destroy(unNodo);
 		}
 	}
-	formateado = 0;
+	
 	actualizarTablaDeNodos();
 }
 
