@@ -42,10 +42,10 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	t_queue * colaDeInformaciones = queue_create();
 
 
-	log_info(logger, "Recibiendo instrucciones...");
+	log_trace(logger, "Recibiendo instrucciones...");
 	// Separo al encargado
 	if((payload -> encargado) == (payload -> ID_Nodo)){
-		log_info(logger, "Encargado seleccionado.");
+		log_trace(logger, "Encargado seleccionado.");
 		payloadEncargado  = payload;
 	}else{
 		queue_push(colaDeInformaciones,payload);
@@ -72,7 +72,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		log_error(logger,"El administrador se ha desconectado");
 		exit(1);
 	}
-	log_info(logger, "Conectandose al encargado | Nodo%d  (%s:%d) ...",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+	log_trace(logger, "Conectandose al encargado | Nodo%d  (%s:%d) ...",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 
 
 	// Conectarse al encargado
@@ -86,7 +86,7 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 
 	// Enviar nodos subordinados
 
-	log_info(logger, "Enviando instrucciones al encargado...");
+	log_trace(logger, "Enviando instrucciones al encargado...");
 	int i;
 	payload_INFO_REDUCCIONGLOBAL*  payloadSubordinado;
 	int cantidadNodos = queue_size(colaDeInformaciones);
@@ -106,14 +106,14 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	char * contenidoScript = leerScript(scriptSize, scriptFD);
 
 	//Enviar contenido
-	log_info(logger,"Enviando script: %s (%d bytes)",rutaReductor,scriptSize);
+	log_trace(logger,"Enviando script: %s (%d bytes)",rutaReductor,scriptSize);
 	send_BLOQUE(socketWorker,scriptSize,contenidoScript,0);
 
 
 	// Recibir respuesta y contactar al yama
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_trace(logger, "Redux global OK | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
+		log_info(logger, "Redux global OK | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,1);
 	} else {
 		log_error(logger, "Redux global ERR | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);

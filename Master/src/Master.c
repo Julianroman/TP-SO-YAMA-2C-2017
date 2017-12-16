@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 
 	// Inicializar logs
 	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
-	log_trace(logger, "Comienza proceso Master");
+	log_info(logger, "Comienza proceso Master");
 
 
 	// Leer configuracion
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 	// Conectarse al YAMA
 	int socketYAMA = crear_conexion(ipYama,puertoYama);
 	if(socketYAMA != -1){
-		log_trace(logger, "Conectado al administrador en %s:%d / socket:%d",ipYama,puertoYama,socketYAMA);
+		log_info(logger, "Conectado al administrador en %s:%d / socket:%d",ipYama,puertoYama,socketYAMA);
 	}else{
 		log_error(logger, "No se pudo conectar al administrador.\n");
 		return EXIT_FAILURE;

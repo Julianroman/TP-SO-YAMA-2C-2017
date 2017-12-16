@@ -43,7 +43,7 @@ STATUS_MASTER reduccionLocal (int socketYAMA, payload_INFO_REDUCCIONLOCAL* data)
 	pthread_t           tid;
 	pthread_attr_t      attr;
 
-	log_trace(logger, "Reduccion local iniciada");
+	log_trace(logger, "Reduccion local iniciada | Nodo%d (%s:%d) ",data -> ID_Nodo,data->IP_Worker,data->PUERTO_Worker);
 	reduxLocalesRealizadas ++;
 
 	// Verificacion para estadisticas
@@ -129,7 +129,7 @@ void* rutina_reduccionLocal(void* args){
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_trace(logger, "Redux local OK | Nodo %d (%s:%d)",idNodo,ipWorker,puetoWorker);
+		log_info(logger, "Redux local OK | Nodo %d (%s:%d)",idNodo,ipWorker,puetoWorker);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,-1,1);
 	}else{
 		fallosReduxLocal ++;

@@ -26,7 +26,7 @@ extern int masterID;
 STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	time_t inicioEtapa,finEtapa;
 	time (&inicioEtapa);
-	log_trace(logger, "Almacenamiento final iniciado");
+	log_info(logger, "Almacenamiento final iniciado");
 	payload_INFO_ALMACENAMIENTO* payload = data;
 	int socketWorker = crear_conexion(payload->IP_Worker,payload->PUERTO_Worker);
 	if(socketWorker == -1){
@@ -38,8 +38,6 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	char * rutaAlmacenamiento = inputGet();
 	puts("Ingrese el nombre del archivo almacenado:\n");
 	char * nombreAlmacenamiento = inputGet();
-	free(nombreAlmacenamiento);
-	free(rutaAlmacenamiento);
 
 	send_ORDEN_ALMACENAMIENTO(socketWorker,payload->nombreTemporal_ReduccionGlobal);
 
@@ -53,6 +51,8 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payload -> ID_Nodo),-2,0);
 	}
 
+	free(nombreAlmacenamiento);
+	free(rutaAlmacenamiento);
 
 
 	close(socketWorker);
@@ -60,7 +60,7 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	// Destruir payload
 	destroy_INFO_ALMACENAMIENTO(payload);
 
-	log_trace(logger, "Almacenamiento finalizado");
+	log_info(logger, "Almacenamiento finalizado");
 	time (&finEtapa);
 	tiempoAlmacenamiento += difftime(finEtapa,inicioEtapa);
 	sem_post(&fin_job);
