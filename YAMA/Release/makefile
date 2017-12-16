@@ -8,8 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/serverWorker/responses/subdir.mk
--include src/serverWorker/subdir.mk
+-include src/serverYAMA/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
 -include objects.mk
@@ -25,26 +24,26 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: Worker
+all: YAMA
 
 dependents:
-	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug && $(MAKE) clean all
+	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) clean all
 
 # Tool invocations
-Worker: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so
+YAMA: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug" -o "Worker" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -o "YAMA" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) Worker
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) YAMA
 	-@echo ' '
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so:
+/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so:
 
 -include ../makefile.targets

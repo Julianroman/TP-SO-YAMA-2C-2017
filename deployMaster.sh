@@ -30,9 +30,13 @@ generar_configuracion(){
 	echo "Ingrese la ip del YAMA"
 	echo -n "> "
 	read IPYAMA
+	echo "Ingrese el limite de balanceo"
+	echo -n "> "
+	read BALANCEO
 	
 	echo "YAMA_IP=$IPYAMA" > "$MASTERPATH/$MASTERCONFIG"
 	echo "YAMA_PUERTO=5041" >> "$MASTERPATH/$MASTERCONFIG"
+	echo "BALANCEO=$BALANCEO" >> "$MASTERPATH/$MASTERCONFIG"
 }
 
 #
