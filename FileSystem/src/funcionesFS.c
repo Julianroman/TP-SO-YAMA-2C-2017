@@ -519,10 +519,13 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 				}
 			}else{
 				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+				for ( i=0; i<list_size(lista_de_paginas); i++){
+					t_pagina *pagina = list_get(lista_de_paginas, i);
+					free(pagina->contenido);
+					free(pagina);
+					//free(bloqueNro);
+				}
 			}
-
-
-
 
 			config_save(fileExport);
 			config_save_in_file(fileExport, indicePath);
@@ -652,6 +655,12 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 				}
 			}else{
 				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
+				for ( i=0; i<list_size(lista_de_paginas); i++){
+					t_pagina *pagina = list_get(lista_de_paginas, i);
+					free(pagina->contenido);
+					free(pagina);
+					//free(bloqueNro);
+				}
 			}
 
 
@@ -670,7 +679,9 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 				//No se elimino
 			}
 
+			log_info(log, "Fin almacenamiento. Enviando EXITO a Master");
 			send_EXITO_OPERACION(socketRecibido);
+			log_info(log, "EXITO operacion enviado");
 
 		}
 
