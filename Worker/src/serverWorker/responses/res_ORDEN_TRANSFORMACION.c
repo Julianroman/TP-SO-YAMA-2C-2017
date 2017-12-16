@@ -64,10 +64,12 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	// Guardo el script
 	char* scriptPath = string_from_format("scripts/transformador%d", pid);
     FILE *scriptFile = fopen(scriptPath, "ab");
-    if (scriptFile != NULL){
-    	fwrite(contenido,script -> tamanio_bloque,1,scriptFile);
-        fclose(scriptFile);
+    if (scriptFile == NULL){
+    	log_error(logger,"Transformacion ERR | No se puede guardar el script | Bloque: %d",(orden -> bloque));
+    	exit(1);
     }
+	fwrite(contenido,script -> tamanio_bloque,1,scriptFile);
+	fclose(scriptFile);
 
     // Le otorgo permisos de ejecucion
     char* chmodComand = string_from_format("chmod +x %s", scriptPath);
@@ -81,7 +83,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     int dataBin = open(dataBinPath, O_RDONLY);
     char * bloqueATransformar = leerArchivo(orden->bytesocupados, orden->bloque, dataBin);
     if(bloqueATransformar == NULL){
-    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	log_error(logger,"Transformacion ERR | No se pudo recuperar el bloque | Bloque: %d",(orden -> bloque));
     	exit(1);
     }
     close(dataBin);
@@ -91,7 +93,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     char* temporalPath = string_from_format("temporalTransformacion%d",pid);
     FILE * temporalFile = fopen(temporalPath,"w+");
     if ((fwrite(bloqueATransformar,1,orden->bytesocupados, temporalFile))<(orden->bytesocupados)){
-    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	log_error(logger,"Transformacion ERR | No se pudo crear archivo intermedio | Bloque: %d",(orden -> bloque));
     	exit(1);
     }
     fclose(temporalFile);
@@ -100,7 +102,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     log_info(logger,"Transformando bloque %d, %d bytes..",(orden -> bloque),orden -> bytesocupados);
     char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
     if((system(transformationCommand))==-1){
-    	log_error(logger,"Transformacion ERR | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
+    	log_error(logger,"Transformacion ERR | Bloque: %d",(orden -> bloque));
     	exit(1);
     };
 
