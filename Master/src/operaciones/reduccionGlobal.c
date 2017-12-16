@@ -22,7 +22,7 @@
 #include "../funcionesMaster.h"
 
 extern t_log* logger;
-extern char* scriptReductor;
+extern char* rutaReductor;
 extern double tiempoReduxGlobal;
 extern int masterID;
 
@@ -100,10 +100,14 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 	}
 	send_FIN_LISTA(socketWorker);
 
+	// Envio de script
+	int scriptFD = open(rutaReductor,O_RDONLY,0);
+	int scriptSize = getScritptSize(rutaReductor);
+	char * contenidoScript = leerScript(scriptSize, scriptFD);
 
-	log_info(logger, "Enviando script...");
-	// Enviar script
-	send_SCRIPT(socketWorker,scriptReductor);
+	//Enviar contenido
+	log_info(logger,"Enviando script: %s (%d bytes)",rutaReductor,scriptSize);
+	send_BLOQUE(socketWorker,scriptSize,contenidoScript,0);
 
 
 	// Recibir respuesta y contactar al yama
@@ -115,7 +119,6 @@ STATUS_MASTER reduccionGlobal(int socketYAMA, void* data){
 		log_error(logger, "Redux global ERR | Nodo%d (%s:%d)",payloadEncargado -> ID_Nodo,payloadEncargado->IP_Worker,payloadEncargado->PUERTO_Worker);
 		send_RESPUESTA_MASTER(socketYAMA,masterID,(payloadEncargado -> ID_Nodo),-1,0);
 	}
-
 
 	// Liberar recursos
 	close(socketWorker);
