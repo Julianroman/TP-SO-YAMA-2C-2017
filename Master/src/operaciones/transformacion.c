@@ -12,10 +12,12 @@
 #include <utilidades/protocol/receive.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include "operaciones.h"
-
+#include "../funcionesMaster.h"
 
 extern double tiempoTransformacion;
 extern t_log* logger;
@@ -28,6 +30,7 @@ extern int maxTransformacionesEnProceso;
 extern int maxParalelasEnProceso;
 extern int masterID;
 extern sem_t balancer;
+extern char * rutaTransformador;
 
 int YAMAsocket;
 
@@ -74,8 +77,12 @@ void* rutina_transformacion(void* args){
 	}
 	send_ORDEN_TRANSFORMACION(socketWorker,payload->bloque,payload->bytesocupados,payload->nombreArchivoTemporal);
 
-	// Enviar script
-	send_SCRIPT(socketWorker,scriptTransformador);
+	int scriptFD = open(rutaTransformador,O_RDONLY,0);
+	int scriptSize = getScritptSize(rutaTransformador);
+	char * contenidoScript = leerScript(scriptSize, scriptFD);
+
+	//Enviar contenido
+	send_BLOQUE(socketWorker,scriptSize,contenidoScript,0);
 
 	// Recibir resultado
 	receive(socketWorker,&header);

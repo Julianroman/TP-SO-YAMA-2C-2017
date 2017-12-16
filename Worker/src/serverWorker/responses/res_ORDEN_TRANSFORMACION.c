@@ -52,8 +52,8 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	HEADER_T cabecera;
 
 	// Recibo el script
-	payload_SCRIPT* script = receive(socket_cliente,&cabecera);
-	if(cabecera != SCRIPT){
+	payload_BLOQUE* script = receive(socket_cliente,&cabecera);
+	if(cabecera != BLOQUE){
 		log_error(logger,"No se pudo recibir el script");
 		send_FRACASO_OPERACION(socket_cliente);
 		exit(1);
@@ -65,7 +65,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	char* scriptPath = string_from_format("scripts/transformador%d", pid);
     FILE *scriptFile = fopen(scriptPath, "ab");
     if (scriptFile != NULL){
-        fputs(contenido, scriptFile);
+    	fwrite(contenido,script -> tamanio_bloque,1,scriptFile);
         fclose(scriptFile);
     }
 
