@@ -21,7 +21,7 @@ int miPuerto = 5040; // Puerto de conexion
 extern pthread_mutex_t mutexContenido;
 
 int main(int arg, char** argv) {
-	log = log_create("fileSystem.log", "FileSystem", true, LOG_LEVEL_TRACE);
+	log = log_create("fileSystem.log", "FileSystem", false, LOG_LEVEL_TRACE);
 	log_trace(log, "Comienza el proceso FileSystem");
 
 	if (arg > 1 && string_equals_ignore_case(argv[1], "--clean")){

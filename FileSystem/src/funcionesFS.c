@@ -95,7 +95,7 @@ void servidorFs(int puerto){
 		exit(1);
 	}
 	// escuchar
-	printf("Esperando conexiones...\n");
+	log_trace(log, "Esperando conexiones...\n");
 	if (listen(servidor, 100) == -1) {
 		perror("Falló el listen");
 		exit(1);
@@ -148,7 +148,7 @@ void servidorFs(int puerto){
 
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
-								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
+								log_trace(log,"Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
 								char *puntero = malloc(payload->tamanio_ipDatanode);
 								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
@@ -208,7 +208,7 @@ void servidorFs(int puerto){
 							free(payload);
 
 							pthread_mutex_unlock(&mutexContenido);
-							printf("Leido OK bloque %i \n", payload->numero_bloque);
+							log_trace(log,"Leido OK bloque %i \n", payload->numero_bloque);
 
 							sem_post(&binaryContenidoConsola);
 						} else if(cabecera == ALMACENAR_ARCHIVO){
@@ -425,6 +425,7 @@ static t_list *cortar_modo_binario(FILE *in){
 int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	if(list_size(listaDeNodos) == 0){
 		log_error(log, "No hay nodos conectados");
+		return FRACASO;
 	}else{
 
 		if(esRutaYamaFS(pathDestino)){
@@ -493,8 +494,8 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 
 			if ( strcmp(tipo,"txt") == 0 ) {
 				if ( (in = fopen(pathOrigenCompleto, "r") ) == NULL ) {
-					printf("No se encontro el archivo");
-					return 1;
+					log_error(log, "No se encontro el archivo");
+					return FRACASO;
 				}
 
 				lista_de_paginas = cortar_modo_texto(in);
@@ -502,8 +503,8 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 			}
 			else{
 				if ( (in = fopen(pathOrigenCompleto, "rb") ) == NULL ) {
-					printf("No se encontro el archivo");
-					return 1;
+					log_error(log,"No se encontro el archivo");
+					return FRACASO;
 				}
 				lista_de_paginas = cortar_modo_binario(in);
 			}
@@ -558,7 +559,7 @@ int almacenarArchivo(char *location, char *pathDestino, char *name, char *tipo){
 	}
 
 
-	return 0;
+	return EXITO;
 }
 
 int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *contenido, int tamanioContenido, int socketRecibido){
@@ -632,8 +633,8 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 
 			if ( strcmp(tipo,"txt") == 0 ) {
 				if ( (in = fopen(pathTemp, "r") ) == NULL ) {
-					printf("No se encontro el archivo");
-					return 1;
+					log_error(log, "No se encontro el archivo");
+					return FRACASO;
 				}
 
 				lista_de_paginas = cortar_modo_texto(in);
@@ -641,8 +642,8 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 			}
 			else{
 				if ( (in = fopen(pathTemp, "rb") ) == NULL ) {
-					printf("No se encontro el archivo");
-					return 1;
+					log_error(log, "No se encontro el archivo");
+					return FRACASO;
 				}
 				lista_de_paginas = cortar_modo_binario(in);
 			}
@@ -706,7 +707,7 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 	}
 
 
-	return 0;
+	return EXITO;
 }
 
 
@@ -715,7 +716,7 @@ void enviarAYama(int numNodo, int bloqueDelNodo, int bloqueDelArchivo, int copia
 	send_UBICACION_BLOQUE(socketYama, ipDatanode , 5042 , numNodo, bloqueDelNodo, bloqueDelArchivo, copia, tamanioBloque);
 }
 
-void leerArchivo(char *pathConNombre){
+int leerArchivo(char *pathConNombre){
 	// Para leer la tabla de archivos
 	// Separo el path con las /
 
@@ -775,7 +776,9 @@ void leerArchivo(char *pathConNombre){
 					free(bloquesBytes);
 
 					// Se envia a YAMA
-					int nroNodo = atoi(string_substring_from(nodoYBloque[0],4));
+					char *nombreNodo = string_substring_from(nodoYBloque[0],4);
+					int nroNodo = atoi(nombreNodo);
+					free(nombreNodo);
 					enviarAYama(nroNodo, atoi(nodoYBloque[1]), i, 0, getIpNodoByName(nroNodo), tamanioBloque);
 					free(nodoYBloque);
 				}
@@ -798,6 +801,7 @@ void leerArchivo(char *pathConNombre){
 				if(!config_has_property(archivo_configuracion ,copiaCero) && !config_has_property(archivo_configuracion ,copiaUno)){
 					if(i == 0){
 						log_error(log, "No se encontro el archivo en la ruta indicada");
+						return FRACASO;
 					}
 
 					ok = 0;
@@ -819,6 +823,7 @@ void leerArchivo(char *pathConNombre){
 		free(arrayPath);
 		free(name);
 	}
+	return EXITO;
 
 }
 
@@ -1031,11 +1036,12 @@ int leerContenidoArchivo(char *pathConNombre){
 					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
 					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
 					free(bloquesBytes);
-
-					socketOriginal = getSocketNodoByName(atoi(string_substring_from(nodoYBloque[0],4)));
+					char *nombreNodo = string_substring_from(nodoYBloque[0],4);
+					socketOriginal = getSocketNodoByName(atoi(nombreNodo));
+					free(nombreNodo);
 					if(socketOriginal != -1){
 						// Pido el original
-						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i\n", string_substring_from(nodoYBloque[0],4) , nodoYBloque[1], i, tamanioBloque);
+						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i\n", nombreNodo , nodoYBloque[1], i, tamanioBloque);
 						send_PETICION_BLOQUE(socketOriginal,atoi(nodoYBloque[1]), tamanioBloque);
 						sem_post(&binaryContenidoServidor);
 						sem_wait(&binaryContenidoConsola);
@@ -1202,7 +1208,7 @@ void nodosARestaurar(){
 						t_list *nodosParaCopia = list_create();
 
 						if(!string_equals_ignore_case(archivos->d_name, ".") && !string_equals_ignore_case(archivos->d_name, "..")){
-							printf("%s\n", archivos->d_name);
+							log_trace(log, "%s\n", archivos->d_name);
 
 							t_config* currFile = config_create(string_from_format("%s%s%s/%s", directorioRaiz, pathArchivos, dir->d_name, archivos->d_name));
 
@@ -1212,11 +1218,13 @@ void nodosARestaurar(){
 								char *copiaCero = string_from_format("BLOQUE%iCOPIA0", i);
 								char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
 
+
 								if(config_has_property(currFile ,copiaCero)){
 									//char **nodoYBloque = malloc(sizeof(char*)*2);
 									char **nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, copiaCero));
-
-									printf("Necesito nodo %i para la copia 0 \n", atoi(string_substring_from(nodoYBloque[0],4)));
+									char *nombreNodo = string_substring_from(nodoYBloque[0],4);
+									log_info(log,"Necesito nodo %i para la copia 0 \n", atoi(nombreNodo));
+									free(nombreNodo);
 
 									agregarNodoAListaSiNoExiste(nodosParaOriginal, string_duplicate(nodoYBloque[0]));
 
@@ -1228,8 +1236,9 @@ void nodosARestaurar(){
 								if(config_has_property(currFile ,copiaUno)){
 									//char **nodoYBloque = malloc(sizeof(char*)*2);
 									char** nodoYBloque = string_get_string_as_array(config_get_string_value(currFile, copiaUno));
-
-									printf("Necesito nodo %i para la copia 1 \n", atoi(string_substring_from(nodoYBloque[0],4)));
+									char *nombreNodo = string_substring_from(nodoYBloque[0],4);
+									log_info(log, "Necesito nodo %i para la copia 1 \n", atoi(nombreNodo));
+									free(nombreNodo);
 
 									agregarNodoAListaSiNoExiste(nodosParaCopia, string_duplicate(nodoYBloque[0]));
 
@@ -1398,7 +1407,7 @@ void escribirBloqueLibre(t_nodo* unNodo,int bloque){
 
 	//ESCRIBO LO QUE TENGA QUE ESCRIBIR Y DESPUES CAMBIO EL BITMAP Y LO ALMACENO
 	bitarray_set_bit(unNodo->bitmap, bloque);
-	printf("bloque %i\n",bloque);
+	log_trace(log, "bloque %i\n",bloque);
 	almacenarBitmapEnArchivo(unNodo);
 
 	actualizarNodoEnTabla(unNodo);
@@ -1419,7 +1428,7 @@ void printBitmap(t_bitarray* unBitarray) {
 	int j;
 	for (j = 0; j < tamanioBloques; j++) {
 		bool a = bitarray_test_bit(unBitarray, j);
-		printf("%i", a);
+		log_trace(log, "%i", a);
 	}
 	log_info(log,"\n");
 }
@@ -1610,11 +1619,11 @@ void printLs(char* path){
 		int i;
 		for (i = 0; i < TOTALDIRECTORIOS; i++) {
 			if(tablaDeDirectorios[i].padre == indice){
-				printf("%s ", tablaDeDirectorios[i].nombre );
+				log_trace(log, "%s ", tablaDeDirectorios[i].nombre );
 			}
 
 		}
-		printf("\n");
+		log_trace(log, "\n");
 	}
 
 }
@@ -1868,9 +1877,10 @@ void createLogicDirectory(char* path){
 
 }
 
-void deleteDirectory(char* path){
+int deleteDirectory(char* path){
 	if(string_starts_with(path, "/")){
 		log_error(log, "Error al crear directorio. Se encuentra en root/");
+		return FRACASO;
 	}else{
 		char* pathConcat = string_new();
 		string_append(&pathConcat, directorioRaiz);
@@ -1880,6 +1890,7 @@ void deleteDirectory(char* path){
 
 		if (stat(pathConcat, &st) == -1) { //Si no existe el path, no lo elimino
 			log_error(log, "El directorio no existe");
+			return FRACASO;
 		}else{ //Faltaria verificar que sea ese con el padre (Pueden haber dos directorios que se llamen igual)
 			char **padres = string_split(path, "/");
 			int cant = 0;
@@ -1893,14 +1904,17 @@ void deleteDirectory(char* path){
 			tablaDeDirectorios[indice].padre = -1;
 
 			if(remove(path) == 0){
-				printf("El directorio %s fue eliminado.\n", pathConcat);
+				log_info(log, "El directorio %s fue eliminado.\n", pathConcat);
+
 			}
 			else{
 				fprintf(stderr, "No se pudo eliminar el archivo %s.\n", pathConcat);
+				return FRACASO;
 			}
 		}
 
 		saveTablaDeDirectorios();
+		return EXITO;
 	}
 
 }
