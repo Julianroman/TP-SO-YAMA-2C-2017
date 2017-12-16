@@ -1097,8 +1097,8 @@ int esEstadoEstable(){
 	}else{
 		int estable = 1;
 
-		char *stringNodosConectados = string_new();
-		stringNodosConectados = listaDeNodosAsArray();
+		//char *stringNodosConectados = string_new();
+		char *stringNodosConectados = listaDeNodosAsArray();
 
 		//char **nodosConectados = string_get_string_as_array(stringNodosConectados);
 
@@ -1136,6 +1136,7 @@ int esEstadoEstable(){
 		else
 			log_trace(log, "El sistema se encuentra en estado NO ESTABLE");
 
+		free(stringNodosConectados);
 		return estable;
 	}
 
@@ -1396,11 +1397,12 @@ static int iCeil(int n) {
 
 t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 	char* name = string_itoa(nroNodo);
-	char *pathNewBitmap = malloc(1000);
-	strcpy(pathNewBitmap, PATHBITMAP);
+	char *pathNewBitmap = string_duplicate(PATHBITMAP);
+	//strcpy(pathNewBitmap, PATHBITMAP);
 	string_append(&pathNewBitmap, "nodo");
 	string_append(&pathNewBitmap, name);
 	string_append(&pathNewBitmap, ".dat");
+	free(name);
 
 	t_bitarray *unBitarray;
 
@@ -1445,6 +1447,7 @@ t_bitarray* initOrCreateBitmap(int nroNodo, int cantidadDeBloques){
 		}
 		log_info(log, "El bitmap del nodo%i fue leido con exito.", nroNodo);
 	}
+	free(pathNewBitmap);
 	return unBitarray;
 }
 
