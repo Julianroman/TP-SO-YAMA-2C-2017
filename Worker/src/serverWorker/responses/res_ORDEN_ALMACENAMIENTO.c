@@ -75,15 +75,18 @@ void res_ORDEN_ALMACENAMIENTO(int socket_cliente,HEADER_T header,void* data){
 	config_destroy(archivo_configuracion);
 
 	// Enviar contenido
-	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,"root",orden->nombreTemporal_ReduccionGlobal,"txt");
+	log_trace(logger,"Guardando en %s/%s..",orden -> rutaAlmacenamiento, orden -> nombreAlamcenamiento);
+	send_ALMACENAR_ARCHIVO(socketFS,input_file_size,contenido,orden->rutaAlmacenamiento,orden->nombreAlamcenamiento,"txt");
 	free(contenido);
 
 	// Esperar respuesta
 	receive(socketFS,&header);
 
 	if(header == EXITO_OPERACION){
+		log_info(loger,"Job almacenado en %s/%s..",orden -> rutaAlmacenamiento, orden -> nombreAlamcenamiento);
 		send_EXITO_OPERACION(socket_cliente);
 	}else{
+		log_error(logger,"No se pudo almacenar el resultado del Job");
 		send_FRACASO_OPERACION(socket_cliente);
 	}
 
