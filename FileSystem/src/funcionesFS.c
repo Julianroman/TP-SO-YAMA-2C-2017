@@ -60,7 +60,7 @@ void desconectarNodo(int id_dataNode){
 			nodo_destroy(unNodo);
 		}
 	}
-
+	formateado = 0;
 	actualizarTablaDeNodos();
 }
 
@@ -149,7 +149,7 @@ void servidorFs(int puerto){
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
 								log_trace(log,"Recibí una conexión de DataNode %d!! \n", payload->id_dataNode);
-								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
+								//printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
 								char *puntero = malloc(payload->tamanio_ipDatanode);
 								memcpy(puntero, payload->ipDatanode,payload->tamanio_ipDatanode);
@@ -191,7 +191,7 @@ void servidorFs(int puerto){
 								desconectarNodo(nodoEncontrado->nroNodo);
 							}else if(i == socketYama){
 								log_trace(log, "Se desconecto el YAMA");
-								printf("Se desconecto al YAMA \n");
+								//printf("Se desconecto al YAMA \n");
 							}
 
 							close(i); // bye!
@@ -207,7 +207,7 @@ void servidorFs(int puerto){
 							fwrite(payload->contenido, 1, payload->tamanio_bloque, archv);
 							fclose(archv);
 							free(payload->contenido);
-							free(payload);
+							//free(payload);
 
 							pthread_mutex_unlock(&mutexContenido);
 							log_trace(log,"Leido OK bloque %i \n", payload->numero_bloque);
@@ -673,6 +673,10 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 					free(pagina);
 					//free(bloqueNro);
 				}
+
+				log_info(log, "Fin almacenamiento. Enviando EXITO a Master");
+				send_EXITO_OPERACION(socketRecibido);
+				log_info(log, "EXITO operacion enviado");
 			}else{
 				log_error(log, "No hay suficiente espacio para almacenar el archivo.");
 				for ( i=0; i<list_size(lista_de_paginas); i++){
@@ -681,6 +685,9 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 					free(pagina);
 					//free(bloqueNro);
 				}
+
+				send_FRACASO_OPERACION(socketRecibido);
+				log_info(log, "Enviado fracaso a master");
 			}
 
 
@@ -699,10 +706,10 @@ int almacenarArchivoWorker(char* pathDestino, char *name, char *tipo, char *cont
 				//No se elimino
 			}
 
-			log_info(log, "Fin almacenamiento. Enviando EXITO a Master");
-			send_EXITO_OPERACION(socketRecibido);
-			log_info(log, "EXITO operacion enviado");
 
+
+		}else{
+			send_FRACASO_OPERACION(socketRecibido);
 		}
 
 
@@ -769,9 +776,10 @@ int leerArchivo(char *pathConNombre){
 				char *copiaUno = string_from_format("BLOQUE%iCOPIA1", i);
 
 				if(config_has_property(archivo_configuracion ,copiaCero)){
-					nodoYBloque = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaCero));
+					char *getConfig = config_get_string_value(archivo_configuracion, copiaCero);
+					nodoYBloque = string_get_string_as_array(getConfig);
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Original \n", nodoYBloque[0], nodoYBloque[1], i);
-
+					free(getConfig);
 					// Agarro el tamanio del bloque
 					char *bloquesBytes = string_from_format("BLOQUE%iBYTES", i);
 					int tamanioBloque = config_get_int_value(archivo_configuracion, bloquesBytes);
@@ -786,7 +794,9 @@ int leerArchivo(char *pathConNombre){
 				}
 
 				if(config_has_property(archivo_configuracion ,copiaUno)){
+					char *getConfig = config_get_string_value(archivo_configuracion, copiaUno);
 					nodoYBloqueCopia = string_get_string_as_array(config_get_string_value(archivo_configuracion, copiaUno));
+					free(copiaUno);
 					log_info(log, "Leido de %s -- bloque %s -- ORDEN %i -- Copia \n", nodoYBloqueCopia[0], nodoYBloqueCopia[1], i);
 
 					// Agarro el tamanio del bloque
@@ -808,14 +818,14 @@ int leerArchivo(char *pathConNombre){
 
 					ok = 0;
 				}
-				free(copiaCero);
-				free(copiaUno);
+				//free(copiaCero);
+				//free(copiaUno);
 				i++;
 			}
 
 			//free(nodoYBloque);
 			//free(nodoYBloqueCopia);
-			config_destroy(archivo_configuracion);
+			free(archivo_configuracion);
 
 
 			fclose(in);
@@ -943,6 +953,16 @@ char *getIpNodoByName(int name){
 	return ipReturn;
 }
 
+void renameDirectory(int indice, char *newName){
+	free(tablaDeDirectorios[indice].nombre);
+	strcpy(tablaDeDirectorios[indice].nombre, newName);
+	free(newName);
+	saveTablaDeDirectorios();
+
+}
+
+
+
 int getIndiceNodoBySocket(int nroSocket){
 	int indice = -1;
 
@@ -1040,7 +1060,6 @@ int leerContenidoArchivo(char *pathConNombre){
 					free(bloquesBytes);
 					char *nombreNodo = string_substring_from(nodoYBloque[0],4);
 					socketOriginal = getSocketNodoByName(atoi(nombreNodo));
-					free(nombreNodo);
 					if(socketOriginal != -1){
 						// Pido el original
 						log_info(log, "Pedido a %s -- bloque %s -- ORDEN %i -- Original || Tam: %i \n", nombreNodo , nodoYBloque[1], i, tamanioBloque);
@@ -1049,6 +1068,7 @@ int leerContenidoArchivo(char *pathConNombre){
 						sem_wait(&binaryContenidoConsola);
 
 					}
+					free(nombreNodo);
 					free(nodoYBloque);
 				}
 
@@ -1134,7 +1154,7 @@ int esEstadoEstable(){
 	if(formateado == 1){
 		//Si recien esta formateado esta estable
 		log_trace(log, "El sistema se encuentra recien formateado ==> ESTABLE");
-		printf("El sistema se encuentra recien formateado ==> ESTABLE \n" );
+		//printf("El sistema se encuentra recien formateado ==> ESTABLE \n" );
 		return 1;
 	}else{
 		int estable = 1;
@@ -1175,10 +1195,10 @@ int esEstadoEstable(){
 
 		if(estable == 1){
 			log_trace(log, "El sistema se encuentra en estado ESTABLE");
-			printf("El sistema se encuentra ESTABLE \n" );
+			//printf("El sistema se encuentra ESTABLE \n" );
 		}else{
 			log_trace(log, "El sistema se encuentra en estado NO ESTABLE");
-			printf("El sistema se encuentra NO ESTABLE \n" );
+			//printf("El sistema se encuentra NO ESTABLE \n" );
 		}
 
 
@@ -1286,12 +1306,12 @@ int existeEstadoAnterior(){
 	struct stat st = {0};
 	if (stat(PATHDIRECTORIOS, &st) == -1) { //Si no existe el path
 		log_info(log, "No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
-		printf("No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
+		//printf("No se encontro el archivo de directorios. No hay un estado anterior para restaurar.");
 		return 1;
 	}
 	else if(stat(pathTablaNodos, &st) == -1){
 		log_info(log, "No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
-		printf("No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
+		//printf("No se encontro la tabla de nodos. No hay un estado anterior para restaurar.");
 		return 1;
 	}
 	else{
@@ -1307,7 +1327,7 @@ void initOrRestoreFS(){
 		initFS();
 		nodosARestaurar();
 		log_info(log, "Se encontro un estado anterior. Esperando nodos...");
-		printf("Se encontro un estado anterior. Esperando nodos...");
+		//printf("Se encontro un estado anterior. Esperando nodos...");
 	}
 }
 
@@ -1631,11 +1651,11 @@ void printLs(char* path){
 		int i;
 		for (i = 0; i < TOTALDIRECTORIOS; i++) {
 			if(tablaDeDirectorios[i].padre == indice){
-				log_trace(log, "%s ", tablaDeDirectorios[i].nombre );
+				printf("%s ", tablaDeDirectorios[i].nombre );
 			}
 
 		}
-		log_trace(log, "\n");
+		//log_trace(log, "\n");
 	}
 
 }
