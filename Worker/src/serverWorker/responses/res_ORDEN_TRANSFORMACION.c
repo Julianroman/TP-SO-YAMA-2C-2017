@@ -101,10 +101,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
     // Ejecuto la transformacion
     log_info(logger,"Transformando bloque %d, %d bytes..",(orden -> bloque),orden -> bytesocupados);
     char* transformationCommand = string_from_format("cat %s | ./%s | sort > tmp/%s",temporalPath, scriptPath ,orden->nombreArchivoTemporal);
-    if((system(transformationCommand))==-1){
-    	log_error(logger,"Transformacion ERR | Bloque: %d",(orden -> bloque));
-    	exit(1);
-    };
+    system(transformationCommand);
 
     // Log intenso
 	log_trace(logger,"Transformacion OK | Bloque: %d / Archivo: %s",(orden -> bloque),(orden->nombreArchivoTemporal));
