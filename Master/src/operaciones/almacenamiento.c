@@ -39,7 +39,7 @@ STATUS_MASTER almacenamiento(int socketYAMA, void* data){
 	puts("Ingrese el nombre del archivo almacenado:\n");
 	char * nombreAlmacenamiento = inputGet();
 
-	send_ORDEN_ALMACENAMIENTO(socketWorker,payload->nombreTemporal_ReduccionGlobal);
+	send_ORDEN_ALMACENAMIENTO(socketWorker,rutaAlmacenamiento,nombreAlmacenamiento,payload->nombreTemporal_ReduccionGlobal);
 
 	HEADER_T header;
 	receive(socketWorker,&header);
