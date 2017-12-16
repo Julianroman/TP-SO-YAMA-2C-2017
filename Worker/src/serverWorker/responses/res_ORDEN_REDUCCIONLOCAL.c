@@ -97,10 +97,9 @@ void res_ORDEN_REDUCCIONLOCAL(int socket_cliente,HEADER_T header,void* data){
 	// Guardo el script
 	char* contenido = script -> contenido;
 	char* scriptPath = string_from_format("scripts/reductor%d", pid);
-    FILE *fp = fopen(scriptPath, "ab");
-    if (fp != NULL)
-    {
-        fputs(contenido, fp);
+    FILE *fp = fopen(scriptPath, "w+");
+    if (fp != NULL){
+        fwrite(contenido,script ->tamanio_bloque,1,fp);
         fclose(fp);
     }
 
