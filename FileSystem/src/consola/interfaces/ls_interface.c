@@ -12,7 +12,7 @@ void ls_interface(char** comando){
 		cant++;
 	}
 
-	if(cant != 1){
+	if(cant != 2){
 		fprintf(stderr, "Comando erroneo. Podria probar con: ls [path_archivo] \n");
 	}else{
 		DIR *mydir;

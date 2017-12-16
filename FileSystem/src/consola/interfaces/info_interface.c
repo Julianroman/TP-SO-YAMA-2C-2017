@@ -11,7 +11,7 @@ void info_interface(char **comando){
 	}
 
 	if(cant != 1){
-		fprintf(stderr, "Comando erroneo. Podria probar con: info [path_archivo]");
+		fprintf(stderr, "Comando erroneo. Podria probar con: info [path_archivo] \n");
 	}else{
 		getInfoArchivo(comando[1]);
 	}

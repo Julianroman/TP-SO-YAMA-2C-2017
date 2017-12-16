@@ -11,9 +11,11 @@ void cpfrom_interface(char **comando){
 	}
 
 	if(cant != 5){
-		fprintf(stderr, "Comando erroneo. Podria probar con: cpfrom [path_archivo_origen] [directorio_yamafs] [tipo]");
+		fprintf(stderr, "Comando erroneo. Podria probar con: cpfrom [path_archivo_origen] [directorio_yamafs] [tipo] \n");
 	}else{
-		almacenarArchivo(comando[1], comando[2], comando[3], comando[4]);
+		if(almacenarArchivo(comando[1], comando[2], comando[3], comando[4]) != 1){
+			fprintf(stderr, "No se pudo almacenar el archivo %s.\n");
+		}
 	}
 
 };
