@@ -23,3 +23,4 @@ sudo make install
 sudo apt-get install libreadline6 libreadline6-dev
 
 
+echo "export LD_LIBRARY_PATH$=LD_LIBRARY_PATH:/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" >> /home/utnso/.bashrc
