@@ -148,7 +148,7 @@ void servidorFs(int puerto){
 
 								payload_PRESENTACION_DATANODE * payload = data;
 								//payload tiene toda la info
-								log_trace(log,"Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
+								log_trace(log,"Recibí una conexión de DataNode %d!! \n", payload->id_dataNode);
 								printf("Recibí una conexión de DataNode %d!!\n", payload->id_dataNode);
 
 								char *puntero = malloc(payload->tamanio_ipDatanode);
@@ -176,7 +176,7 @@ void servidorFs(int puerto){
 								send_RECHAZO_CONEXION(i);
 								close(i); // bye!
 								FD_CLR(i, &master); // eliminar del conjunto maestro
-								log_trace(log, "Se desconecto el YAMA. Estado NO estable");
+								log_trace(log, "Se desconecto el YAMA. Estado NO estable \n");
 
 							}
 
@@ -187,10 +187,11 @@ void servidorFs(int puerto){
 							if(indiceNodo != -1){
 								t_nodo *nodoEncontrado = list_get(listaDeNodos, indiceNodo);
 
-								log_trace(log, "Se desconecto el nodo %i", nodoEncontrado->nroNodo);
+								log_trace(log, "Se desconecto el nodo %i \n", nodoEncontrado->nroNodo);
 								desconectarNodo(nodoEncontrado->nroNodo);
 							}else if(i == socketYama){
 								log_trace(log, "Se desconecto el YAMA");
+								printf("Se desconecto al YAMA \n");
 							}
 
 							close(i); // bye!
