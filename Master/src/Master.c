@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Inicializar semaforo de fin de job
-	sem_init(&balancer, 0, 20);
+	sem_init(&balancer, 0, 12);
 	sem_init(&fin_job, 0, 0);
 	sem_init(&recepcionSem, 0, 0);
 
@@ -91,9 +91,6 @@ int main(int argc, char **argv) {
 	// Abrir archivos
 	rutaTransformador = argv[2];
 	rutaReductor      = argv[3];
-	scriptTransformador = scriptToChar(rutaTransformador);
-	scriptReductor = scriptToChar(rutaReductor);
-
 
 	// Inicializar logs
 	logger = log_create("master.log", "Master", true, LOG_LEVEL_TRACE);
