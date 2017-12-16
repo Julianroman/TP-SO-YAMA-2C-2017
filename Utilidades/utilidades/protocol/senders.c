@@ -65,8 +65,12 @@ void send_ORDEN_REDUCCIONGLOBAL(int socket , int PUERTO_Nodo , char* IP_Nodo , c
     free(paquete);
 };
 
-void send_ORDEN_ALMACENAMIENTO(int socket , char* nombreTemporal_ReduccionGlobal){
+void send_ORDEN_ALMACENAMIENTO(int socket , char* rutaAlmacenamiento , char* nombreAlamcenamiento , char* nombreTemporal_ReduccionGlobal){
     payload_ORDEN_ALMACENAMIENTO payload;
+    payload.tamanio_rutaAlmacenamiento = (strlen(rutaAlmacenamiento)+1)*sizeof(char);
+    payload.rutaAlmacenamiento = rutaAlmacenamiento; 
+    payload.tamanio_nombreAlamcenamiento = (strlen(nombreAlamcenamiento)+1)*sizeof(char);
+    payload.nombreAlamcenamiento = nombreAlamcenamiento; 
     payload.tamanio_nombreTemporal_ReduccionGlobal = (strlen(nombreTemporal_ReduccionGlobal)+1)*sizeof(char);
     payload.nombreTemporal_ReduccionGlobal = nombreTemporal_ReduccionGlobal; 
 

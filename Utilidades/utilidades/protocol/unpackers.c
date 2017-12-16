@@ -90,6 +90,20 @@ void* unpack_ORDEN_REDUCCIONGLOBAL(int socket){
 void* unpack_ORDEN_ALMACENAMIENTO(int socket){
     payload_ORDEN_ALMACENAMIENTO *payload= malloc(sizeof(payload_ORDEN_ALMACENAMIENTO));
 
+    recv(socket,&(payload->tamanio_rutaAlmacenamiento),sizeof(int),MSG_WAITALL);
+    int  tamanio_rutaAlmacenamiento = payload->tamanio_rutaAlmacenamiento;
+
+    char* rutaAlmacenamiento = malloc(tamanio_rutaAlmacenamiento);
+    recv(socket,rutaAlmacenamiento,tamanio_rutaAlmacenamiento,MSG_WAITALL);
+    payload->rutaAlmacenamiento = rutaAlmacenamiento;
+
+    recv(socket,&(payload->tamanio_nombreAlamcenamiento),sizeof(int),MSG_WAITALL);
+    int  tamanio_nombreAlamcenamiento = payload->tamanio_nombreAlamcenamiento;
+
+    char* nombreAlamcenamiento = malloc(tamanio_nombreAlamcenamiento);
+    recv(socket,nombreAlamcenamiento,tamanio_nombreAlamcenamiento,MSG_WAITALL);
+    payload->nombreAlamcenamiento = nombreAlamcenamiento;
+
     recv(socket,&(payload->tamanio_nombreTemporal_ReduccionGlobal),sizeof(int),MSG_WAITALL);
     int  tamanio_nombreTemporal_ReduccionGlobal = payload->tamanio_nombreTemporal_ReduccionGlobal;
 

@@ -92,7 +92,7 @@ void res_ORDEN_TRANSFORMACION(int socket_cliente,HEADER_T header,void* data){
 	config_destroy(archivo_configuracion);
 
     // Creo un archivo intermedio
-    char* temporalPath = string_from_format("temporalTransformacion%d",pid);
+    char* temporalPath = string_from_format("tmp/temporalTransformacion%d",pid);
     FILE * temporalFile = fopen(temporalPath,"w+");
     if ((fwrite(bloqueATransformar,1,orden->bytesocupados, temporalFile))<(orden->bytesocupados)){
     	log_error(logger,"Transformacion ERR | No se pudo crear archivo intermedio | Bloque: %d",(orden -> bloque));

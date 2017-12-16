@@ -122,6 +122,8 @@ void destroy_ORDEN_REDUCCIONGLOBAL(payload_ORDEN_REDUCCIONGLOBAL* payload){
 }
 
 void destroy_ORDEN_ALMACENAMIENTO(payload_ORDEN_ALMACENAMIENTO* payload){
+	free(payload->rutaAlmacenamiento);
+	free(payload->nombreAlamcenamiento);
 	free(payload->nombreTemporal_ReduccionGlobal);
 	free(payload);
 }

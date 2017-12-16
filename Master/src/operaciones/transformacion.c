@@ -10,6 +10,7 @@
 #include <utilidades/protocol/senders.h>
 #include <utilidades/protocol/types.h>
 #include <utilidades/protocol/receive.h>
+#include <utilidades/protocol/destroy.h>
 #include <utilidades/socket_utils.h>
 #include <commons/log.h>
 #include <sys/stat.h>
@@ -88,7 +89,7 @@ void* rutina_transformacion(void* args){
 	// Recibir resultado
 	receive(socketWorker,&header);
 	if(header == EXITO_OPERACION){
-		log_trace(logger, "Transformacion OK | Nodo%d (%s:%d) BLOQUE:%d",payload->ID_Nodo,payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
+		log_info(logger, "Transformacion OK | Nodo%d (%s:%d) BLOQUE:%d",payload->ID_Nodo,payload->IP_Worker,payload->PUERTO_Worker,payload->bloque);
 		send_RESPUESTA_MASTER(YAMAsocket,masterID,idNodo,payload->bloque,1);
 	}else{
 		fallosTransformacion ++;
