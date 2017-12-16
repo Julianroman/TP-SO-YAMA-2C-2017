@@ -27,13 +27,13 @@ endif
 all: Master
 
 dependents:
-	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug && $(MAKE) all
+	-cd /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release && $(MAKE) clean all
 
 # Tool invocations
-Master: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so
+Master: $(OBJS) $(USER_OBJS) /home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug" -o "Master" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release" -o "Master" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -44,6 +44,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Debug/libUtilidades.so:
+/home/utnso/tp-2017-2c-Grupo-1---K3525/Utilidades/Release/libUtilidades.so:
 
 -include ../makefile.targets
